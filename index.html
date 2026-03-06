@@ -321,6 +321,7 @@ function enterGame() {
   G.held = [false,false,false,false,false];
   G.rollsLeft = 3;
   G.hasRolled = false;
+  G.rolling = false;
 
   const t = G.turn;
   const name = G.names[t];
@@ -391,6 +392,7 @@ function doRoll() {
   renderDice(true);
   setTimeout(() => {
     G.rolling = false;
+    renderDice(); // re-render to strip .rolling class from DOM
     if (G.rollsLeft > 0 && !G.gameOver) document.getElementById('rollBtn').disabled = false;
   }, 500);
 
