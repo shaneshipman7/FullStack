@@ -226,11 +226,8 @@ tr.fs-bonus td { color:var(--p1); }
 // ===== SCORE CALC =====
 function rollDie() { return Math.floor(Math.random()*6)+1; }
 
-// Roll a die guaranteed to be different from the current value
-function rollDieNew(current) {
-  let v;
-  do { v = Math.floor(Math.random()*6)+1; } while (v === current);
-  return v;
+function rollDieNew() {
+  return Math.floor(Math.random()*6)+1;
 }
 
 function calcScore(cat, vals) {
