@@ -101,6 +101,8 @@ button.inline { width:auto; display:inline-block; }
 .die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
 .die.locked { opacity:0.45; cursor:default; }
 .die.rolling { animation:shake 0.15s ease-in-out 3; }
+.die.changed { animation:shake 0.15s ease-in-out 3, flashgreen 0.5s ease-out; }
+@keyframes flashgreen { 0%{box-shadow:0 0 0 3px rgba(100,255,100,0.9)} 100%{box-shadow:0 4px 12px rgba(0,0,0,0.6)} }
 @keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
 .pip { width:11px; height:11px; background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
 .face-1 .pip:nth-child(1){top:50%;left:50%;transform:translate(-50%,-50%);}
@@ -224,11 +226,9 @@ tr.fs-bonus td { color:var(--p1); }
 
 <script>
 // ===== SCORE CALC =====
-function rollDie() { return Math.floor(Math.random()*6)+1; }
+function rollDie() { const a=new Uint32Array(1); crypto.getRandomValues(a); return (a[0]%6)+1; }
 
-function rollDieNew() {
-  return Math.floor(Math.random()*6)+1;
-}
+
 
 function calcScore(cat, vals) {
   const c=[0,0,0,0,0,0,0]; let sum=0;
@@ -389,14 +389,19 @@ function doRoll() {
   G.rolling = true;
   document.getElementById('rollBtn').disabled = true;
   clearPreview();
-  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDieNew(v));
+  const prevDice = [...G.dice];
+  const prevHeld = [...G.held];
+  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
+  G.prevDice = prevDice;
+  console.log('ROLL — held:', prevHeld, '| before:', prevDice, '| after:', [...G.dice]);
   G.rollsLeft--;
   G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
   renderDice(true);
   setTimeout(() => {
     G.rolling = false;
-    renderDice(); // re-render to strip .rolling class from DOM
+    G.prevDice = null;
+    renderDice();
     if (G.rollsLeft > 0 && !G.gameOver) document.getElementById('rollBtn').disabled = false;
   }, 500);
 
@@ -549,10 +554,20 @@ function renderDice(animate=false) {
   G.dice.forEach((v,i) => {
     const die = document.createElement('div');
     die.className = `die face-${v}${G.held[i]?' held':''}${locked?' locked':''}${animate&&!G.held[i]?' rolling':''}`;
+    if (animate && !G.held[i] && G.prevDice && G.prevDice[i] !== v) die.classList.add('changed');
     die.innerHTML = '<div class="pip"></div>'.repeat(v);
     if (!locked) {
-      die.onclick = () => {
+      let touchMoved = false;
+      die.addEventListener('touchstart', () => { touchMoved = false; }, { passive: true });
+      die.addEventListener('touchmove',  () => { touchMoved = true;  }, { passive: true });
+      die.addEventListener('touchend', (e) => {
+        if (touchMoved) return;
+        e.preventDefault();
         if (G.rolling) return;
+        if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
+      });
+      die.onclick = (e) => {
+        if ('ontouchstart' in window) return;
         if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
       };
     }
@@ -656,7 +671,7 @@ function holdForCat(cat,vals){
 function runComputerTurn() {
   let cd=Array.from({length:5},rollDie), ch=[false,false,false,false,false];
   for(let roll=0;roll<3;roll++){
-    if(roll>0)cd=cd.map((v,i)=>ch[i]?v:rollDieNew(v));
+    if(roll>0)cd=cd.map((v,i)=>ch[i]?v:rollDie());
     const rl=2-roll;
     if(rl>0){
       let bc=-1,bp=-1;
