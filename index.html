@@ -318,6 +318,7 @@ function enterGame() {
   G.dice = [1,1,1,1,1];
   G.held = [false,false,false,false,false];
   G.rollsLeft = 3;
+  G.hasRolled = false;
 
   const t = G.turn;
   const name = G.names[t];
@@ -380,13 +381,14 @@ function doRoll() {
   clearPreview();
   G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
   G.rollsLeft--;
+  G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
   if (G.rollsLeft === 0) document.getElementById('rollBtn').disabled = true;
   renderDice(true);
 
   const p = G.turn;
   const isFS = isFullStack(G.dice);
-  const isBonusTurn = isFS && G.scores[p][11] !== null;
+  const isBonusTurn = isFS && G.scores[p][11] !== null && G.hasRolled;
 
   if (isBonusTurn) {
     // Auto-apply the bonus immediately
@@ -416,7 +418,7 @@ function setupScoreCellListeners() {
       if (mode === 'vscomp' && p === 'p2') return;
 
       // Joker restriction: if FS bonus turn, only allowed cats are valid
-      const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
+      const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null && G.hasRolled;
       if (isBonusTurn) {
         const allowed = jokerAllowedCats(p, G.dice);
         if (!allowed.has(cat)) {
@@ -489,7 +491,7 @@ function clearPreview() {
 
 function showHints() {
   const p = G.turn;
-  const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
+  const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null && G.hasRolled;
   const allowed = isBonusTurn ? jokerAllowedCats(p, G.dice) : null;
 
   document.querySelectorAll(`.score-cell[data-p="${p}"]`).forEach(cell => {
