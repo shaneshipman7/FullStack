@@ -255,6 +255,7 @@ function freshGame(p1, p2) {
     held:      [false,false,false,false,false],
     rollsLeft: 3,
     gameOver:  false,
+    rolling:   false,
   };
 }
 
@@ -386,6 +387,8 @@ function doRoll() {
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
   if (G.rollsLeft === 0) document.getElementById('rollBtn').disabled = true;
   renderDice(true);
+  G.rolling = true;
+  setTimeout(() => { G.rolling = false; }, 500);
 
   const p = G.turn;
   const isFS = isFullStack(G.dice);
@@ -539,6 +542,7 @@ function renderDice(animate=false) {
     die.innerHTML = '<div class="pip"></div>'.repeat(v);
     if (!locked) {
       die.onclick = () => {
+        if (G.rolling) return;
         if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
       };
     }
