@@ -390,13 +390,16 @@ function doRoll() {
   document.getElementById('rollBtn').disabled = true;
   clearPreview();
   const prevDice = [...G.dice];
-  const prevHeld = [...G.held];
-  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
   G.prevDice = prevDice;
-  console.log('ROLL — held:', prevHeld, '| before:', prevDice, '| after:', [...G.dice]);
+  for (let i = 0; i < 5; i++) {
+    if (!G.held[i]) G.dice[i] = rollDie();
+  }
   G.rollsLeft--;
   G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
+  // Show held state on screen so player can verify
+  const heldMsg = G.held.map((h,i) => h ? `D${i+1}✓` : `D${i+1}`).join(' ');
+  document.getElementById('message').textContent = `Held: ${heldMsg}`;
   renderDice(true);
   setTimeout(() => {
     G.rolling = false;
@@ -557,19 +560,10 @@ function renderDice(animate=false) {
     if (animate && !G.held[i] && G.prevDice && G.prevDice[i] !== v) die.classList.add('changed');
     die.innerHTML = '<div class="pip"></div>'.repeat(v);
     if (!locked) {
-      let touchMoved = false;
-      die.addEventListener('touchstart', () => { touchMoved = false; }, { passive: true });
-      die.addEventListener('touchmove',  () => { touchMoved = true;  }, { passive: true });
       die.addEventListener('touchend', (e) => {
-        if (touchMoved) return;
         e.preventDefault();
-        if (G.rolling) return;
-        if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
-      });
-      die.onclick = (e) => {
-        if ('ontouchstart' in window) return;
-        if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
-      };
+        if (G.rollsLeft < 3 && !G.rolling) { G.held[i]=!G.held[i]; renderDice(); }
+      }, { passive: false });
     }
     dc.appendChild(die);
   });
