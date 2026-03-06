@@ -378,17 +378,21 @@ function jokerAllowedCats(p, vals) {
 
 // ===== ROLL =====
 function doRoll() {
-  if (G.gameOver || G.rollsLeft <= 0) return;
+  if (G.gameOver || G.rollsLeft <= 0 || G.rolling) return;
   if (G.turn === 'p2' && mode === 'vscomp') return;
+  // Immediately lock out further rolls/clicks during animation
+  G.rolling = true;
+  document.getElementById('rollBtn').disabled = true;
   clearPreview();
   G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
   G.rollsLeft--;
   G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
-  if (G.rollsLeft === 0) document.getElementById('rollBtn').disabled = true;
   renderDice(true);
-  G.rolling = true;
-  setTimeout(() => { G.rolling = false; }, 500);
+  setTimeout(() => {
+    G.rolling = false;
+    if (G.rollsLeft > 0 && !G.gameOver) document.getElementById('rollBtn').disabled = false;
+  }, 500);
 
   const p = G.turn;
   const isFS = isFullStack(G.dice);
