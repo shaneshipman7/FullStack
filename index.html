@@ -2,671 +2,143 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FullStack</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KICA8IS0tIERhcmsgYmFja2dyb3VuZCAtLT4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMCIgZmlsbD0iIzBkMGQwZiIvPgogIAogIDwhLS0gUm93IDE6IDMgZGljZSAtLT4KICA8IS0tIERpZSAxLDEgLS0+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMyIgZmlsbD0iI2U4ZmY0NyIvPgogIDxjaXJjbGUgY3g9IjExIiBjeT0iMTEiIHI9IjIuNSIgZmlsbD0iIzBkMGQwZiIvPgogIAogIDwhLS0gRGllIDEsMiAtLT4KICA8cmVjdCB4PSIyMyIgeT0iMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMyIgZmlsbD0iI2U4ZmY0NyIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMTEiIHI9IjIuNSIgZmlsbD0iIzBkMGQwZiIvPgogIAogIDwhLS0gRGllIDEsMyAtLT4KICA8cmVjdCB4PSI0NCIgeT0iMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMyIgZmlsbD0iI2U4ZmY0NyIvPgogIDxjaXJjbGUgY3g9IjUzIiBjeT0iMTEiIHI9IjIuNSIgZmlsbD0iIzBkMGQwZiIvPgogIAogIDwhLS0gUm93IDI6IDMgZGljZSAob2Zmc2V0IC0gb25seSAyIHRvIG1ha2UgNSB0b3RhbCwgY2VudGVyZWQpIC0tPgogIDwhLS0gRGllIDIsMSAtLT4KICA8cmVjdCB4PSIxMiIgeT0iMjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSIyMSIgY3k9IjMyIiByPSIyLjUiIGZpbGw9IiMwZDBkMGYiLz4KICAKICA8IS0tIERpZSAyLDIgLS0+CiAgPHJlY3QgeD0iMzQiIHk9IjIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iNDMiIGN5PSIzMiIgcj0iMi41IiBmaWxsPSIjMGQwZDBmIi8+CgogIDwhLS0gRlMgdGV4dCBiZWxvdyAtLT4KICA8dGV4dCB4PSIzMiIgeT0iNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iI2U4ZmY0NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjEiPkZTPC90ZXh0Pgo8L3N2Zz4=">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>CareCloud Swing Trading Notes</title>
 <style>
-:root {
-  --bg: #0d0d0f;
-  --surface: #161618;
-  --surface2: #1e1e22;
-  --border: #2a2a30;
-  --p1: #e8ff47;
-  --p2: #47c3ff;
-  --danger: #ff4757;
-  --text: #e8e8ee;
-  --muted: #666672;
-  --held: #ff9800;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'IBM Plex Mono', monospace;
-  background: var(--bg); color: var(--text);
-  min-height: 100vh; padding: 20px 16px 40px;
-  background-image: radial-gradient(ellipse at 20% 0%, #1a1a2e 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 100%, #0f1a0f 0%, transparent 50%);
-}
-h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.4rem, 7vw, 4rem);
-  letter-spacing: 0.06em; color: var(--p1);
-  text-align: center; margin-bottom: 4px;
-  text-shadow: 0 0 40px rgba(232,255,71,0.3);
-}
-.subtitle { text-align:center; font-size:0.7em; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:24px; }
-
-/* ===== SCREENS ===== */
-.screen { display:none; }
-.screen.active { display:block; }
-
-/* ===== LOBBY ===== */
-#lobby { max-width:380px; margin:0 auto; }
-.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 20px; margin-bottom:14px; }
-.card h2 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.08em; margin-bottom:14px; }
-.card h2.c1 { color:var(--p1); } .card h2.c2 { color:var(--p2); }
-.divider { text-align:center; color:var(--muted); font-size:0.72em; letter-spacing:0.12em; margin:10px 0; }
-input[type=text] {
-  font-family:'IBM Plex Mono',monospace; background:var(--surface2);
-  border:1px solid var(--border); border-radius:6px; color:var(--text);
-  font-size:0.9em; padding:9px 12px; width:100%; margin-bottom:10px; outline:none;
-  transition:border-color 0.2s;
-}
-input[type=text]:focus { border-color:var(--p1); }
-input[type=text]::placeholder { color:var(--muted); }
-
-/* ===== BUTTONS ===== */
-button {
-  font-family:'IBM Plex Mono',monospace; padding:10px 20px;
-  font-size:0.88em; font-weight:600; letter-spacing:0.08em;
-  border:none; border-radius:6px; cursor:pointer; text-transform:uppercase;
-  transition:opacity 0.2s, transform 0.1s; display:block; width:100%; margin:5px 0;
-}
-button:active { transform:scale(0.97); }
-button:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
-button.btn-p1   { background:var(--p1); color:#000; }
-button.btn-p2   { background:var(--p2); color:#000; }
-button.btn-comp { background:#555; color:#fff; }
-button.btn-soft { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
-button.btn-danger { background:var(--danger); color:#fff; }
-button.inline { width:auto; display:inline-block; }
-
-/* ===== HANDOFF SCREEN ===== */
-#handoff { max-width:360px; margin:0 auto; text-align:center; padding:40px 20px; }
-.handoff-name {
-  font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:0.06em;
-  margin:16px 0 8px;
-}
-.handoff-name.p1 { color:var(--p1); text-shadow:0 0 30px rgba(232,255,71,0.4); }
-.handoff-name.p2 { color:var(--p2); text-shadow:0 0 30px rgba(71,195,255,0.4); }
-.handoff-sub { font-size:0.78em; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:28px; }
-.handoff-btn {
-  font-size:1em; padding:14px 28px; border-radius:8px; margin:0 auto;
-}
-
-/* ===== GAME ===== */
-#game { max-width:600px; margin:0 auto; }
-.turn-banner {
-  text-align:center; font-size:0.85em; font-weight:600; letter-spacing:0.1em;
-  text-transform:uppercase; padding:8px 16px; border-radius:6px; margin-bottom:14px;
-}
-.turn-banner.p1-turn { background:rgba(232,255,71,0.1); color:var(--p1); border:1px solid rgba(232,255,71,0.25); }
-.turn-banner.p2-turn { background:rgba(71,195,255,0.08); color:var(--p2); border:1px solid rgba(71,195,255,0.2); }
-.turn-banner.comp-turn { background:rgba(85,85,85,0.15); color:#aaa; border:1px solid #444; }
-.turn-banner.game-over { background:rgba(255,71,87,0.1); color:var(--danger); border:1px solid rgba(255,71,87,0.25); }
-
-.dice-area { text-align:center; margin-bottom:12px; }
-.dice-container { display:inline-flex; gap:10px; padding:14px 18px; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
-.die { width:56px; height:56px; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:transform 0.15s,border-color 0.2s,box-shadow 0.2s; flex-shrink:0; }
-.die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
-.die.locked { opacity:0.45; cursor:default; }
-.die.rolling { animation:shake 0.15s ease-in-out 3; }
-@keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
-.pip { width:11px; height:11px; background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
-.face-1 .pip:nth-child(1){top:50%;left:50%;transform:translate(-50%,-50%);}
-.face-2 .pip:nth-child(1){top:18%;left:18%;} .face-2 .pip:nth-child(2){bottom:18%;right:18%;}
-.face-3 .pip:nth-child(1){top:18%;left:18%;} .face-3 .pip:nth-child(2){top:50%;left:50%;transform:translate(-50%,-50%);} .face-3 .pip:nth-child(3){bottom:18%;right:18%;}
-.face-4 .pip:nth-child(1){top:18%;left:18%;} .face-4 .pip:nth-child(2){top:18%;right:18%;} .face-4 .pip:nth-child(3){bottom:18%;left:18%;} .face-4 .pip:nth-child(4){bottom:18%;right:18%;}
-.face-5 .pip:nth-child(1){top:18%;left:18%;} .face-5 .pip:nth-child(2){top:18%;right:18%;} .face-5 .pip:nth-child(3){top:50%;left:50%;transform:translate(-50%,-50%);} .face-5 .pip:nth-child(4){bottom:18%;left:18%;} .face-5 .pip:nth-child(5){bottom:18%;right:18%;}
-.face-6 .pip:nth-child(1){top:12%;left:18%;} .face-6 .pip:nth-child(2){top:36%;left:18%;} .face-6 .pip:nth-child(3){top:60%;left:18%;} .face-6 .pip:nth-child(4){top:12%;right:18%;} .face-6 .pip:nth-child(5){top:36%;right:18%;} .face-6 .pip:nth-child(6){top:60%;right:18%;}
-
-.controls { text-align:center; margin-bottom:10px; }
-.controls button { width:auto; min-width:170px; display:inline-block; margin:4px; }
-button.roll { background:var(--p1); color:#000; }
-
-#message { text-align:center; font-size:0.82em; min-height:1.5em; color:var(--p1); letter-spacing:0.05em; margin-bottom:14px; transition:color 0.3s; }
-
-/* SCORECARD */
-.scorecard-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; font-size:0.82em; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-th,td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:center; }
-thead th { background:var(--surface2); font-size:0.72em; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
-thead th:first-child { text-align:left; }
-tbody tr th { text-align:left; font-weight:400; color:#bbb; font-size:0.88em; }
-tr.section-total th, tr.grand-total th { font-weight:600; color:var(--text); }
-tr.section-total td { color:var(--muted); font-size:0.85em; }
-tr.grand-total { background:var(--surface2); }
-tr.grand-total td { font-weight:700; font-size:1.05em; }
-tr.fs-bonus th { color:var(--p1); font-weight:600; }
-tr.fs-bonus td { color:var(--p1); }
-.score-cell { cursor:pointer; transition:background 0.15s; }
-.score-cell:hover:not(.filled):not(.locked-cell) { background:#2a2a35; }
-.score-cell.locked-cell { cursor:default; color:var(--muted) !important; }
-.score-cell.filled { cursor:default; }
-.score-cell.filled-p1 { color:rgba(232,255,71,0.8); }
-.score-cell.filled-p2 { color:rgba(71,195,255,0.8); }
-.score-cell.preview  { background:rgba(232,255,71,0.15)!important; color:var(--p1); font-weight:700; }
-.col-p1 { border-left:2px solid rgba(232,255,71,0.2); }
-.col-p2 { border-left:2px solid rgba(71,195,255,0.2); }
-#grandP1 { color:var(--p1)!important; }
-#grandP2 { color:var(--p2)!important; }
-.bottom-row { text-align:center; margin-top:16px; }
+  body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background: #f9f9f9; color: #333; }
+  h1, h2, h3 { color: #1a237e; }
+  h1 { font-size: 24px; margin-bottom: 10px; }
+  h2 { font-size: 20px; margin-top: 20px; margin-bottom: 8px; }
+  h3 { font-size: 16px; margin-top: 15px; margin-bottom: 5px; }
+  p { margin-bottom: 10px; }
+  ul { margin-bottom: 10px; }
+  li { margin-bottom: 5px; }
+  code { background: #e0e0e0; padding: 2px 4px; border-radius: 4px; }
+  table { border-collapse: collapse; margin-bottom: 10px; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; }
+  th { background: #e8eaf6; }
 </style>
 </head>
 <body>
 
-<h1>FullStack</h1>
-<p class="subtitle" id="subtitle">Dice Game</p>
+<h1>CareCloud Inc. (CCLD) Swing Trading Notes</h1>
 
-<!-- ===== LOBBY ===== -->
-<div id="lobby" class="screen active">
-  <div style="max-width:380px;margin:0 auto;">
-    <div class="card">
-      <h2 class="c1">Pass &amp; Play</h2>
-      <input type="text" id="name1" placeholder="Player 1 name" maxlength="16" value="Player 1" onfocus="this.select()">
-      <input type="text" id="name2" placeholder="Player 2 name" maxlength="16" value="Player 2" onfocus="this.select()">
-      <button class="btn-p1" onclick="startPassPlay()">Start Game</button>
-    </div>
-    <div class="divider">— or —</div>
-    <div class="card">
-      <h2 class="c2">vs Computer</h2>
-      <input type="text" id="nameComp" placeholder="Your name" maxlength="16" value="Player 1" onfocus="this.select()">
-      <button class="btn-comp" onclick="startVsComp()">Play vs Computer</button>
-    </div>
-  </div>
-</div>
+<h2>1. Stock Overview</h2>
+<ul>
+  <li><strong>Ticker:</strong> CCLD</li>
+  <li><strong>Current Price:</strong> ~$2.73</li>
+  <li><strong>Market Cap:</strong> ~$100–110M</li>
+  <li><strong>Beta:</strong> ~2.0 (high volatility)</li>
+  <li><strong>52-Week Range:</strong> $1.14 – $4.21</li>
+  <li><strong>Upcoming Catalyst:</strong> Earnings expected March 12, 2026</li>
+</ul>
 
-<!-- ===== HANDOFF SCREEN ===== -->
-<div id="handoff" class="screen">
-  <p style="font-size:0.72em;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;">Hand the phone to</p>
-  <div class="handoff-name" id="handoffName">Player 2</div>
-  <p class="handoff-sub" id="handoffSub">It's your turn!</p>
-  <button class="btn-p2 handoff-btn inline" id="handoffBtn" onclick="confirmHandoff()">I'm Ready — Start Turn</button>
-</div>
+<h2>2. Key Swing Trading Thesis</h2>
+<p>An experienced swing trader may view CCLD as a <strong>momentum / micro-cap swing opportunity</strong> based on:</p>
+<ul>
+  <li>Small market cap with low float → easy to move with volume spikes</li>
+  <li>Recent base formation → support appears to be holding</li>
+  <li>Potential breakout above resistance at ~$3.00</li>
+  <li>FinTwit (social) attention may amplify moves</li>
+</ul>
 
-<!-- ===== GAME ===== -->
-<div id="game" class="screen">
-  <div class="turn-banner p1-turn" id="turnBanner">Player 1's Turn</div>
+<h3>Typical Swing Trade Setup</h3>
+<ul>
+  <li><strong>Entry:</strong> Near support or on breakout</li>
+  <li><strong>Stop Loss:</strong> 5–10% below support</li>
+  <li><strong>Profit Target:</strong> 20–100% depending on momentum</li>
+  <li><strong>Timeframe:</strong> 3 days – 3 weeks</li>
+</ul>
 
-  <div class="dice-area">
-    <div class="dice-container" id="diceContainer"></div>
-  </div>
-  <div class="controls">
-    <button id="rollBtn" class="roll" onclick="doRoll()">Roll (3 left)</button>
-  </div>
-  <div id="message">Roll to start!</div>
+<h2>3. Influential X Accounts (Momentum / Small-Cap Traders)</h2>
+<p>Some accounts often trigger micro-cap attention:</p>
+<ul>
+  <li>@TheRoaringKitty</li>
+  <li>@MrZackMorris</li>
+  <li>@Ultra_Calls</li>
+  <li>@MapleStax</li>
+  <li>@SenditStocks</li>
+  <li>@MandoTrading</li>
+  <li>@StockSwingAlert</li>
+  <li>@PlayBookTrades</li>
+</ul>
+<p>If multiple of these accounts mention the same ticker within 24–48 hours, it often signals potential <strong>momentum runs</strong>.</p>
 
-  <div class="scorecard-wrap">
-  <table>
-  <thead>
-    <tr>
-      <th>Category</th>
-      <th class="col-p1" id="headP1">P1</th>
-      <th class="col-p2" id="headP2">P2</th>
-    </tr>
-  </thead>
-  <tbody>
-  <tr><th>Aces</th>        <td class="score-cell col-p1" data-cat="0" data-p="p1"></td><td class="score-cell col-p2" data-cat="0" data-p="p2"></td></tr>
-  <tr><th>Twos</th>        <td class="score-cell col-p1" data-cat="1" data-p="p1"></td><td class="score-cell col-p2" data-cat="1" data-p="p2"></td></tr>
-  <tr><th>Threes</th>      <td class="score-cell col-p1" data-cat="2" data-p="p1"></td><td class="score-cell col-p2" data-cat="2" data-p="p2"></td></tr>
-  <tr><th>Fours</th>       <td class="score-cell col-p1" data-cat="3" data-p="p1"></td><td class="score-cell col-p2" data-cat="3" data-p="p2"></td></tr>
-  <tr><th>Fives</th>       <td class="score-cell col-p1" data-cat="4" data-p="p1"></td><td class="score-cell col-p2" data-cat="4" data-p="p2"></td></tr>
-  <tr><th>Sixes</th>       <td class="score-cell col-p1" data-cat="5" data-p="p1"></td><td class="score-cell col-p2" data-cat="5" data-p="p2"></td></tr>
-  <tr class="section-total"><th>Upper Total</th><td class="col-p1" id="upperP1">0</td><td class="col-p2" id="upperP2">0</td></tr>
-  <tr><th>Bonus (≥63)</th> <td class="col-p1" id="bonusP1">—</td><td class="col-p2" id="bonusP2">—</td></tr>
-  <tr><th>3 of a Kind</th> <td class="score-cell col-p1" data-cat="6"  data-p="p1"></td><td class="score-cell col-p2" data-cat="6"  data-p="p2"></td></tr>
-  <tr><th>4 of a Kind</th> <td class="score-cell col-p1" data-cat="7"  data-p="p1"></td><td class="score-cell col-p2" data-cat="7"  data-p="p2"></td></tr>
-  <tr><th>Full House</th>  <td class="score-cell col-p1" data-cat="8"  data-p="p1"></td><td class="score-cell col-p2" data-cat="8"  data-p="p2"></td></tr>
-  <tr><th>Sm. Straight</th><td class="score-cell col-p1" data-cat="9"  data-p="p1"></td><td class="score-cell col-p2" data-cat="9"  data-p="p2"></td></tr>
-  <tr><th>Lg. Straight</th><td class="score-cell col-p1" data-cat="10" data-p="p1"></td><td class="score-cell col-p2" data-cat="10" data-p="p2"></td></tr>
-  <tr><th>FullStack!</th>  <td class="score-cell col-p1" data-cat="11" data-p="p1"></td><td class="score-cell col-p2" data-cat="11" data-p="p2"></td></tr>
-  <tr><th>Chance</th>      <td class="score-cell col-p1" data-cat="12" data-p="p1"></td><td class="score-cell col-p2" data-cat="12" data-p="p2"></td></tr>
-  <tr class="fs-bonus"><th>FullStack Bonus</th><td class="col-p1" id="fsBonusP1">—</td><td class="col-p2" id="fsBonusP2">—</td></tr>
-  <tr class="section-total"><th>Lower Total</th><td class="col-p1" id="lowerP1">0</td><td class="col-p2" id="lowerP2">0</td></tr>
-  <tr class="grand-total"><th>Grand Total</th><td class="col-p1" id="grandP1">0</td><td class="col-p2" id="grandP2">0</td></tr>
-  </tbody>
-  </table>
-  </div>
-  <div class="bottom-row">
-    <button class="btn-soft inline" style="font-size:0.8em;padding:8px 16px;" onclick="goLobby()">New Game</button>
-  </div>
-</div>
+<h2>4. Indicators Before Retail Notices</h2>
+<p>Experienced traders look for early signs before large retail participation:</p>
+<ol>
+  <li><strong>Unusual Volume:</strong> 3–5× normal volume indicates early accumulation.</li>
+  <li><strong>Tight Consolidation:</strong> Stock moves sideways with small candles → “coiling” pattern.</li>
+  <li><strong>Resistance Level Testing:</strong> Repeatedly tapping resistance weakens sellers.</li>
+  <li><strong>Rising Social Chatter:</strong> Gradual increase in mentions on X / forums.</li>
+  <li><strong>Upcoming Catalyst:</strong> Earnings, product news, or analyst coverage.</li>
+</ol>
 
-<script>
-// ===== SCORE CALC =====
-function rollDie() { return Math.floor(Math.random()*6)+1; }
+<h2>5. Stealth Accumulation Pattern</h2>
+<p>This is often the precursor to a breakout:</p>
+<ol>
+  <li><strong>Downtrend ends:</strong> Price stabilizes after long decline.</li>
+  <li><strong>Tight Range:</strong> Sideways trading for days/weeks, indicating absorption.</li>
+  <li><strong>Volume Increases Quietly:</strong> Rising volume without significant price movement.</li>
+  <li><strong>Breakout:</strong> Price finally surges when supply is absorbed.</li>
+</ol>
 
-function calcScore(cat, vals) {
-  const c=[0,0,0,0,0,0,0]; let sum=0;
-  vals.forEach(v=>{c[v]++;sum+=v;});
-  if(cat<=5)  return c[cat+1]*(cat+1);
-  if(cat===6) return c.some(x=>x>=3)?sum:0;
-  if(cat===7) return c.some(x=>x>=4)?sum:0;
-  if(cat===8) return (c.some(x=>x===3)&&c.some(x=>x===2))?25:0;
-  if(cat===9) { const u=[...new Set(vals)].sort((a,b)=>a-b); for(let i=0;i<=u.length-4;i++) if(u[i+3]===u[i]+3) return 30; return 0; }
-  if(cat===10){ const u=[...new Set(vals)].sort((a,b)=>a-b); return(u.length===5&&u[4]===u[0]+4)?40:0; }
-  if(cat===11) return new Set(vals).size===1?50:0;
-  if(cat===12) return sum;
-  return 0;
-}
+<h3>Technical Signals</h3>
+<ul>
+  <li>Gradually higher lows even in tight range</li>
+  <li>Decreasing volatility → small candles</li>
+  <li>Repeated taps on resistance weaken sellers</li>
+</ul>
 
-// ===== GAME STATE =====
-let G = null; // game object
-let mode = null; // 'passplay' | 'vscomp'
-let pendingCat = null;
+<h2>6. Dark Pool Activity</h2>
+<p>Dark pools are private trading venues where institutions buy/sell large blocks without showing orders publicly. Monitoring dark pools can give early insight into potential momentum.</p>
 
-function freshGame(p1, p2) {
-  return {
-    names:     { p1, p2 },
-    scores:    { p1: Array(13).fill(null), p2: Array(13).fill(null) },
-    fsBonus:   { p1: 0, p2: 0 },
-    turn:      'p1',
-    dice:      [1,1,1,1,1],
-    held:      [false,false,false,false,false],
-    rollsLeft: 3,
-    gameOver:  false,
-  };
-}
+<h3>Key Metrics</h3>
+<ul>
+  <li><strong>Dark Pool Volume Ratio:</strong> Dark Pool Volume / Total Volume</li>
+  <li>Ratio >50% may indicate institutional accumulation</li>
+</ul>
 
-// ===== SCREEN MANAGEMENT =====
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+<h3>Tools to Monitor Dark Pools</h3>
+<ul>
+  <li>Unusual Whales</li>
+  <li>Cheddar Flow</li>
+  <li>Market Chameleon</li>
+</ul>
 
-// ===== START =====
-function startPassPlay() {
-  const p1 = document.getElementById('name1').value.trim() || 'Player 1';
-  const p2 = document.getElementById('name2').value.trim() || 'Player 2';
-  mode = 'passplay';
-  G = freshGame(p1, p2);
-  document.getElementById('subtitle').textContent = 'Pass & Play';
-  document.getElementById('headP1').textContent = p1;
-  document.getElementById('headP2').textContent = p2;
-  setupScoreCellListeners();
-  showHandoff('p1'); // P1 goes first — show handoff even for first turn for consistency
-}
+<h2>7. Powerful Combination for Micro-Cap Breakouts</h2>
+<p>Traders watch for the simultaneous occurrence of:</p>
+<ol>
+  <li>Rising volume</li>
+  <li>Increasing social mentions (X / StockTwits / Discord)</li>
+  <li>Dark pool block trades</li>
+</ol>
+<p>When all align, a momentum explosion is more likely.</p>
 
-function startVsComp() {
-  const p1 = document.getElementById('nameComp').value.trim() || 'Player 1';
-  mode = 'vscomp';
-  G = freshGame(p1, 'Computer');
-  document.getElementById('subtitle').textContent = 'vs Computer';
-  document.getElementById('headP1').textContent = p1;
-  document.getElementById('headP2').textContent = 'Computer';
-  setupScoreCellListeners();
-  enterGame(); // No handoff for vs computer — just start
-}
+<h2>8. CareCloud Example</h2>
+<ul>
+  <li><strong>Support:</strong> $2.40 – $2.50</li>
+  <li><strong>Breakout Level:</strong> $3.00</li>
+  <li><strong>Momentum Targets:</strong> $3.80 → $4.20 → $5+</li>
+  <li>Watch for volume >1–1.5M shares to confirm accumulation</li>
+</ul>
 
-function goLobby() {
-  G = null; mode = null; pendingCat = null;
-  document.querySelectorAll('.score-cell').forEach(c => {
-    c.textContent = ''; c.className = c.className.replace(/filled[^ ]*/g,'').replace('preview','').replace('locked-cell','').trim();
-  });
-  ['upperP1','upperP2','bonusP1','bonusP2','lowerP1','lowerP2','grandP1','grandP2','fsBonusP1','fsBonusP2']
-    .forEach(id => document.getElementById(id).textContent = id.startsWith('bonus')||id.startsWith('fs') ? '—' : '0');
-  showScreen('lobby');
-}
+<h2>9. Daily Workflow for Traders</h2>
+<ol>
+  <li>Run a screener for low-cap, low-float stocks with unusual volume.</li>
+  <li>Check charts for tight consolidation, rising volume, and approaching resistance.</li>
+  <li>Monitor social chatter for early mentions by FinTwit accounts.</li>
+  <li>Check dark pool volume for potential institutional accumulation.</li>
+  <li>Plan entry near support or just before breakout; set stop loss and profit targets.</li>
+</ol>
 
-// ===== HANDOFF SCREEN =====
-function showHandoff(nextPlayer) {
-  const name = G.names[nextPlayer];
-  const nameEl = document.getElementById('handoffName');
-  const btn = document.getElementById('handoffBtn');
-  nameEl.textContent = name;
-  nameEl.className = 'handoff-name ' + nextPlayer;
-  btn.className = `btn-${nextPlayer} handoff-btn inline`;
-  document.getElementById('handoffSub').textContent = "It's your turn!";
-  showScreen('handoff');
-}
+<h2>10. Risk Notes</h2>
+<ul>
+  <li>High volatility → microcaps can collapse 50–70% after hype peaks</li>
+  <li>Always combine multiple signals rather than relying on one indicator</li>
+  <li>FinTwit-driven moves are very fast; timing and execution matter</li>
+</ul>
 
-function confirmHandoff() {
-  enterGame();
-}
+<p><em>These notes consolidate the entire conversation into a single HTML reference for swing/momentum trading strategy, stealth accumulation, dark pool signals, and CareCloud analysis.</em></p>
 
-function enterGame() {
-  pendingCat = null;
-  G.dice = [1,1,1,1,1];
-  G.held = [false,false,false,false,false];
-  G.rollsLeft = 3;
-  G.hasRolled = false;
-
-  const t = G.turn;
-  const name = G.names[t];
-
-  const banner = document.getElementById('turnBanner');
-  if (G.gameOver) {
-    banner.className = 'turn-banner game-over';
-    banner.textContent = 'Game Over';
-  } else if (t === 'p2' && mode === 'vscomp') {
-    banner.className = 'turn-banner comp-turn';
-    banner.textContent = "Computer's Turn";
-  } else {
-    banner.className = `turn-banner ${t}-turn`;
-    banner.textContent = `${name}'s Turn`;
-  }
-
-  document.getElementById('rollBtn').disabled = false;
-  document.getElementById('rollBtn').textContent = 'Roll (3 left)';
-  document.getElementById('message').textContent = 'Roll to start!';
-  document.getElementById('message').style.color = t === 'p1' ? 'var(--p1)' : 'var(--p2)';
-  renderDice();
-  updateScorecard();
-  showScreen('game');
-
-  if (t === 'p2' && mode === 'vscomp') {
-    document.getElementById('rollBtn').disabled = true;
-    document.getElementById('message').textContent = 'Computer is thinking…';
-    setTimeout(runComputerTurn, 800);
-  }
-}
-
-// ===== JOKER RULE =====
-// Returns true if current dice are a FullStack (five of a kind)
-function isFullStack(vals) { return new Set(vals).size === 1; }
-
-// Given a player, returns the set of category indices they're allowed to score in
-// under the joker rule (used when they've rolled a FullStack and cat 11 is already filled).
-// Priority: 1) matching upper section, 2) any open lower cat, 3) any open upper cat (score 0)
-function jokerAllowedCats(p, vals) {
-  const faceVal = vals[0]; // all same
-  const upperCat = faceVal - 1; // e.g. sixes = cat 5
-
-  // 1. Matching upper section open?
-  if (G.scores[p][upperCat] === null) return new Set([upperCat]);
-
-  // 2. Any open lower category (cats 6–12)?
-  const openLower = [6,7,8,9,10,11,12].filter(c => G.scores[p][c] === null);
-  // cat 11 is already filled (that's why we're here), so it won't appear
-  if (openLower.length > 0) return new Set(openLower);
-
-  // 3. Any open upper category
-  const openUpper = [0,1,2,3,4,5].filter(c => G.scores[p][c] === null);
-  return new Set(openUpper);
-}
-
-// ===== ROLL =====
-function doRoll() {
-  if (G.gameOver || G.rollsLeft <= 0) return;
-  if (G.turn === 'p2' && mode === 'vscomp') return;
-  clearPreview();
-  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
-  G.rollsLeft--;
-  G.hasRolled = true;
-  document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
-  if (G.rollsLeft === 0) document.getElementById('rollBtn').disabled = true;
-  renderDice(true);
-
-  const p = G.turn;
-  const isFS = isFullStack(G.dice);
-  const isBonusTurn = isFS && G.scores[p][11] !== null && G.hasRolled;
-
-  if (isBonusTurn) {
-    // Auto-apply the bonus immediately
-    G.fsBonus[p] += 100;
-    updateScorecard();
-    const allowed = jokerAllowedCats(p, G.dice);
-    const msgEl = document.getElementById('message');
-    msgEl.style.color = 'var(--p1)';
-    msgEl.textContent = `FullStack bonus! +100 🎲 Now score in a ${allowed.size === 1 ? 'highlighted' : 'valid'} category`;
-  } else {
-    document.getElementById('message').textContent = G.rollsLeft > 0
-      ? 'Hold dice to keep, roll again or score'
-      : 'Choose a category to score';
-  }
-  showHints();
-}
-
-// ===== SCORE CLICK =====
-function setupScoreCellListeners() {
-  document.querySelectorAll('.score-cell').forEach(cell => {
-    cell.onclick = () => {
-      const p = cell.dataset.p;
-      const cat = parseInt(cell.dataset.cat);
-      if (G.gameOver || G.turn !== p) return;
-      if (G.scores[p][cat] !== null) return;
-      if (G.rollsLeft === 3) return; // must roll first
-      if (mode === 'vscomp' && p === 'p2') return;
-
-      // Joker restriction: if FS bonus turn, only allowed cats are valid
-      const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null && G.hasRolled;
-      if (isBonusTurn) {
-        const allowed = jokerAllowedCats(p, G.dice);
-        if (!allowed.has(cat)) {
-          document.getElementById('message').textContent = 'Must score in a valid joker category first';
-          return;
-        }
-      }
-
-      // Joker scoring: use face value for upper, or fixed values for lower specials
-      let sc;
-      if (isBonusTurn) {
-        sc = jokerScore(cat, G.dice);
-      } else {
-        sc = calcScore(cat, G.dice);
-      }
-
-      if (pendingCat !== cat) {
-        clearPreview();
-        pendingCat = cat;
-        cell.textContent = sc;
-        cell.classList.add('preview');
-        document.getElementById('message').textContent = 'Tap again to confirm';
-        return;
-      }
-
-      // Confirm
-      clearPreview();
-      G.scores[p][cat] = sc;
-      updateScorecard();
-
-      if (checkGameOver()) return;
-
-      const next = p === 'p1' ? 'p2' : 'p1';
-      G.turn = next;
-
-      if (mode === 'passplay') {
-        showHandoff(next);
-      } else {
-        enterGame();
-      }
-    };
-  });
-}
-
-// Joker scoring: upper cats score face value; lower cats score their normal values
-// (a FullStack counts as 3oak, 4oak, full house, and chance — but NOT straights)
-function jokerScore(cat, vals) {
-  const faceVal = vals[0];
-  const sum = faceVal * 5;
-  if (cat <= 5)  return calcScore(cat, vals); // upper: normal
-  if (cat === 6) return sum;  // 3oak: sum
-  if (cat === 7) return sum;  // 4oak: sum
-  if (cat === 8) return 25;   // full house: 25
-  if (cat === 9) return 30;   // small straight: 30 (joker rule)
-  if (cat === 10) return 40;  // large straight: 40 (joker rule)
-  if (cat === 11) return 50;  // shouldn't reach here but just in case
-  if (cat === 12) return sum; // chance: sum
-  return 0;
-}
-
-function clearPreview() {
-  document.querySelectorAll('.score-cell.preview').forEach(c => {
-    c.classList.remove('preview');
-    const cat = parseInt(c.dataset.cat);
-    const p = c.dataset.p;
-    if (G.scores[p][cat] === null) c.textContent = '';
-  });
-  pendingCat = null;
-}
-
-function showHints() {
-  const p = G.turn;
-  const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null && G.hasRolled;
-  const allowed = isBonusTurn ? jokerAllowedCats(p, G.dice) : null;
-
-  document.querySelectorAll(`.score-cell[data-p="${p}"]`).forEach(cell => {
-    const cat = parseInt(cell.dataset.cat);
-    if (G.scores[p][cat] !== null) return;
-    if (cell.classList.contains('preview')) return;
-
-    if (isBonusTurn) {
-      if (allowed.has(cat)) {
-        const sc = jokerScore(cat, G.dice);
-        cell.textContent = sc > 0 ? sc : '—';
-        cell.style.background = 'rgba(232,255,71,0.08)'; // subtle highlight
-      } else {
-        cell.textContent = '✗';
-        cell.style.background = '';
-      }
-    } else {
-      cell.style.background = '';
-      const sc = calcScore(cat, G.dice);
-      cell.textContent = sc > 0 ? sc : '—';
-    }
-  });
-}
-
-// ===== DICE RENDER =====
-function renderDice(animate=false) {
-  const dc = document.getElementById('diceContainer');
-  dc.innerHTML = '';
-  const t = G.turn;
-  const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
-  G.dice.forEach((v,i) => {
-    const die = document.createElement('div');
-    die.className = `die face-${v}${G.held[i]?' held':''}${locked?' locked':''}${animate&&!G.held[i]?' rolling':''}`;
-    die.innerHTML = '<div class="pip"></div>'.repeat(v);
-    if (!locked) {
-      die.onclick = () => {
-        if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
-      };
-    }
-    dc.appendChild(die);
-  });
-}
-
-// ===== SCORECARD =====
-function updateScorecard() {
-  ['p1','p2'].forEach(p => {
-    const suf = p === 'p1' ? 'P1' : 'P2';
-    const t = G.turn;
-
-    for (let c=0; c<13; c++) {
-      const cell = document.querySelector(`.score-cell[data-p="${p}"][data-cat="${c}"]`);
-      if (G.scores[p][c] !== null) {
-        cell.textContent = G.scores[p][c];
-        cell.className = `score-cell col-${p} filled filled-${p}`;
-      } else if (!cell.classList.contains('preview')) {
-        cell.textContent = '';
-        const isActive = t === p && !G.gameOver && !(mode==='vscomp'&&p==='p2');
-        cell.className = `score-cell col-${p}${isActive?'':' locked-cell'}`;
-      }
-    }
-
-    const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
-    const bonus  = upper >= 63 ? 35 : 0;
-    const lower  = G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
-    const grand  = upper + bonus + lower;
-    document.getElementById(`upper${suf}`).textContent = upper;
-    document.getElementById(`bonus${suf}`).textContent = bonus > 0 ? '+35' : `${upper}/63`;
-    document.getElementById(`lower${suf}`).textContent = lower;
-    document.getElementById(`grand${suf}`).textContent = grand;
-    document.getElementById(`fsBonus${suf}`).textContent = G.fsBonus[p] > 0 ? '+'+G.fsBonus[p] : '—';
-  });
-}
-
-// ===== GAME OVER =====
-function checkGameOver() {
-  if (!G.scores.p1.every(v=>v!==null) || !G.scores.p2.every(v=>v!==null)) return false;
-  G.gameOver = true;
-  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
-  const n1 = G.names.p1, n2 = G.names.p2;
-
-  const banner = document.getElementById('turnBanner');
-  banner.className = 'turn-banner game-over';
-  const msgEl = document.getElementById('message');
-
-  if (s1 > s2) {
-    banner.textContent = `🏆 ${n1} Wins!`;
-    msgEl.textContent = `${n1} wins! ${s1} vs ${s2}`;
-    msgEl.style.color = 'var(--p1)';
-  } else if (s2 > s1) {
-    banner.textContent = `🏆 ${n2} Wins!`;
-    msgEl.textContent = `${n2} wins! ${s2} vs ${s1}`;
-    msgEl.style.color = 'var(--p2)';
-  } else {
-    banner.textContent = "It's a Tie!";
-    msgEl.textContent = `Tie game! Both scored ${s1}`;
-    msgEl.style.color = 'var(--p1)';
-  }
-
-  document.getElementById('rollBtn').disabled = true;
-  renderDice();
-  return true;
-}
-
-function grandTotal(p) {
-  const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
-  const bonus = upper >= 63 ? 35 : 0;
-  return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
-}
-
-// ===== COMPUTER AI =====
-function evalPotential(cat,vals,rl){
-  if(rl===0)return calcScore(cat,vals);
-  const c=[0,0,0,0,0,0,0];vals.forEach(v=>c[v]++);const mx=Math.max(...c.slice(1));
-  if(cat===11){if(mx===5)return 50;if(mx===4)return rl>=1?8.35:0;if(mx===3)return rl>=2?1.4:0;return 0;}
-  if(cat===6){const s=calcScore(6,vals);if(s>0)return s;if(mx>=2&&rl>=1){return c.indexOf(mx)*mx*0.5;}return 0;}
-  if(cat===7){const s=calcScore(7,vals);if(s>0)return s;if(mx>=3&&rl>=1)return c.indexOf(mx)*mx*0.3;return 0;}
-  if(cat===8){const s=calcScore(8,vals);if(s>0)return 25;const pairs=c.filter(x=>x===2).length,threes=c.filter(x=>x===3).length;if(threes&&rl>=1)return 5;if(pairs===2&&rl>=1)return 8;return 0;}
-  if(cat===9){const s=calcScore(9,vals);if(s>0)return 30;const u=[...new Set(vals)].sort((a,b)=>a-b);let mx2=1,rn=1;for(let i=1;i<u.length;i++){if(u[i]===u[i-1]+1)rn++;else rn=1;mx2=Math.max(mx2,rn);}if(mx2>=3&&rl>=1)return 10;return 0;}
-  if(cat===10){const s=calcScore(10,vals);if(s>0)return 40;const u=[...new Set(vals)].sort((a,b)=>a-b);let mx2=1,rn=1;for(let i=1;i<u.length;i++){if(u[i]===u[i-1]+1)rn++;else rn=1;mx2=Math.max(mx2,rn);}if(mx2>=4&&rl>=1)return 13;return 0;}
-  if(cat===12)return vals.reduce((a,b)=>a+b,0);
-  if(cat<=5){const t=cat+1;const m=vals.filter(v=>v===t).length;return m*t+(5-m)*(1/6)*t*(rl>1?1.15:1);}
-  return calcScore(cat,vals);
-}
-
-function holdForCat(cat,vals){
-  const c=[0,0,0,0,0,0,0];vals.forEach(v=>c[v]++);
-  if(cat<=5){const t=cat+1;return vals.map(v=>v===t);}
-  if(cat===11||cat===6||cat===7){const mx=Math.max(...c.slice(1));const t=c.lastIndexOf(mx);return vals.map(v=>v===t);}
-  if(cat===8){const h3=c.findIndex((x,i)=>i>0&&x===3);if(h3>0)return vals.map(v=>c[v]>=2);return vals.map(v=>c[v]===2);}
-  if(cat===9||cat===10){const u=[...new Set(vals)].sort((a,b)=>a-b);let br=[],bl=0,cr=[u[0]];for(let i=1;i<u.length;i++){if(u[i]===u[i-1]+1)cr.push(u[i]);else cr=[u[i]];if(cr.length>bl){bl=cr.length;br=[...cr];}}const rs=new Set(br);const used=new Set();return vals.map(v=>{if(rs.has(v)&&!used.has(v)){used.add(v);return true;}return false;});}
-  if(cat===12)return vals.map(v=>v>=5);
-  return [false,false,false,false,false];
-}
-
-function runComputerTurn() {
-  let cd=Array.from({length:5},rollDie), ch=[false,false,false,false,false];
-  for(let roll=0;roll<3;roll++){
-    if(roll>0)cd=cd.map((v,i)=>ch[i]?v:rollDie());
-    const rl=2-roll;
-    if(rl>0){
-      let bc=-1,bp=-1;
-      for(let c=0;c<13;c++){
-        if(G.scores.p2[c]!==null)continue;
-        let p=evalPotential(c,cd,rl);
-        if(c<=5){const uSoFar=G.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0);const uFilled=G.scores.p2.slice(0,6).filter(v=>v!==null).length;const needed=(63-uSoFar)/(6-uFilled||1);if(p>=needed*0.9)p*=1.25;}
-        if(p>bp){bp=p;bc=c;}
-      }
-      if(bc>=0)ch=holdForCat(bc,cd);
-    }
-  }
-  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
-  if (isBonusTurn) G.fsBonus.p2 += 100;
-
-  const allowedCats = isBonusTurn ? jokerAllowedCats('p2', cd) : null;
-  let bc=-1,bw=-1;
-  for(let c=0;c<13;c++){
-    if(G.scores.p2[c]!==null)continue;
-    if(allowedCats && !allowedCats.has(c))continue;
-    const sc = isBonusTurn ? jokerScore(c,cd) : calcScore(c,cd);
-    let w=sc;
-    if(sc===0){if(c<=1)w=0.5;else if(c<=3)w=0.3;else w=0.1;}
-    if(w>bw){bw=w;bc=c;}
-  }
-  if(bc>=0){
-    G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
-  }
-  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
-  updateScorecard();
-  renderDice();
-  if(!checkGameOver()){
-    G.turn='p1';
-    enterGame();
-  }
-}
-</script>
 </body>
 </html>
