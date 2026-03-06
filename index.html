@@ -226,6 +226,13 @@ tr.fs-bonus td { color:var(--p1); }
 // ===== SCORE CALC =====
 function rollDie() { return Math.floor(Math.random()*6)+1; }
 
+// Roll a die guaranteed to be different from the current value
+function rollDieNew(current) {
+  let v;
+  do { v = Math.floor(Math.random()*6)+1; } while (v === current);
+  return v;
+}
+
 function calcScore(cat, vals) {
   const c=[0,0,0,0,0,0,0]; let sum=0;
   vals.forEach(v=>{c[v]++;sum+=v;});
@@ -385,7 +392,7 @@ function doRoll() {
   G.rolling = true;
   document.getElementById('rollBtn').disabled = true;
   clearPreview();
-  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
+  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDieNew(v));
   G.rollsLeft--;
   G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
@@ -652,7 +659,7 @@ function holdForCat(cat,vals){
 function runComputerTurn() {
   let cd=Array.from({length:5},rollDie), ch=[false,false,false,false,false];
   for(let roll=0;roll<3;roll++){
-    if(roll>0)cd=cd.map((v,i)=>ch[i]?v:rollDie());
+    if(roll>0)cd=cd.map((v,i)=>ch[i]?v:rollDieNew(v));
     const rl=2-roll;
     if(rl>0){
       let bc=-1,bp=-1;
