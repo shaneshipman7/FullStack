@@ -371,4 +371,302 @@ function jokerAllowedCats(p, vals) {
   if (openLower.length > 0) return new Set(openLower);
 
   // 3. Any open upper category
-  const openUpper = [0,1,2,3,4,5].filter(c => G.scor
+  const openUpper = [0,1,2,3,4,5].filter(c => G.scores[p][c] === null);
+  return new Set(openUpper);
+}
+
+// ===== ROLL =====
+function doRoll() {
+  if (G.gameOver || G.rollsLeft <= 0) return;
+  if (G.turn === 'p2' && mode === 'vscomp') return;
+  clearPreview();
+  G.dice = G.dice.map((v,i) => G.held[i] ? v : rollDie());
+  G.rollsLeft--;
+  G.hasRolled = true;
+  document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
+  if (G.rollsLeft === 0) document.getElementById('rollBtn').disabled = true;
+  renderDice(true);
+
+  const p = G.turn;
+  const isFS = isFullStack(G.dice);
+  const isBonusTurn = isFS && G.scores[p][11] !== null && G.hasRolled;
+
+  if (isBonusTurn) {
+    // Auto-apply the bonus immediately
+    G.fsBonus[p] += 100;
+    updateScorecard();
+    const allowed = jokerAllowedCats(p, G.dice);
+    const msgEl = document.getElementById('message');
+    msgEl.style.color = 'var(--p1)';
+    msgEl.textContent = `FullStack bonus! +100 🎲 Now score in a ${allowed.size === 1 ? 'highlighted' : 'valid'} category`;
+  } else {
+    document.getElementById('message').textContent = G.rollsLeft > 0
+      ? 'Hold dice to keep, roll again or score'
+      : 'Choose a category to score';
+  }
+  showHints();
+}
+
+// ===== SCORE CLICK =====
+function setupScoreCellListeners() {
+  document.querySelectorAll('.score-cell').forEach(cell => {
+    cell.onclick = () => {
+      const p = cell.dataset.p;
+      const cat = parseInt(cell.dataset.cat);
+      if (G.gameOver || G.turn !== p) return;
+      if (G.scores[p][cat] !== null) return;
+      if (G.rollsLeft === 3) return; // must roll first
+      if (mode === 'vscomp' && p === 'p2') return;
+
+      // Joker restriction: if FS bonus turn, only allowed cats are valid
+      const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null && G.hasRolled;
+      if (isBonusTurn) {
+        const allowed = jokerAllowedCats(p, G.dice);
+        if (!allowed.has(cat)) {
+          document.getElementById('message').textContent = 'Must score in a valid joker category first';
+          return;
+        }
+      }
+
+      // Joker scoring: use face value for upper, or fixed values for lower specials
+      let sc;
+      if (isBonusTurn) {
+        sc = jokerScore(cat, G.dice);
+      } else {
+        sc = calcScore(cat, G.dice);
+      }
+
+      if (pendingCat !== cat) {
+        clearPreview();
+        pendingCat = cat;
+        cell.textContent = sc;
+        cell.classList.add('preview');
+        document.getElementById('message').textContent = 'Tap again to confirm';
+        return;
+      }
+
+      // Confirm
+      clearPreview();
+      G.scores[p][cat] = sc;
+      updateScorecard();
+
+      if (checkGameOver()) return;
+
+      const next = p === 'p1' ? 'p2' : 'p1';
+      G.turn = next;
+
+      if (mode === 'passplay') {
+        showHandoff(next);
+      } else {
+        enterGame();
+      }
+    };
+  });
+}
+
+// Joker scoring: upper cats score face value; lower cats score their normal values
+// (a FullStack counts as 3oak, 4oak, full house, and chance — but NOT straights)
+function jokerScore(cat, vals) {
+  const faceVal = vals[0];
+  const sum = faceVal * 5;
+  if (cat <= 5)  return calcScore(cat, vals); // upper: normal
+  if (cat === 6) return sum;  // 3oak: sum
+  if (cat === 7) return sum;  // 4oak: sum
+  if (cat === 8) return 25;   // full house: 25
+  if (cat === 9) return 30;   // small straight: 30 (joker rule)
+  if (cat === 10) return 40;  // large straight: 40 (joker rule)
+  if (cat === 11) return 50;  // shouldn't reach here but just in case
+  if (cat === 12) return sum; // chance: sum
+  return 0;
+}
+
+function clearPreview() {
+  document.querySelectorAll('.score-cell.preview').forEach(c => {
+    c.classList.remove('preview');
+    const cat = parseInt(c.dataset.cat);
+    const p = c.dataset.p;
+    if (G.scores[p][cat] === null) c.textContent = '';
+  });
+  pendingCat = null;
+}
+
+function showHints() {
+  const p = G.turn;
+  const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null && G.hasRolled;
+  const allowed = isBonusTurn ? jokerAllowedCats(p, G.dice) : null;
+
+  document.querySelectorAll(`.score-cell[data-p="${p}"]`).forEach(cell => {
+    const cat = parseInt(cell.dataset.cat);
+    if (G.scores[p][cat] !== null) return;
+    if (cell.classList.contains('preview')) return;
+
+    if (isBonusTurn) {
+      if (allowed.has(cat)) {
+        const sc = jokerScore(cat, G.dice);
+        cell.textContent = sc > 0 ? sc : '—';
+        cell.style.background = 'rgba(232,255,71,0.08)'; // subtle highlight
+      } else {
+        cell.textContent = '✗';
+        cell.style.background = '';
+      }
+    } else {
+      cell.style.background = '';
+      const sc = calcScore(cat, G.dice);
+      cell.textContent = sc > 0 ? sc : '—';
+    }
+  });
+}
+
+// ===== DICE RENDER =====
+function renderDice(animate=false) {
+  const dc = document.getElementById('diceContainer');
+  dc.innerHTML = '';
+  const t = G.turn;
+  const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
+  G.dice.forEach((v,i) => {
+    const die = document.createElement('div');
+    die.className = `die face-${v}${G.held[i]?' held':''}${locked?' locked':''}${animate&&!G.held[i]?' rolling':''}`;
+    die.innerHTML = '<div class="pip"></div>'.repeat(v);
+    if (!locked) {
+      die.onclick = () => {
+        if (G.rollsLeft < 3) { G.held[i]=!G.held[i]; renderDice(); }
+      };
+    }
+    dc.appendChild(die);
+  });
+}
+
+// ===== SCORECARD =====
+function updateScorecard() {
+  ['p1','p2'].forEach(p => {
+    const suf = p === 'p1' ? 'P1' : 'P2';
+    const t = G.turn;
+
+    for (let c=0; c<13; c++) {
+      const cell = document.querySelector(`.score-cell[data-p="${p}"][data-cat="${c}"]`);
+      if (G.scores[p][c] !== null) {
+        cell.textContent = G.scores[p][c];
+        cell.className = `score-cell col-${p} filled filled-${p}`;
+      } else if (!cell.classList.contains('preview')) {
+        cell.textContent = '';
+        const isActive = t === p && !G.gameOver && !(mode==='vscomp'&&p==='p2');
+        cell.className = `score-cell col-${p}${isActive?'':' locked-cell'}`;
+      }
+    }
+
+    const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+    const bonus  = upper >= 63 ? 35 : 0;
+    const lower  = G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+    const grand  = upper + bonus + lower;
+    document.getElementById(`upper${suf}`).textContent = upper;
+    document.getElementById(`bonus${suf}`).textContent = bonus > 0 ? '+35' : `${upper}/63`;
+    document.getElementById(`lower${suf}`).textContent = lower;
+    document.getElementById(`grand${suf}`).textContent = grand;
+    document.getElementById(`fsBonus${suf}`).textContent = G.fsBonus[p] > 0 ? '+'+G.fsBonus[p] : '—';
+  });
+}
+
+// ===== GAME OVER =====
+function checkGameOver() {
+  if (!G.scores.p1.every(v=>v!==null) || !G.scores.p2.every(v=>v!==null)) return false;
+  G.gameOver = true;
+  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
+  const n1 = G.names.p1, n2 = G.names.p2;
+
+  const banner = document.getElementById('turnBanner');
+  banner.className = 'turn-banner game-over';
+  const msgEl = document.getElementById('message');
+
+  if (s1 > s2) {
+    banner.textContent = `🏆 ${n1} Wins!`;
+    msgEl.textContent = `${n1} wins! ${s1} vs ${s2}`;
+    msgEl.style.color = 'var(--p1)';
+  } else if (s2 > s1) {
+    banner.textContent = `🏆 ${n2} Wins!`;
+    msgEl.textContent = `${n2} wins! ${s2} vs ${s1}`;
+    msgEl.style.color = 'var(--p2)';
+  } else {
+    banner.textContent = "It's a Tie!";
+    msgEl.textContent = `Tie game! Both scored ${s1}`;
+    msgEl.style.color = 'var(--p1)';
+  }
+
+  document.getElementById('rollBtn').disabled = true;
+  renderDice();
+  return true;
+}
+
+function grandTotal(p) {
+  const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+  const bonus = upper >= 63 ? 35 : 0;
+  return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+}
+
+// ===== COMPUTER AI =====
+function evalPotential(cat,vals,rl){
+  if(rl===0)return calcScore(cat,vals);
+  const c=[0,0,0,0,0,0,0];vals.forEach(v=>c[v]++);const mx=Math.max(...c.slice(1));
+  if(cat===11){if(mx===5)return 50;if(mx===4)return rl>=1?8.35:0;if(mx===3)return rl>=2?1.4:0;return 0;}
+  if(cat===6){const s=calcScore(6,vals);if(s>0)return s;if(mx>=2&&rl>=1){return c.indexOf(mx)*mx*0.5;}return 0;}
+  if(cat===7){const s=calcScore(7,vals);if(s>0)return s;if(mx>=3&&rl>=1)return c.indexOf(mx)*mx*0.3;return 0;}
+  if(cat===8){const s=calcScore(8,vals);if(s>0)return 25;const pairs=c.filter(x=>x===2).length,threes=c.filter(x=>x===3).length;if(threes&&rl>=1)return 5;if(pairs===2&&rl>=1)return 8;return 0;}
+  if(cat===9){const s=calcScore(9,vals);if(s>0)return 30;const u=[...new Set(vals)].sort((a,b)=>a-b);let mx2=1,rn=1;for(let i=1;i<u.length;i++){if(u[i]===u[i-1]+1)rn++;else rn=1;mx2=Math.max(mx2,rn);}if(mx2>=3&&rl>=1)return 10;return 0;}
+  if(cat===10){const s=calcScore(10,vals);if(s>0)return 40;const u=[...new Set(vals)].sort((a,b)=>a-b);let mx2=1,rn=1;for(let i=1;i<u.length;i++){if(u[i]===u[i-1]+1)rn++;else rn=1;mx2=Math.max(mx2,rn);}if(mx2>=4&&rl>=1)return 13;return 0;}
+  if(cat===12)return vals.reduce((a,b)=>a+b,0);
+  if(cat<=5){const t=cat+1;const m=vals.filter(v=>v===t).length;return m*t+(5-m)*(1/6)*t*(rl>1?1.15:1);}
+  return calcScore(cat,vals);
+}
+
+function holdForCat(cat,vals){
+  const c=[0,0,0,0,0,0,0];vals.forEach(v=>c[v]++);
+  if(cat<=5){const t=cat+1;return vals.map(v=>v===t);}
+  if(cat===11||cat===6||cat===7){const mx=Math.max(...c.slice(1));const t=c.lastIndexOf(mx);return vals.map(v=>v===t);}
+  if(cat===8){const h3=c.findIndex((x,i)=>i>0&&x===3);if(h3>0)return vals.map(v=>c[v]>=2);return vals.map(v=>c[v]===2);}
+  if(cat===9||cat===10){const u=[...new Set(vals)].sort((a,b)=>a-b);let br=[],bl=0,cr=[u[0]];for(let i=1;i<u.length;i++){if(u[i]===u[i-1]+1)cr.push(u[i]);else cr=[u[i]];if(cr.length>bl){bl=cr.length;br=[...cr];}}const rs=new Set(br);const used=new Set();return vals.map(v=>{if(rs.has(v)&&!used.has(v)){used.add(v);return true;}return false;});}
+  if(cat===12)return vals.map(v=>v>=5);
+  return [false,false,false,false,false];
+}
+
+function runComputerTurn() {
+  let cd=Array.from({length:5},rollDie), ch=[false,false,false,false,false];
+  for(let roll=0;roll<3;roll++){
+    if(roll>0)cd=cd.map((v,i)=>ch[i]?v:rollDie());
+    const rl=2-roll;
+    if(rl>0){
+      let bc=-1,bp=-1;
+      for(let c=0;c<13;c++){
+        if(G.scores.p2[c]!==null)continue;
+        let p=evalPotential(c,cd,rl);
+        if(c<=5){const uSoFar=G.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0);const uFilled=G.scores.p2.slice(0,6).filter(v=>v!==null).length;const needed=(63-uSoFar)/(6-uFilled||1);if(p>=needed*0.9)p*=1.25;}
+        if(p>bp){bp=p;bc=c;}
+      }
+      if(bc>=0)ch=holdForCat(bc,cd);
+    }
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+
+  const allowedCats = isBonusTurn ? jokerAllowedCats('p2', cd) : null;
+  let bc=-1,bw=-1;
+  for(let c=0;c<13;c++){
+    if(G.scores.p2[c]!==null)continue;
+    if(allowedCats && !allowedCats.has(c))continue;
+    const sc = isBonusTurn ? jokerScore(c,cd) : calcScore(c,cd);
+    let w=sc;
+    if(sc===0){if(c<=1)w=0.5;else if(c<=3)w=0.3;else w=0.1;}
+    if(w>bw){bw=w;bc=c;}
+  }
+  if(bc>=0){
+    G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  }
+  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
+  updateScorecard();
+  renderDice();
+  if(!checkGameOver()){
+    G.turn='p1';
+    enterGame();
+  }
+}
+</script>
+</body>
+</html>
