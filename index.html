@@ -100,10 +100,13 @@ button.inline { width:auto; display:inline-block; }
 .die { width:56px; height:56px; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:transform 0.15s,border-color 0.2s,box-shadow 0.2s; flex-shrink:0; }
 .die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
 .die.locked { opacity:0.45; cursor:default; }
-.die.rolling { animation:shake 0.15s ease-in-out 3; }
-.die.changed { animation:shake 0.15s ease-in-out 3, flashgreen 0.5s ease-out; }
+/* ===== DICE ANIMATIONS - two identical sets so name can alternate to force restart ===== */
+@keyframes shakeA    { 0%,100%{transform:rotate(0)}             25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+@keyframes shakeB    { 0%,100%{transform:rotate(0)}             25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+@keyframes shakeHeldA{ 0%,100%{transform:translateY(-6px) scale(1.08) rotate(0)} 25%{transform:translateY(-6px) scale(1.08) rotate(-8deg)} 75%{transform:translateY(-6px) scale(1.08) rotate(8deg)} }
+@keyframes shakeHeldB{ 0%,100%{transform:translateY(-6px) scale(1.08) rotate(0)} 25%{transform:translateY(-6px) scale(1.08) rotate(-8deg)} 75%{transform:translateY(-6px) scale(1.08) rotate(8deg)} }
 @keyframes flashgreen { 0%{box-shadow:0 0 0 3px rgba(100,255,100,0.9)} 100%{box-shadow:0 4px 12px rgba(0,0,0,0.6)} }
-@keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+@keyframes flashgreenHeld { 0%{box-shadow:0 0 0 3px rgba(100,255,100,0.9)} 100%{box-shadow:0 0 18px rgba(255,152,0,0.6)} }
 .pip { width:11px; height:11px; background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
 .face-1 .pip:nth-child(1){top:50%;left:50%;transform:translate(-50%,-50%);}
 .face-2 .pip:nth-child(1){top:18%;left:18%;} .face-2 .pip:nth-child(2){bottom:18%;right:18%;}
@@ -143,6 +146,126 @@ tr.fs-bonus td { color:var(--p1); }
 #grandP1 { color:var(--p1)!important; }
 #grandP2 { color:var(--p2)!important; }
 .bottom-row { text-align:center; margin-top:16px; }
+
+/* ===== TRACKER PANEL ===== */
+#tracker-toggle {
+  position: fixed; bottom: 20px; right: 20px; z-index: 100;
+  width: 52px; height: 52px; border-radius: 50%; border: none;
+  background: var(--p1); color: #000; font-size: 1.4rem;
+  cursor: pointer; box-shadow: 0 4px 20px rgba(232,255,71,0.4);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0; width: 52px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+#tracker-toggle:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(232,255,71,0.6); }
+#tracker-toggle .badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--danger); color: #fff; font-size: 0.6rem;
+  font-weight: 700; border-radius: 10px; padding: 1px 5px; min-width: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+#tracker-panel {
+  position: fixed; bottom: 84px; right: 20px; z-index: 99;
+  width: min(420px, calc(100vw - 40px));
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+  overflow: hidden; display: none; flex-direction: column;
+  max-height: calc(100vh - 120px);
+}
+#tracker-panel.open { display: flex; }
+
+.tp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.tp-header h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem;
+  letter-spacing: 0.1em; color: var(--p1); margin: 0;
+}
+.tp-tabs {
+  display: flex; gap: 4px; padding: 10px 12px;
+  border-bottom: 1px solid var(--border); background: var(--surface2);
+}
+.tp-tab {
+  flex: 1; padding: 6px 8px; font-size: 0.72em; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border-radius: 5px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+  transition: all 0.15s; margin: 0; width: auto;
+}
+.tp-tab.active { background: var(--p1); color: #000; border-color: var(--p1); }
+.tp-tab:hover:not(.active) { border-color: var(--p1); color: var(--p1); }
+
+.tp-body { overflow-y: auto; flex: 1; padding: 12px; }
+
+/* History tab */
+.game-record {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.game-record:hover { border-color: var(--p1); }
+.game-record.is-high { border-color: rgba(232,255,71,0.4); }
+.gr-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.gr-date { font-size: 0.68em; color: var(--muted); }
+.gr-mode { font-size: 0.65em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.gr-scores { display: flex; gap: 12px; }
+.gr-player { font-size: 0.8em; }
+.gr-player span { font-weight: 700; }
+.gr-player.winner span { color: var(--p1); }
+.gr-player.p2winner span { color: var(--p2); }
+.gr-hs-badge { font-size: 0.62em; background: rgba(232,255,71,0.15); color: var(--p1); border: 1px solid rgba(232,255,71,0.3); border-radius: 4px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.06em; }
+.empty-state { text-align: center; color: var(--muted); font-size: 0.8em; padding: 24px 12px; line-height: 1.7; }
+
+/* Stats tab */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.stat-box .label { font-size: 0.65em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.stat-box .value { font-size: 1.2em; font-weight: 700; color: var(--p1); font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+.stat-box .sub { font-size: 0.68em; color: var(--muted); margin-top: 2px; }
+.cat-breakdown { margin-top: 8px; }
+.cat-breakdown h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.75em; }
+.cat-row .cat-name { flex: 1; color: #bbb; }
+.cat-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.cat-bar { height: 100%; background: var(--p1); border-radius: 3px; transition: width 0.4s; }
+.cat-avg { width: 32px; text-align: right; color: var(--text); font-weight: 600; }
+
+/* Analysis tab */
+.analysis-btn {
+  background: var(--p1); color: #000; border: none; border-radius: 8px;
+  padding: 10px 16px; font-size: 0.82em; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  width: 100%; margin-bottom: 12px; transition: opacity 0.2s;
+}
+.analysis-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.analysis-output {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: 0.78em;
+  line-height: 1.65; color: var(--text); white-space: pre-wrap;
+  min-height: 80px;
+}
+.analysis-output.loading { color: var(--muted); font-style: italic; }
+.diff-btn { font-family: 'IBM Plex Mono', monospace; font-weight: 700; cursor: pointer; transition: all 0.15s; flex: 1; padding: 7px 4px; font-size: 0.72em; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; letter-spacing: 0.06em; }
+.diff-btn:hover { opacity: 0.85; }
+.diff-btn.active { background: rgba(232,255,71,0.15) !important; color: var(--p1) !important; border-color: rgba(232,255,71,0.4) !important; }
+.diff-btn.active[data-diff="adaptive"] { background: rgba(71,195,255,0.15) !important; color: var(--p2) !important; border-color: rgba(71,195,255,0.4) !important; }
+
+.analysis-output .section-head {
+  color: var(--p1); font-weight: 700; font-size: 0.9em;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; margin-bottom: 4px;
+  display: block;
+}
+.analysis-hint { font-size: 0.7em; color: var(--muted); text-align: center; margin-bottom: 8px; }
+.score-dist { margin-bottom: 12px; }
+.score-dist h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.dist-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.72em; }
+.dist-label { width: 60px; color: var(--muted); }
+.dist-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.dist-bar { height: 100%; border-radius: 4px; }
+.dist-count { width: 20px; text-align: right; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -163,6 +286,16 @@ tr.fs-bonus td { color:var(--p1); }
     <div class="card">
       <h2 class="c2">vs Computer</h2>
       <input type="text" id="nameComp" placeholder="Your name" maxlength="16" value="Player 1" onfocus="this.select()">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72em;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">AI Difficulty</label>
+        <div style="display:flex;gap:6px;">
+          <button class="diff-btn active" data-diff="easy" onclick="selectDiff(this,'easy')">EASY</button>
+          <button class="diff-btn" data-diff="medium" onclick="selectDiff(this,'medium')">MEDIUM</button>
+          <button class="diff-btn" data-diff="hard" onclick="selectDiff(this,'hard')">HARD</button>
+          <button class="diff-btn" data-diff="adaptive" onclick="selectDiff(this,'adaptive')">LEARN</button>
+        </div>
+        <div id="diff-desc" style="font-size:0.68em;color:var(--muted);margin-top:6px;text-align:center;">Easy: random play, forgiving</div>
+      </div>
       <button class="btn-comp" onclick="startVsComp()">Play vs Computer</button>
     </div>
   </div>
@@ -248,6 +381,8 @@ function calcScore(cat, vals) {
 let G = null; // game object
 let mode = null; // 'passplay' | 'vscomp'
 let pendingCat = null;
+let currentGameMoves = []; // declared here so startVsComp can reset it
+let aiDifficulty = 'easy';  // declared here so selectDiff and startVsComp can access it
 
 function freshGame(p1, p2) {
   return {
@@ -286,17 +421,23 @@ function startVsComp() {
   const p1 = document.getElementById('nameComp').value.trim() || 'Player 1';
   mode = 'vscomp';
   G = freshGame(p1, 'Computer');
-  document.getElementById('subtitle').textContent = 'vs Computer';
+  G.difficulty = aiDifficulty;
+  currentGameMoves = [];
+  document.getElementById('subtitle').textContent = `vs Computer (${aiDifficulty.toUpperCase()})`;
   document.getElementById('headP1').textContent = p1;
   document.getElementById('headP2').textContent = 'Computer';
   setupScoreCellListeners();
-  enterGame(); // No handoff for vs computer — just start
+  enterGame();
 }
 
 function goLobby() {
   G = null; mode = null; pendingCat = null;
   document.querySelectorAll('.score-cell').forEach(c => {
-    c.textContent = ''; c.className = c.className.replace(/filled[^ ]*/g,'').replace('preview','').replace('locked-cell','').trim();
+    c.textContent = '';
+    // Rebuild class cleanly — preserve only col-p1/col-p2
+    const colClass = c.classList.contains('col-p1') ? 'col-p1' : 'col-p2';
+    c.className = `score-cell ${colClass}`;
+    c.style.background = '';
   });
   ['upperP1','upperP2','bonusP1','bonusP2','lowerP1','lowerP2','grandP1','grandP2','fsBonusP1','fsBonusP2']
     .forEach(id => document.getElementById(id).textContent = id.startsWith('bonus')||id.startsWith('fs') ? '—' : '0');
@@ -353,7 +494,7 @@ function enterGame() {
   if (t === 'p2' && mode === 'vscomp') {
     document.getElementById('rollBtn').disabled = true;
     document.getElementById('message').textContent = 'Computer is thinking…';
-    setTimeout(runComputerTurn, 800);
+    setTimeout(runComputerTurnByDifficulty, 800);
   }
 }
 
@@ -385,47 +526,45 @@ function jokerAllowedCats(p, vals) {
 function doRoll() {
   if (G.gameOver || G.rollsLeft <= 0 || G.rolling) return;
   if (G.turn === 'p2' && mode === 'vscomp') return;
-  // Immediately lock out further rolls/clicks during animation
   G.rolling = true;
   document.getElementById('rollBtn').disabled = true;
   clearPreview();
-  const prevDice = [...G.dice];
-  G.prevDice = prevDice;
+  G.prevDice = [...G.dice];
   for (let i = 0; i < 5; i++) {
     if (!G.held[i]) G.dice[i] = rollDie();
   }
   G.rollsLeft--;
   G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
-  // Show held state on screen so player can verify
-  const heldMsg = G.held.map((h,i) => h ? `D${i+1}✓` : `D${i+1}`).join(' ');
-  document.getElementById('message').textContent = `Held: ${heldMsg}`;
   renderDice(true);
+
+  const p = G.turn;
+  const isFS = isFullStack(G.dice);
+  const isBonusTurn = isFS && G.scores[p][11] !== null;
+  if (isBonusTurn) {
+    G.fsBonus[p] += 100;
+    updateScorecard();
+  }
+
   setTimeout(() => {
     G.rolling = false;
     G.prevDice = null;
     renderDice();
     if (G.rollsLeft > 0 && !G.gameOver) document.getElementById('rollBtn').disabled = false;
-  }, 500);
 
-  const p = G.turn;
-  const isFS = isFullStack(G.dice);
-  const isBonusTurn = isFS && G.scores[p][11] !== null;
-
-  if (isBonusTurn) {
-    // Auto-apply the bonus immediately
-    G.fsBonus[p] += 100;
-    updateScorecard();
-    const allowed = jokerAllowedCats(p, G.dice);
     const msgEl = document.getElementById('message');
-    msgEl.style.color = 'var(--p1)';
-    msgEl.textContent = `FullStack bonus! +100 🎲 Now score in a ${allowed.size === 1 ? 'highlighted' : 'valid'} category`;
-  } else {
-    document.getElementById('message').textContent = G.rollsLeft > 0
-      ? 'Hold dice to keep, roll again or score'
-      : 'Choose a category to score';
-  }
-  showHints();
+    msgEl.style.color = p === 'p1' ? 'var(--p1)' : 'var(--p2)';
+    if (isBonusTurn) {
+      const allowed = jokerAllowedCats(p, G.dice);
+      msgEl.style.color = 'var(--p1)';
+      msgEl.textContent = `FullStack bonus! +100 🎲 Score in a valid category`;
+    } else {
+      msgEl.textContent = G.rollsLeft > 0
+        ? 'Hold dice to keep, roll again or score'
+        : 'Choose a category to score';
+    }
+    showHints();
+  }, 500);
 }
 
 // ===== SCORE CLICK =====
@@ -434,7 +573,7 @@ function setupScoreCellListeners() {
     cell.onclick = () => {
       const p = cell.dataset.p;
       const cat = parseInt(cell.dataset.cat);
-      if (G.gameOver || G.turn !== p) return;
+      if (G.gameOver || G.turn !== p || G.rolling) return;
       if (G.scores[p][cat] !== null) return;
       if (G.rollsLeft === 3) return; // must roll first
       if (mode === 'vscomp' && p === 'p2') return;
@@ -469,6 +608,8 @@ function setupScoreCellListeners() {
       // Confirm
       clearPreview();
       G.scores[p][cat] = sc;
+      // Record move for learning (human player only)
+      if (p === 'p1') recordMove(G.dice, G.held, G.rollsLeft, cat, sc);
       updateScorecard();
 
       if (checkGameOver()) return;
@@ -549,24 +690,76 @@ function showHints() {
 }
 
 // ===== DICE RENDER =====
+// Use event delegation on the container so element replacement doesn't lose listeners
+function initDiceListeners() {
+  const dc = document.getElementById('diceContainer');
+  dc.addEventListener('click', (e) => {
+    const die = e.target.closest('.die');
+    if (!die || !G) return;
+    const i = parseInt(die.dataset.idx);
+    if (isNaN(i) || G.rollsLeft >= 3 || G.rolling || G.gameOver) return;
+    if (G.turn === 'p2' && mode === 'vscomp') return;
+    G.held[i] = !G.held[i];
+    renderDice();
+  });
+  dc.addEventListener('touchend', (e) => {
+    const die = e.target.closest('.die');
+    if (!die || !G) return;
+    e.preventDefault();
+    const i = parseInt(die.dataset.idx);
+    if (isNaN(i) || G.rollsLeft >= 3 || G.rolling || G.gameOver) return;
+    if (G.turn === 'p2' && mode === 'vscomp') return;
+    G.held[i] = !G.held[i];
+    renderDice();
+  }, { passive: false });
+}
+
 function renderDice(animate=false) {
   const dc = document.getElementById('diceContainer');
-  dc.innerHTML = '';
   const t = G.turn;
   const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
-  G.dice.forEach((v,i) => {
+
+  for (let i = 0; i < 5; i++) {
+    const v = G.dice[i];
+    const isHeld = G.held[i];
+    const valueChanged = G.prevDice && G.prevDice[i] !== v;
+
     const die = document.createElement('div');
-    die.className = `die face-${v}${G.held[i]?' held':''}${locked?' locked':''}${animate&&!G.held[i]?' rolling':''}`;
-    if (animate && !G.held[i] && G.prevDice && G.prevDice[i] !== v) die.classList.add('changed');
+    die.dataset.idx = i;
+    die.className = `die face-${v}${isHeld ? ' held' : ''}${locked ? ' locked' : ''}`;
     die.innerHTML = '<div class="pip"></div>'.repeat(v);
-    if (!locked) {
-      die.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (G.rollsLeft < 3 && !G.rolling) { G.held[i]=!G.held[i]; renderDice(); }
-      }, { passive: false });
+
+    if (dc.children[i]) {
+      dc.replaceChild(die, dc.children[i]);
+    } else {
+      dc.appendChild(die);
     }
-    dc.appendChild(die);
-  });
+
+    if (animate) {
+      const baseTransform = isHeld ? 'translateY(-6px) scale(1.08)' : '';
+      const shakeFrames = [
+        { transform: `${baseTransform} rotate(0deg)` },
+        { transform: `${baseTransform} rotate(-8deg)` },
+        { transform: `${baseTransform} rotate(8deg)` },
+        { transform: `${baseTransform} rotate(-8deg)` },
+        { transform: `${baseTransform} rotate(8deg)` },
+        { transform: `${baseTransform} rotate(-8deg)` },
+        { transform: `${baseTransform} rotate(0deg)` },
+      ];
+      die.animate(shakeFrames, { duration: 450, easing: 'ease-in-out', fill: 'none' });
+
+      // Flash green on dice that changed value
+      if (!isHeld && valueChanged) {
+        const shadowEnd = isHeld
+          ? '0 0 18px rgba(255,152,0,0.6)'
+          : '0 4px 12px rgba(0,0,0,0.6)';
+        die.animate([
+          { boxShadow: '0 0 0 3px rgba(100,255,100,0.9)' },
+          { boxShadow: shadowEnd }
+        ], { duration: 500, easing: 'ease-out', fill: 'none' });
+      }
+    }
+  }
 }
 
 // ===== SCORECARD =====
@@ -628,6 +821,8 @@ function checkGameOver() {
 
   document.getElementById('rollBtn').disabled = true;
   renderDice();
+  // Save record after a short delay so grandTotal reads the final state
+  setTimeout(() => saveGameRecord(G, mode), 300);
   return true;
 }
 
@@ -702,6 +897,656 @@ function runComputerTurn() {
     enterGame();
   }
 }
+
+// Init dice event delegation once DOM is ready
+initDiceListeners();
+</script>
+
+<!-- ===== SCORE TRACKER ===== -->
+<button id="tracker-toggle" onclick="toggleTracker()" title="Score Tracker">
+  📊
+  <span class="badge" id="tracker-badge" style="display:none">0</span>
+</button>
+
+<div id="tracker-panel">
+  <div class="tp-header">
+    <h3>Score Tracker</h3>
+    <button onclick="toggleTracker()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0;width:auto;margin:0;">✕</button>
+  </div>
+  <div class="tp-tabs">
+    <button class="tp-tab active" onclick="showTab('history')">History</button>
+    <button class="tp-tab" onclick="showTab('stats')">Stats</button>
+    <button class="tp-tab" onclick="showTab('analysis')">AI Analysis</button>
+    <button class="tp-tab" onclick="showTab('insights')">Insights</button>
+  </div>
+  <div class="tp-body" id="tp-body-history">
+    <div class="empty-state" id="history-empty">
+      No games recorded yet.<br>Finish a game to start tracking!
+    </div>
+    <div id="history-list"></div>
+  </div>
+  <div class="tp-body" id="tp-body-stats" style="display:none">
+    <div class="empty-state" id="stats-empty">Play at least one game to see stats.</div>
+    <div id="stats-content" style="display:none"></div>
+  </div>
+  <div class="tp-body" id="tp-body-analysis" style="display:none">
+    <p class="analysis-hint" id="analysis-hint">Need at least 3 games to run analysis.</p>
+    <button class="analysis-btn" id="analysis-btn" onclick="runAnalysis()" disabled>
+      🤖 Analyze My High Scores
+    </button>
+    <div class="analysis-output" id="analysis-output" style="display:none"></div>
+  </div>
+  <div class="tp-body" id="tp-body-insights" style="display:none">
+    <div id="insights-content"></div>
+  </div>
+</div>
+
+<script>
+// ===== TRACKER STATE =====
+let gameHistory = [];
+try { gameHistory = JSON.parse(localStorage.getItem('fs_history') || '[]'); } catch(e) {}
+
+const CAT_NAMES = ['Aces','Twos','Threes','Fours','Fives','Sixes',
+  '3 of a Kind','4 of a Kind','Full House','Sm. Straight','Lg. Straight','FullStack!','Chance'];
+
+let currentTab = 'history';
+let trackerOpen = false;
+
+function toggleTracker() {
+  trackerOpen = !trackerOpen;
+  document.getElementById('tracker-panel').classList.toggle('open', trackerOpen);
+  if (trackerOpen) renderCurrentTab();
+}
+
+function showTab(tab) {
+  currentTab = tab;
+  ['history','stats','analysis','insights'].forEach(t => {
+    document.getElementById(`tp-body-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.querySelectorAll('.tp-tab').forEach((el,i) => {
+      el.classList.toggle('active', ['history','stats','analysis','insights'][i] === tab);
+    });
+  });
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
+  if (currentTab === 'history') renderHistory();
+  else if (currentTab === 'stats') renderStats();
+  else if (currentTab === 'analysis') renderAnalysisTab();
+  else if (currentTab === 'insights') renderInsights();
+}
+
+// ===== SAVE GAME =====
+function saveGameRecord(gameState, mode) {
+  const p1 = gameState.names.p1, p2 = gameState.names.p2;
+  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
+
+  const record = {
+    id: Date.now(),
+    date: new Date().toLocaleString(),
+    mode,
+    names: { p1, p2 },
+    scores: {
+      p1: [...gameState.scores.p1],
+      p2: [...gameState.scores.p2]
+    },
+    fsBonus: { ...gameState.fsBonus },
+    totals: { p1: s1, p2: s2 },
+    winner: s1 > s2 ? 'p1' : s2 > s1 ? 'p2' : 'tie',
+    upper: {
+      p1: gameState.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0),
+      p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0)
+    },
+    gotBonus: {
+      p1: gameState.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
+      p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
+    }
+  };
+
+  gameHistory.unshift(record);
+  if (gameHistory.length > 50) gameHistory = gameHistory.slice(0, 50);
+  try { localStorage.setItem('fs_history', JSON.stringify(gameHistory)); } catch(e) {}
+
+  // Update badge
+  const badge = document.getElementById('tracker-badge');
+  badge.textContent = gameHistory.length;
+  badge.style.display = 'block';
+
+  if (trackerOpen) renderCurrentTab();
+}
+
+// ===== RENDER HISTORY =====
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  list.innerHTML = '';
+
+  if (!gameHistory.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const allScores = gameHistory.flatMap(g => [g.totals.p1, g.totals.p2]);
+  const highScore = Math.max(...allScores);
+
+  gameHistory.forEach(g => {
+    const isHigh = g.totals.p1 === highScore || g.totals.p2 === highScore;
+    const div = document.createElement('div');
+    div.className = `game-record${isHigh ? ' is-high' : ''}`;
+
+    const w = g.winner;
+    const p1class = w === 'p1' ? 'gr-player winner' : 'gr-player';
+    const p2class = w === 'p2' ? 'gr-player p2winner' : 'gr-player';
+    const hsBadge = isHigh ? '<span class="gr-hs-badge">🏆 HIGH SCORE</span>' : '';
+
+    div.innerHTML = `
+      <div class="gr-top">
+        <span class="gr-date">${g.date}</span>
+        <span class="gr-mode">${g.mode === 'vscomp' ? 'vs CPU' : '2P'} ${hsBadge}</span>
+      </div>
+      <div class="gr-scores">
+        <div class="${p1class}">${g.names.p1}: <span>${g.totals.p1}</span>${g.gotBonus.p1 ? ' ✓' : ''}</div>
+        <div class="${p2class}">${g.names.p2}: <span>${g.totals.p2}</span>${g.gotBonus.p2 ? ' ✓' : ''}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+// ===== RENDER STATS =====
+function renderStats() {
+  const empty = document.getElementById('stats-empty');
+  const content = document.getElementById('stats-content');
+  if (!gameHistory.length) { empty.style.display = 'block'; content.style.display = 'none'; return; }
+  empty.style.display = 'none'; content.style.display = 'block';
+
+  // Collect human scores only (exclude computer in vscomp)
+  const humanGames = gameHistory.map(g => ({
+    score: g.totals.p1,
+    scores: g.scores.p1,
+    fsBonus: g.fsBonus.p1,
+    gotBonus: g.gotBonus.p1,
+    mode: g.mode
+  }));
+
+  const allScores = humanGames.map(g => g.score);
+  const highScore = Math.max(...allScores);
+  const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0) / allScores.length);
+  const wins = gameHistory.filter(g => g.winner === 'p1').length;
+  const bonusGames = humanGames.filter(g => g.gotBonus).length;
+
+  // Per-category averages
+  const catAvgs = CAT_NAMES.map((_, ci) => {
+    const vals = humanGames.map(g => g.scores[ci] || 0);
+    return Math.round(vals.reduce((a,b)=>a+b,0) / vals.length * 10) / 10;
+  });
+  const maxCatAvg = Math.max(...catAvgs);
+
+  content.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">High Score</div><div class="value">${highScore}</div><div class="sub">all time</div></div>
+      <div class="stat-box"><div class="label">Avg Score</div><div class="value">${avgScore}</div><div class="sub">per game</div></div>
+      <div class="stat-box"><div class="label">Games</div><div class="value">${gameHistory.length}</div><div class="sub">${wins} wins</div></div>
+      <div class="stat-box"><div class="label">Bonus Rate</div><div class="value">${Math.round(bonusGames/humanGames.length*100)}%</div><div class="sub">upper ≥63</div></div>
+    </div>
+    <div class="cat-breakdown">
+      <h4>Avg Score by Category</h4>
+      ${CAT_NAMES.map((name, i) => `
+        <div class="cat-row">
+          <span class="cat-name">${name}</span>
+          <div class="cat-bar-wrap"><div class="cat-bar" style="width:${maxCatAvg > 0 ? Math.round(catAvgs[i]/maxCatAvg*100) : 0}%"></div></div>
+          <span class="cat-avg">${catAvgs[i]}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ===== AI ANALYSIS =====
+function renderAnalysisTab() {
+  const btn = document.getElementById('analysis-btn');
+  const hint = document.getElementById('analysis-hint');
+  if (gameHistory.length >= 3) {
+    btn.disabled = false;
+    hint.textContent = `${gameHistory.length} games recorded — ready to analyze.`;
+  } else {
+    btn.disabled = true;
+    hint.textContent = `Need at least 3 games to run analysis. (${gameHistory.length}/3)`;
+  }
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('analysis-btn');
+  const output = document.getElementById('analysis-output');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyzing...';
+  output.style.display = 'block';
+  output.className = 'analysis-output loading';
+  output.textContent = 'Sending your game data to AI for analysis…';
+
+  // Build prompt from game history
+  const humanGames = gameHistory.map(g => ({
+    score: g.totals.p1,
+    cats: g.scores.p1,
+    fsBonus: g.fsBonus.p1,
+    gotUpperBonus: g.gotBonus.p1,
+    upperTotal: g.upper.p1,
+    won: g.winner === 'p1',
+    mode: g.mode
+  }));
+
+  const allScores = humanGames.map(g => g.score).sort((a,b) => b-a);
+  const highScore = allScores[0];
+  const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
+  const topThird = humanGames.filter(g => g.score >= allScores[Math.floor(allScores.length/3)]);
+  const bottomThird = humanGames.filter(g => g.score <= allScores[Math.floor(allScores.length*2/3)]);
+
+  function catAvg(games, ci) {
+    return Math.round(games.map(g => g.cats[ci] || 0).reduce((a,b)=>a+b,0) / games.length * 10) / 10;
+  }
+
+  const catDiffs = CAT_NAMES.map((name, i) => ({
+    name,
+    topAvg: catAvg(topThird, i),
+    botAvg: catAvg(bottomThird, i),
+    diff: catAvg(topThird, i) - catAvg(bottomThird, i)
+  })).sort((a,b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  const prompt = `You are analyzing scores for a dice game called FullStacks (a Yahtzee variant with a "FullStack" = five of a kind worth 50pts + 100pt bonus per extra).
+
+GAME DATA (${humanGames.length} games, player perspective):
+- High score: ${highScore}, Average: ${avgScore}
+- Upper bonus rate (need ≥63 upper): ${Math.round(humanGames.filter(g=>g.gotUpperBonus).length/humanGames.length*100)}%
+- All scores: ${allScores.join(', ')}
+
+CATEGORY PERFORMANCE (avg score in top 1/3 games vs bottom 1/3):
+${catDiffs.slice(0,8).map(c => `  ${c.name}: top=${c.topAvg} vs bot=${c.botAvg} (diff: ${c.diff > 0 ? '+' : ''}${c.diff})`).join('\n')}
+
+HIGH SCORE GAMES details:
+${topThird.slice(0,3).map((g,i) => `  Game ${i+1} (${g.score}pts): upper=${g.upperTotal}${g.gotUpperBonus?' [BONUS]':''}, fsBonus=${g.fsBonus}, won=${g.won}`).join('\n')}
+
+Write a SHORT, punchy analysis (3-4 paragraphs max) covering:
+1. What separates high-scoring games from low ones (based on the category data)
+2. One or two specific strategic patterns you notice
+3. One concrete tip to improve their average score
+
+Use plain text only. Be direct and specific, not generic. Reference actual numbers from the data.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No response received.';
+    output.className = 'analysis-output';
+    output.textContent = text;
+  } catch(e) {
+    output.className = 'analysis-output';
+    output.textContent = 'Error connecting to AI. Please try again.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🤖 Analyze My High Scores';
+}
+
+// ===== DIFFICULTY & LEARNING ENGINE =====
+let learnedStrategies = {};
+try { learnedStrategies = JSON.parse(localStorage.getItem('fs_strategies') || '{}'); } catch(e) {}
+
+const DIFF_DESCS = {
+  easy: 'Easy: random play, forgiving',
+  medium: 'Medium: basic strategy, no learning',
+  hard: 'Hard: optimal play, full lookahead',
+  adaptive: 'Learn: adapts to YOUR patterns over time'
+};
+
+function selectDiff(btn, diff) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  aiDifficulty = diff;
+  document.getElementById('diff-desc').textContent = DIFF_DESCS[diff];
+}
+
+// Record a player move for learning
+function recordMove(dice, held, rollsLeft, scoredCat, score) {
+  if (mode !== 'vscomp') return; // only track vs computer games
+  const diceKey = [...dice].sort().join('');
+  currentGameMoves.push({
+    dice: [...dice], held: [...held], rollsLeft, scoredCat, score,
+    diceKey,
+    upperProgress: G ? G.scores.p1.slice(0,6).filter(v=>v!==null).length : 0,
+  });
+}
+
+// Extract insights from all game history + moves
+function buildInsights() {
+  const insights = [];
+  const catData = {};
+  CAT_NAMES.forEach((n,i) => { catData[i] = { zeroes: 0, total: 0, count: 0, name: n }; });
+
+  gameHistory.forEach(g => {
+    g.scores.p1.forEach((sc, ci) => {
+      if (sc !== null) {
+        catData[ci].count++;
+        catData[ci].total += sc;
+        if (sc === 0) catData[ci].zeroes++;
+      }
+    });
+  });
+
+  // Find zero-waste categories
+  const zeroWasters = Object.values(catData)
+    .filter(c => c.count > 2 && c.zeroes / c.count > 0.3)
+    .sort((a,b) => b.zeroes/b.count - a.zeroes/a.count);
+
+  if (zeroWasters.length > 0) {
+    insights.push({
+      type: 'warning',
+      title: `Scoring 0 too often in: ${zeroWasters[0].name}`,
+      detail: `You zero out ${Math.round(zeroWasters[0].zeroes/zeroWasters[0].count*100)}% of the time. Consider using it as a sacrifice slot earlier.`,
+      rule: 'sacrifice_timing'
+    });
+  }
+
+  // Upper bonus rate
+  const bonusGames = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length;
+  const bonusRate = gameHistory.length > 0 ? bonusGames / gameHistory.length : 0;
+  if (gameHistory.length >= 3) {
+    if (bonusRate < 0.4) {
+      insights.push({
+        type: 'tip',
+        title: 'Upper bonus slipping away',
+        detail: `You only get the +35 bonus ${Math.round(bonusRate*100)}% of games. Prioritize 4s, 5s, 6s early — they carry the most weight.`,
+        rule: 'upper_priority'
+      });
+    } else if (bonusRate >= 0.7) {
+      insights.push({
+        type: 'strength',
+        title: 'Upper section mastery',
+        detail: `You're getting the +35 bonus ${Math.round(bonusRate*100)}% of games. That's excellent — keep protecting those upper slots.`,
+        rule: 'upper_strong'
+      });
+    }
+  }
+
+  // FullStack hunting
+  const fsScores = gameHistory.map(g => g.scores.p1[11]).filter(v => v !== null);
+  const fsHits = fsScores.filter(v => v > 0).length;
+  if (fsScores.length >= 3) {
+    const hitRate = fsHits / fsScores.length;
+    if (hitRate < 0.3) {
+      insights.push({
+        type: 'tip',
+        title: 'FullStack! rarely hitting',
+        detail: `Only ${Math.round(hitRate*100)}% FullStack hit rate. If you have 3+ of a kind after roll 1, hold all of them and go for it — the 50pts + bonus potential is worth the risk.`,
+        rule: 'fs_aggression'
+      });
+    }
+  }
+
+  // Score trend
+  if (gameHistory.length >= 5) {
+    const recent = gameHistory.slice(0,3).map(g=>g.totals.p1);
+    const older = gameHistory.slice(-3).map(g=>g.totals.p1);
+    const recentAvg = recent.reduce((a,b)=>a+b,0)/recent.length;
+    const olderAvg = older.reduce((a,b)=>a+b,0)/older.length;
+    if (recentAvg > olderAvg + 15) {
+      insights.push({ type: 'strength', title: 'You\'re improving!', detail: `Recent average: ${Math.round(recentAvg)} vs earlier: ${Math.round(olderAvg)}. +${Math.round(recentAvg-olderAvg)} pts improvement.`, rule: 'trending_up' });
+    } else if (recentAvg < olderAvg - 15) {
+      insights.push({ type: 'warning', title: 'Recent scores dipping', detail: `Recent avg: ${Math.round(recentAvg)} vs earlier: ${Math.round(olderAvg)}. You may be rushing category decisions — slow down and preview scores before committing.`, rule: 'trending_down' });
+    }
+  }
+
+  // Strategy: straights
+  const smSt = gameHistory.map(g=>g.scores.p1[9]).filter(v=>v!==null);
+  const lgSt = gameHistory.map(g=>g.scores.p1[10]).filter(v=>v!==null);
+  if (smSt.length >= 3 && lgSt.length >= 3) {
+    const smHit = smSt.filter(v=>v>0).length/smSt.length;
+    const lgHit = lgSt.filter(v=>v>0).length/lgSt.length;
+    if (lgHit > 0.5) {
+      insights.push({ type: 'strength', title: 'Strong straight game', detail: `You hit large straights ${Math.round(lgHit*100)}% of the time. Keep building sequences from your first roll.`, rule: 'straight_strength' });
+    } else if (smHit < 0.5) {
+      insights.push({ type: 'tip', title: 'Missing easy straights', detail: `Small straights only hit ${Math.round(smHit*100)}% of the time. Any 4 sequential values qualifies — look for 1-2-3-4 or 3-4-5-6 after your first roll.`, rule: 'straight_tip' });
+    }
+  }
+
+  return insights;
+}
+
+// Build computer strategy influenced by what you do well/poorly
+function adaptiveWeights() {
+  if (!gameHistory.length) return null;
+  const insights = buildInsights();
+  const weights = {};
+  // Default all cats equal
+  CAT_NAMES.forEach((_,i) => { weights[i] = 1.0; });
+
+  insights.forEach(ins => {
+    if (ins.rule === 'upper_priority') {
+      // Player struggles with upper — computer deprioritizes upper to not block
+      // (Actually we want computer to be harder — it focuses on what player misses)
+      [3,4,5].forEach(c => { weights[c] = 1.4; }); // focus 4s,5s,6s like the tip says
+    }
+    if (ins.rule === 'fs_aggression') {
+      weights[11] = 1.5; // computer hunts FS more
+    }
+  });
+  return weights;
+}
+
+// Computer turn logic by difficulty
+function runComputerTurnByDifficulty() {
+  const diff = aiDifficulty;
+  if (diff === 'easy') return runComputerTurnEasy();
+  if (diff === 'medium') return runComputerTurnMedium();
+  if (diff === 'hard') return runComputerTurn(); // existing optimal AI
+  if (diff === 'adaptive') return runComputerTurnAdaptive();
+}
+
+function runComputerTurnEasy() {
+  // Roll all 3 times, hold nothing strategically (just random holds ~30%)
+  let cd = Array.from({length:5}, rollDie);
+  for (let r = 0; r < 2; r++) {
+    const held = cd.map(() => Math.random() < 0.25);
+    cd = cd.map((v,i) => held[i] ? v : rollDie());
+  }
+  // Pick a random open category, weighted slightly toward scoring > 0
+  let open = [];
+  for (let c=0; c<13; c++) { if (G.scores.p2[c] === null) open.push(c); }
+  const scorable = open.filter(c => calcScore(c,cd) > 0);
+  const bc = scorable.length > 0 && Math.random() > 0.3
+    ? scorable[Math.floor(Math.random() * scorable.length)]
+    : open[Math.floor(Math.random() * open.length)];
+
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
+  updateScorecard(); renderDice();
+  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+}
+
+function runComputerTurnMedium() {
+  // Basic greedy — hold for best immediate score, no bonus hunting
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  for (let roll=0; roll<3; roll++) {
+    if (roll>0) cd = cd.map((v,i) => ch[i] ? v : rollDie());
+    if (roll < 2) {
+      let bc=-1, bp=-1;
+      for (let c=0; c<13; c++) {
+        if (G.scores.p2[c] !== null) continue;
+        const sc = calcScore(c,cd);
+        if (sc > bp) { bp=sc; bc=c; }
+      }
+      ch = bc>=0 ? holdForCat(bc,cd) : ch;
+    }
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  let bc=-1, bw=-1;
+  for (let c=0; c<13; c++) {
+    if (G.scores.p2[c] !== null) continue;
+    const sc = isBonusTurn ? jokerScore(c,cd) : calcScore(c,cd);
+    let w = sc; if(sc===0){if(c<=1)w=0.5;else if(c<=3)w=0.3;else w=0.1;}
+    if (w>bw) { bw=w; bc=c; }
+  }
+  if (bc>=0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
+  updateScorecard(); renderDice();
+  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+}
+
+function runComputerTurnAdaptive() {
+  // Use existing optimal AI but with weights from player patterns
+  const weights = adaptiveWeights();
+  let cd=Array.from({length:5},rollDie), ch=[false,false,false,false,false];
+  for(let roll=0;roll<3;roll++){
+    if(roll>0) cd=cd.map((v,i)=>ch[i]?v:rollDie());
+    const rl=2-roll;
+    if(rl>0){
+      let bc=-1,bp=-1;
+      for(let c=0;c<13;c++){
+        if(G.scores.p2[c]!==null)continue;
+        let p=evalPotential(c,cd,rl);
+        if(weights) p *= (weights[c] || 1.0);
+        if(c<=5){const uSoFar=G.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0);const uFilled=G.scores.p2.slice(0,6).filter(v=>v!==null).length;const needed=(63-uSoFar)/(6-uFilled||1);if(p>=needed*0.9)p*=1.25;}
+        if(p>bp){bp=p;bc=c;}
+      }
+      if(bc>=0)ch=holdForCat(bc,cd);
+    }
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const allowedCats = isBonusTurn ? jokerAllowedCats('p2', cd) : null;
+  let bc=-1,bw=-1;
+  for(let c=0;c<13;c++){
+    if(G.scores.p2[c]!==null)continue;
+    if(allowedCats && !allowedCats.has(c))continue;
+    const sc = isBonusTurn ? jokerScore(c,cd) : calcScore(c,cd);
+    let w=sc; if(w===0){if(c<=1)w=0.5;else if(c<=3)w=0.3;else w=0.1;}
+    if(weights) w *= (weights[c] || 1.0);
+    if(w>bw){bw=w;bc=c;}
+  }
+  if(bc>=0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
+  updateScorecard(); renderDice();
+  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+}
+
+// ===== INSIGHTS TAB =====
+function renderInsights() {
+  const el = document.getElementById('insights-content');
+  const insights = buildInsights();
+
+  const typeIcon = { warning: '⚠️', tip: '💡', strength: '✅' };
+  const typeColor = { warning: 'rgba(255,71,87,0.15)', tip: 'rgba(232,255,71,0.08)', strength: 'rgba(100,220,100,0.1)' };
+  const typeBorder = { warning: 'rgba(255,71,87,0.3)', tip: 'rgba(232,255,71,0.25)', strength: 'rgba(100,220,100,0.25)' };
+
+  let html = '';
+
+  if (gameHistory.length < 2) {
+    html = `<div class="empty-state">Play at least 2 games to unlock strategy insights.<br><br>The AI watches your patterns and tells you exactly what to fix.</div>`;
+  } else {
+    html += `<div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">${insights.length} insight${insights.length!==1?'s':''} from ${gameHistory.length} games</div>`;
+    insights.forEach(ins => {
+      html += `<div style="background:${typeColor[ins.type]};border:1px solid ${typeBorder[ins.type]};border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:0.8em;font-weight:700;margin-bottom:4px;">${typeIcon[ins.type]} ${ins.title}</div>
+        <div style="font-size:0.73em;color:#bbb;line-height:1.55;">${ins.detail}</div>
+      </div>`;
+    });
+    if (insights.length === 0) {
+      html += `<div class="empty-state">Looking good — no major issues found yet. Play more games for deeper patterns.</div>`;
+    }
+    html += `<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Export Strategy Log</div>
+      <button onclick="exportInsightsFile()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin:0;">📥 Download Insights as .txt</button>
+      <button onclick="copyInsightsText()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin-top:6px;">📋 Copy to Clipboard</button>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function buildInsightText() {
+  const insights = buildInsights();
+  const lines = [];
+  lines.push('=== FULLSTACKS STRATEGY INSIGHTS ===');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`Games analyzed: ${gameHistory.length}`);
+  lines.push('');
+
+  // Stats summary
+  if (gameHistory.length > 0) {
+    const scores = gameHistory.map(g => g.totals.p1);
+    lines.push('--- SCORE SUMMARY ---');
+    lines.push(`High Score: ${Math.max(...scores)}`);
+    lines.push(`Average: ${Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)}`);
+    lines.push(`Low Score: ${Math.min(...scores)}`);
+    const bonusRate = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length / gameHistory.length;
+    lines.push(`Upper Bonus Rate: ${Math.round(bonusRate*100)}%`);
+    lines.push('');
+
+    // Per-category averages
+    lines.push('--- CATEGORY AVERAGES ---');
+    CAT_NAMES.forEach((name, ci) => {
+      const vals = gameHistory.map(g => g.scores.p1[ci]).filter(v => v !== null);
+      if (vals.length > 0) {
+        const avg = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+        const zeroPct = Math.round(vals.filter(v=>v===0).length/vals.length*100);
+        lines.push(`  ${name.padEnd(14)} avg=${avg}  zeroes=${zeroPct}%  (${vals.length} games)`);
+      }
+    });
+    lines.push('');
+  }
+
+  lines.push('--- STRATEGY INSIGHTS ---');
+  if (insights.length === 0) {
+    lines.push('No major issues detected yet. Keep playing!');
+  } else {
+    insights.forEach((ins, i) => {
+      const typeLabel = { warning: '[ISSUE]', tip: '[TIP]', strength: '[STRENGTH]' }[ins.type];
+      lines.push(`${i+1}. ${typeLabel} ${ins.title}`);
+      lines.push(`   ${ins.detail}`);
+      lines.push('');
+    });
+  }
+
+  lines.push('--- RECENT GAMES ---');
+  gameHistory.slice(0,10).forEach((g,i) => {
+    lines.push(`  ${g.date} | Score: ${g.totals.p1} | Mode: ${g.mode} | Bonus: ${g.gotBonus && g.gotBonus.p1 ? 'YES' : 'no'} | ${g.winner === 'p1' ? 'WIN' : g.winner === 'tie' ? 'TIE' : 'LOSS'}`);
+  });
+
+  return lines.join('\n');
+}
+
+function exportInsightsFile() {
+  const text = buildInsightText();
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fullstacks-insights-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyInsightsText() {
+  const text = buildInsightText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('#insights-content button:last-child');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(()=>btn.textContent=orig, 2000); }
+  }).catch(() => {
+    alert('Copy failed — use Download instead.');
+  });
+}
+
+
+// Init badge
+if (gameHistory.length > 0) {
+  const badge = document.getElementById('tracker-badge');
+  badge.textContent = gameHistory.length;
+  badge.style.display = 'block';
+}
 </script>
 </body>
-</html>
