@@ -97,7 +97,7 @@ button.inline { width:auto; display:inline-block; }
 
 .dice-area { text-align:center; margin-bottom:12px; padding:0 4px; }
 .dice-container { display:flex; justify-content:center; gap:clamp(5px,2vw,10px); padding:clamp(8px,2.5vw,14px) clamp(10px,3vw,18px); background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; box-sizing:border-box; }
-.die { width:clamp(40px,13vw,56px); height:clamp(40px,13vw,56px); background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:transform 0.15s,border-color 0.2s,box-shadow 0.2s; flex:1 1 0; min-width:0; max-width:56px; }
+.die { width:clamp(40px,13vw,56px); height:auto; aspect-ratio:1/1; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:transform 0.15s,border-color 0.2s,box-shadow 0.2s; flex:0 0 clamp(40px,13vw,56px); min-width:0; max-width:56px; }
 .die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
 .die.locked { opacity:0.45; cursor:default; }
 /* ===== DICE ANIMATIONS - two identical sets so name can alternate to force restart ===== */
@@ -539,15 +539,13 @@ function doRoll() {
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
 
   // Animate using OLD values, then snap to new values mid-shake
-  renderDiceShake(G.prevDice, newDice, G.held);
-
   const p = G.turn;
-
-  setTimeout(() => {
-    // Now commit new values
+  renderDiceShake(G.prevDice, newDice, G.held, () => {
+    // Commit new values AFTER animation fully completes
     G.dice = newDice;
     G.rolling = false;
     G.prevDice = null;
+    G.prevHeld = null;
     renderDice();
 
     const isFS = isFullStack(G.dice);
@@ -570,49 +568,69 @@ function doRoll() {
         : 'Choose a category to score';
     }
     showHints();
-  }, 450);
+  });
 }
 
-function renderDiceShake(oldVals, newVals, held) {
+function renderDiceShake(oldVals, newVals, held, onComplete) {
   const dc = document.getElementById('diceContainer');
   const t = G.turn;
   const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
+  const DURATION = 400;
 
   while (dc.children.length < 5) dc.appendChild(document.createElement('div'));
+
+  let pending = 0;
 
   for (let i = 0; i < 5; i++) {
     const die = dc.children[i];
     const isHeld = held[i];
-    // Show OLD value during shake
     die.dataset.idx = i;
     die.className = `die face-${oldVals[i]}${isHeld ? ' held' : ''}${locked ? ' locked' : ''}`;
     die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
 
     if (!isHeld) {
-      // Shake, then mid-way through snap to new value
-      die.animate([
+      pending++;
+      const anim = die.animate([
         { transform: 'rotate(0deg)' },
+        { transform: 'rotate(-12deg)' },
+        { transform: 'rotate(12deg)' },
         { transform: 'rotate(-10deg)' },
         { transform: 'rotate(10deg)' },
-        { transform: 'rotate(-10deg)' },
-        { transform: 'rotate(10deg)' },
-        { transform: 'rotate(-6deg)' },
+        { transform: 'rotate(-4deg)' },
         { transform: 'rotate(0deg)' },
-      ], { duration: 450, easing: 'ease-in-out', fill: 'none' });
+      ], { duration: DURATION, easing: 'ease-in-out', fill: 'forwards' });
 
-      // Snap face to new value at the halfway point
-      setTimeout(() => {
-        die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
-        die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
-        if (newVals[i] !== oldVals[i]) {
-          die.animate([
-            { boxShadow: '0 0 0 3px rgba(100,255,100,0.9)' },
-            { boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }
-          ], { duration: 300, easing: 'ease-out', fill: 'none' });
-        }
-      }, 220);
+      (function(idx, dieEl, animation) {
+        animation.onfinish = () => {
+          dieEl.className = `die face-${newVals[idx]}${locked ? ' locked' : ''}`;
+          dieEl.innerHTML = '<div class="pip"></div>'.repeat(newVals[idx]);
+          animation.cancel();
+          // Settle shake on the new face to sell the "still tumbling" feel
+          const settle = dieEl.animate([
+            { transform: 'rotate(0deg)' },
+            { transform: 'rotate(-8deg)' },
+            { transform: 'rotate(7deg)' },
+            { transform: 'rotate(-4deg)' },
+            { transform: 'rotate(2deg)' },
+            { transform: 'rotate(0deg)' },
+          ], { duration: 280, easing: 'ease-out', fill: 'none' });
+          // Green flash runs in parallel
+          if (newVals[idx] !== oldVals[idx]) {
+            dieEl.animate([
+              { boxShadow: '0 0 0 3px rgba(100,255,100,0.9)' },
+              { boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }
+            ], { duration: 400, easing: 'ease-out', fill: 'none' });
+          }
+          settle.onfinish = () => {
+            pending--;
+            if (pending === 0 && onComplete) onComplete();
+          };
+        };
+      })(i, die, anim);
     }
   }
+
+  if (pending === 0 && onComplete) onComplete();
 }
 
 // ===== SCORE CLICK =====
