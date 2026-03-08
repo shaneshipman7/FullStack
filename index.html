@@ -95,9 +95,9 @@ button.inline { width:auto; display:inline-block; }
 .turn-banner.comp-turn { background:rgba(85,85,85,0.15); color:#aaa; border:1px solid #444; }
 .turn-banner.game-over { background:rgba(255,71,87,0.1); color:var(--danger); border:1px solid rgba(255,71,87,0.25); }
 
-.dice-area { text-align:center; margin-bottom:12px; }
-.dice-container { display:inline-flex; gap:10px; padding:14px 18px; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
-.die { width:56px; height:56px; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:transform 0.15s,border-color 0.2s,box-shadow 0.2s; flex-shrink:0; }
+.dice-area { text-align:center; margin-bottom:12px; padding:0 4px; }
+.dice-container { display:flex; justify-content:center; gap:clamp(5px,2vw,10px); padding:clamp(8px,2.5vw,14px) clamp(10px,3vw,18px); background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; box-sizing:border-box; }
+.die { width:clamp(40px,13vw,56px); height:clamp(40px,13vw,56px); background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:transform 0.15s,border-color 0.2s,box-shadow 0.2s; flex:1 1 0; min-width:0; max-width:56px; }
 .die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
 .die.locked { opacity:0.45; cursor:default; }
 /* ===== DICE ANIMATIONS - two identical sets so name can alternate to force restart ===== */
@@ -107,7 +107,7 @@ button.inline { width:auto; display:inline-block; }
 @keyframes shakeHeldB{ 0%,100%{transform:translateY(-6px) scale(1.08) rotate(0)} 25%{transform:translateY(-6px) scale(1.08) rotate(-8deg)} 75%{transform:translateY(-6px) scale(1.08) rotate(8deg)} }
 @keyframes flashgreen { 0%{box-shadow:0 0 0 3px rgba(100,255,100,0.9)} 100%{box-shadow:0 4px 12px rgba(0,0,0,0.6)} }
 @keyframes flashgreenHeld { 0%{box-shadow:0 0 0 3px rgba(100,255,100,0.9)} 100%{box-shadow:0 0 18px rgba(255,152,0,0.6)} }
-.pip { width:11px; height:11px; background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
+.pip { width:clamp(8px,2.2vw,11px); height:clamp(8px,2.2vw,11px); background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
 .face-1 .pip:nth-child(1){top:50%;left:50%;transform:translate(-50%,-50%);}
 .face-2 .pip:nth-child(1){top:18%;left:18%;} .face-2 .pip:nth-child(2){bottom:18%;right:18%;}
 .face-3 .pip:nth-child(1){top:18%;left:18%;} .face-3 .pip:nth-child(2){top:50%;left:50%;transform:translate(-50%,-50%);} .face-3 .pip:nth-child(3){bottom:18%;right:18%;}
@@ -530,6 +530,7 @@ function doRoll() {
   document.getElementById('rollBtn').disabled = true;
   clearPreview();
   G.prevDice = [...G.dice];
+  G.prevHeld = [...G.held];
   for (let i = 0; i < 5; i++) {
     if (!G.held[i]) G.dice[i] = rollDie();
   }
@@ -719,43 +720,44 @@ function renderDice(animate=false) {
   const t = G.turn;
   const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
 
+  // Ensure we have exactly 5 die elements
+  while (dc.children.length < 5) {
+    const d = document.createElement('div');
+    dc.appendChild(d);
+  }
+
   for (let i = 0; i < 5; i++) {
     const v = G.dice[i];
     const isHeld = G.held[i];
     const valueChanged = G.prevDice && G.prevDice[i] !== v;
+    const wasHeld = G.prevHeld && G.prevHeld[i];
 
-    const die = document.createElement('div');
+    // Update in place — never replace the element so animations stick
+    const die = dc.children[i];
     die.dataset.idx = i;
     die.className = `die face-${v}${isHeld ? ' held' : ''}${locked ? ' locked' : ''}`;
     die.innerHTML = '<div class="pip"></div>'.repeat(v);
 
-    if (dc.children[i]) {
-      dc.replaceChild(die, dc.children[i]);
-    } else {
-      dc.appendChild(die);
-    }
-
     if (animate) {
-      const baseTransform = isHeld ? 'translateY(-6px) scale(1.08)' : '';
-      const shakeFrames = [
-        { transform: `${baseTransform} rotate(0deg)` },
-        { transform: `${baseTransform} rotate(-8deg)` },
-        { transform: `${baseTransform} rotate(8deg)` },
-        { transform: `${baseTransform} rotate(-8deg)` },
-        { transform: `${baseTransform} rotate(8deg)` },
-        { transform: `${baseTransform} rotate(-8deg)` },
-        { transform: `${baseTransform} rotate(0deg)` },
-      ];
-      die.animate(shakeFrames, { duration: 450, easing: 'ease-in-out', fill: 'none' });
+      // Only shake dice that are NOT held
+      if (!isHeld) {
+        const shakeFrames = [
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(-10deg)' },
+          { transform: 'rotate(10deg)' },
+          { transform: 'rotate(-10deg)' },
+          { transform: 'rotate(10deg)' },
+          { transform: 'rotate(-6deg)' },
+          { transform: 'rotate(0deg)' },
+        ];
+        die.animate(shakeFrames, { duration: 450, easing: 'ease-in-out', fill: 'none' });
+      }
 
-      // Flash green on dice that changed value
+      // Flash green on dice that changed value (not held)
       if (!isHeld && valueChanged) {
-        const shadowEnd = isHeld
-          ? '0 0 18px rgba(255,152,0,0.6)'
-          : '0 4px 12px rgba(0,0,0,0.6)';
         die.animate([
           { boxShadow: '0 0 0 3px rgba(100,255,100,0.9)' },
-          { boxShadow: shadowEnd }
+          { boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }
         ], { duration: 500, easing: 'ease-out', fill: 'none' });
       }
     }
