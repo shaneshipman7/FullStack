@@ -296,6 +296,17 @@ tr.fs-bonus td { color:var(--p1); }
         </div>
         <div id="diff-desc" style="font-size:0.68em;color:var(--muted);margin-top:6px;text-align:center;">Rookie: rolls randomly, easy to beat</div>
       </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;">
+        <div>
+          <div style="font-size:0.78em;font-weight:600;letter-spacing:0.06em;">Watch Computer Play</div>
+          <div style="font-size:0.65em;color:var(--muted);margin-top:2px;">Animate each roll & hold decision</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;margin:0;flex-shrink:0;">
+          <input type="checkbox" id="watchCompToggle" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="watchCompSlider" style="position:absolute;cursor:pointer;inset:0;background:#333;border-radius:11px;transition:0.25s;" onclick="toggleWatchComp()"></span>
+          <span id="watchCompKnob" style="position:absolute;content:'';height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:0.25s;pointer-events:none;"></span>
+        </label>
+      </div>
       <button class="btn-comp" onclick="startVsComp()">Play vs Computer</button>
     </div>
   </div>
@@ -383,6 +394,15 @@ let mode = null; // 'passplay' | 'vscomp'
 let pendingCat = null;
 let currentGameMoves = []; // declared here so startVsComp can reset it
 let aiDifficulty = 'easy';  // declared here so selectDiff and startVsComp can access it
+let watchComp = false; // whether to animate computer's turns
+
+function toggleWatchComp() {
+  watchComp = !watchComp;
+  const slider = document.getElementById('watchCompSlider');
+  const knob = document.getElementById('watchCompKnob');
+  slider.style.background = watchComp ? 'var(--p1)' : '#333';
+  knob.style.transform = watchComp ? 'translateX(18px)' : 'translateX(0)';
+}
 
 function freshGame(p1, p2) {
   return {
@@ -1060,21 +1080,171 @@ function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
 
 function runComputerTurn() {
   // PRO difficulty: strong lookahead + upper bonus awareness
+  const steps = [];
   let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
-  for (let roll = 0; roll < 3; roll++) {
-    if (roll > 0) cd = cd.map((v, i) => ch[i] ? v : rollDie());
-    const rl = 2 - roll;
-    if (rl > 0) {
-      ch = chooseBestHold(cd, rl, G.scores.p2, null);
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, null);
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  ch = [false,false,false,false,false];
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  applyComputerResult(cd, ch, steps);
+}
+
+// ===== ANIMATED COMPUTER PLAYBACK =====
+
+// Compute moves for easy difficulty
+function computeEasyMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie);
+  steps.push({ dice: [...cd], held: [false,false,false,false,false] });
+  for (let r = 0; r < 2; r++) {
+    const held = cd.map(() => Math.random() < 0.25);
+    cd = cd.map((v,i) => held[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...held] });
+  }
+  let open = [];
+  for (let c=0; c<13; c++) { if (G.scores.p2[c] === null) open.push(c); }
+  const scorable = open.filter(c => calcScore(c,cd) > 0);
+  const bc = scorable.length > 0 && Math.random() > 0.3
+    ? scorable[Math.floor(Math.random() * scorable.length)]
+    : open[Math.floor(Math.random() * open.length)];
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  return { steps, finalDice: cd };
+}
+
+function computeMediumMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    let bc2 = -1, bp = -1;
+    for (let c = 0; c < 13; c++) {
+      if (G.scores.p2[c] !== null) continue;
+      const sc = calcScore(c, cd);
+      if (sc > bp) { bp = sc; bc2 = c; }
     }
+    ch = bc2 >= 0 ? holdForCat(bc2, cd) : ch;
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
   }
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
   const bc = chooseBestCategory(cd, G.scores.p2);
   if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
-  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
-  updateScorecard(); renderDice();
-  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  return { steps, finalDice: cd };
+}
+
+function computeHardMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, null);
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+function computeAdaptiveMoves() {
+  const weights = adaptiveWeights();
+  const weightFn = weights ? (c => weights[c] || 1.0) : null;
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, weightFn);
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+// Animated playback: show each roll step by step
+function playComputerStepsAnimated(steps, finalDice, onDone) {
+  const HOLD_DISPLAY_MS = 700; // pause to show held selection after each roll
+  let stepIdx = 0;
+
+  function playStep() {
+    if (stepIdx >= steps.length) { onDone(); return; }
+    const step = steps[stepIdx];
+    const prevDice = stepIdx === 0 ? [1,1,1,1,1] : steps[stepIdx - 1].dice;
+    const prevHeld = [false,false,false,false,false];
+
+    // Update message
+    const rollNum = stepIdx + 1;
+    const rollsLeft = 3 - rollNum;
+    const msgEl = document.getElementById('message');
+    msgEl.style.color = 'var(--p2)';
+    msgEl.textContent = `Roll ${rollNum} of 3…`;
+
+    // Animate roll
+    renderDiceShake(prevDice, step.dice, prevHeld, () => {
+      G.dice = step.dice;
+
+      // Determine what the computer holds after this roll (for display)
+      const nextStep = steps[stepIdx + 1];
+      if (nextStep) {
+        // step.held = what the computer decided to keep going into the next roll
+        G.held = [...step.held];
+        renderDice();
+        const heldCount = step.held.filter(Boolean).length;
+        msgEl.textContent = heldCount > 0
+          ? `Roll ${rollNum} done — holding ${heldCount} dice`
+          : `Roll ${rollNum} done — rolling all again`;
+      } else {
+        G.held = [false,false,false,false,false];
+        renderDice();
+        msgEl.textContent = `Scoring!`;
+      }
+
+      stepIdx++;
+      setTimeout(playStep, stepIdx < steps.length ? HOLD_DISPLAY_MS : 0);
+    });
+  }
+
+  playStep();
+}
+
+function applyComputerResult(finalDice, finalHeld, steps) {
+  if (watchComp) {
+    // First run the moves through the animating playback, THEN commit
+    // Note: scores were already committed by the compute functions above
+    // We need to defer the UI update until animation is done
+    playComputerStepsAnimated(steps, finalDice, () => {
+      G.dice = finalDice;
+      G.held = [false,false,false,false,false];
+      G.rollsLeft = 3;
+      updateScorecard();
+      renderDice();
+      setTimeout(() => {
+        if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+      }, 600);
+    });
+  } else {
+    G.dice = finalDice;
+    G.held = [false,false,false,false,false];
+    G.rollsLeft = 3;
+    updateScorecard();
+    renderDice();
+    if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  }
 }
 
 // Init dice event delegation once DOM is ready
@@ -1547,71 +1717,18 @@ function runComputerTurnByDifficulty() {
 }
 
 function runComputerTurnEasy() {
-  // Roll all 3 times, hold nothing strategically (just random holds ~30%)
-  let cd = Array.from({length:5}, rollDie);
-  for (let r = 0; r < 2; r++) {
-    const held = cd.map(() => Math.random() < 0.25);
-    cd = cd.map((v,i) => held[i] ? v : rollDie());
-  }
-  // Pick a random open category, weighted slightly toward scoring > 0
-  let open = [];
-  for (let c=0; c<13; c++) { if (G.scores.p2[c] === null) open.push(c); }
-  const scorable = open.filter(c => calcScore(c,cd) > 0);
-  const bc = scorable.length > 0 && Math.random() > 0.3
-    ? scorable[Math.floor(Math.random() * scorable.length)]
-    : open[Math.floor(Math.random() * open.length)];
-
-  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
-  if (isBonusTurn) G.fsBonus.p2 += 100;
-  G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
-  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
-  updateScorecard(); renderDice();
-  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  const { steps, finalDice } = computeEasyMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
 }
 
 function runComputerTurnMedium() {
-  // CLUB difficulty: greedy immediate score, basic hold logic, no MC
-  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
-  for (let roll = 0; roll < 3; roll++) {
-    if (roll > 0) cd = cd.map((v, i) => ch[i] ? v : rollDie());
-    if (roll < 2) {
-      let bc = -1, bp = -1;
-      for (let c = 0; c < 13; c++) {
-        if (G.scores.p2[c] !== null) continue;
-        const sc = calcScore(c, cd);
-        if (sc > bp) { bp = sc; bc = c; }
-      }
-      ch = bc >= 0 ? holdForCat(bc, cd) : ch;
-    }
-  }
-  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
-  if (isBonusTurn) G.fsBonus.p2 += 100;
-  const bc = chooseBestCategory(cd, G.scores.p2);
-  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
-  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
-  updateScorecard(); renderDice();
-  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  const { steps, finalDice } = computeMediumMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
 }
 
 function runComputerTurnAdaptive() {
-  // SHARK: full MC lookahead + adaptive weights from player patterns
-  const weights = adaptiveWeights();
-  const weightFn = weights ? (c => weights[c] || 1.0) : null;
-  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
-  for (let roll = 0; roll < 3; roll++) {
-    if (roll > 0) cd = cd.map((v, i) => ch[i] ? v : rollDie());
-    const rl = 2 - roll;
-    if (rl > 0) {
-      ch = chooseBestHold(cd, rl, G.scores.p2, weightFn);
-    }
-  }
-  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
-  if (isBonusTurn) G.fsBonus.p2 += 100;
-  const bc = chooseBestCategory(cd, G.scores.p2);
-  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
-  G.dice=cd; G.held=[false,false,false,false,false]; G.rollsLeft=3;
-  updateScorecard(); renderDice();
-  if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  const { steps, finalDice } = computeAdaptiveMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
 }
 
 // ===== INSIGHTS TAB =====
