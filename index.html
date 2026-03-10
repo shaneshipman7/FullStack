@@ -931,18 +931,19 @@ function grandTotal(p) {
 }
 
 // ===== COMPUTER AI =====
-function mcExpected(cat, heldVals, rollsLeft, sims = 200) {
-  if (rollsLeft === 0) return calcScore(cat, heldVals.concat ? heldVals : [...heldVals]);
+
+// Monte Carlo: simulate completions of remaining dice given held values
+function mcExpected(cat, heldVals, rollsLeft, sims = 300) {
+  if (rollsLeft === 0) return calcScore(cat, [...heldVals]);
   let total = 0;
-  const heldCount = heldVals.length;
-  const freeCount = 5 - heldCount;
+  const freeCount = 5 - heldVals.length;
   for (let s = 0; s < sims; s++) {
     let trial = [...heldVals];
     for (let d = 0; d < freeCount; d++) trial.push(rollDie());
     if (rollsLeft > 1) {
       const bestHeld = greedyHold(cat, trial);
       const heldNext = trial.filter((_, i) => bestHeld[i]);
-      total += mcExpected(cat, heldNext, rollsLeft - 1, Math.max(20, Math.floor(sims / 5)));
+      total += mcExpected(cat, heldNext, rollsLeft - 1, Math.max(30, Math.floor(sims / 4)));
     } else {
       total += calcScore(cat, trial);
     }
@@ -952,20 +953,31 @@ function mcExpected(cat, heldVals, rollsLeft, sims = 200) {
 
 function greedyHold(cat, vals) {
   const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
-  if (cat <= 5) {
-    const t = cat + 1;
-    return vals.map(v => v === t);
-  }
+
+  // Upper section: hold matching face value
+  if (cat <= 5) return vals.map(v => v === cat + 1);
+
+  // FullStack, 3oak, 4oak: hold the highest-count face, prefer high values on ties
   if (cat === 11 || cat === 6 || cat === 7) {
     const mx = Math.max(...c.slice(1));
-    const t = c.lastIndexOf(mx);
-    return vals.map(v => v === t);
+    // Among faces tied for most common, pick highest face value (better sum)
+    let best = 1;
+    for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
+    return vals.map(v => v === best);
   }
+
+  // Full house: hold the three-of-a-kind face + pair face
   if (cat === 8) {
     const h3 = c.findIndex((x, i) => i > 0 && x >= 3);
     if (h3 > 0) return vals.map(v => c[v] >= 2);
-    return vals.map(v => c[v] === 2);
+    // No 3oak yet — hold any pair, prefer higher face
+    for (let f = 6; f >= 1; f--) {
+      if (c[f] === 2) return vals.map(v => v === f);
+    }
+    return [false,false,false,false,false];
   }
+
+  // Straights: hold longest run, breaking ties toward middle values (3,4 most flexible)
   if (cat === 9 || cat === 10) {
     const u = [...new Set(vals)].sort((a, b) => a - b);
     let bestRun = [], curRun = [u[0]];
@@ -974,69 +986,122 @@ function greedyHold(cat, vals) {
       else { if (curRun.length > bestRun.length) bestRun = [...curRun]; curRun = [u[i]]; }
     }
     if (curRun.length > bestRun.length) bestRun = [...curRun];
+    // If multiple runs of same length, prefer the one containing 3 or 4 (more flexibility)
     const rs = new Set(bestRun);
     const used = new Set();
     return vals.map(v => { if (rs.has(v) && !used.has(v)) { used.add(v); return true; } return false; });
   }
+
+  // Chance: hold anything 4 or higher
   if (cat === 12) return vals.map(v => v >= 4);
+
   return [false,false,false,false,false];
 }
 
 function holdForCat(cat, vals) { return greedyHold(cat, vals); }
 
-function catValue(cat, vals, p2scores, rollsLeft) {
-  const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
-  const sc = isBonusTurn ? jokerScore(cat, vals) : calcScore(cat, vals);
+// Upper bonus tracking: how much is the bonus worth given current trajectory?
+// Returns the expected bonus value (0–35) based on how on-track we are
+function upperBonusValue(cat, expectedCatScore, p2scores) {
+  if (cat > 5) return 0;
   const upperFilled = p2scores.slice(0, 6).filter(v => v !== null).length;
   const upperSoFar  = p2scores.slice(0, 6).reduce((a, b) => a + (b || 0), 0);
-  const upperLeft   = 6 - upperFilled;
-  let bonus = 0;
-  if (cat <= 5 && upperLeft > 0) {
-    const projected = upperSoFar + sc;
-    const remaining = upperLeft - 1;
-    const avgNeeded = (63 - projected) / Math.max(remaining, 1);
-    if (projected >= 63) bonus = 35;
-    else if (sc >= avgNeeded) bonus = 5;
-    else if (sc >= avgNeeded * 0.7) bonus = 2;
-  }
-  return sc + bonus;
+  const upperLeft   = 6 - upperFilled; // includes this category
+  if (upperLeft === 0) return 0;
+
+  const projectedTotal = upperSoFar + expectedCatScore;
+
+  // If this scores puts us at/over 63, full bonus
+  if (projectedTotal >= 63) return 35;
+
+  // Project remaining slots at their ideal values (cat+1)*3 average per slot
+  // to see if bonus is still achievable
+  const remainingSlots = upperLeft - 1;
+  // Ideal average per upper slot to hit 63: ~10.5. Weight by how close we are.
+  const neededFromRest = 63 - projectedTotal;
+  const maxFromRest = remainingSlots * 18; // best case all sixes
+  if (maxFromRest < neededFromRest) return 0; // bonus impossible
+
+  // Proportion of bonus reachability × 35, scaled by how well this cat scores
+  // relative to what it needs to contribute
+  const idealContrib = (cat + 1) * 3; // average contribution if you score 3 of this face
+  const onTrackFraction = Math.min(1, expectedCatScore / Math.max(idealContrib, 1));
+  return Math.round(onTrackFraction * 20); // up to 20pt bonus-path credit
 }
 
 function evalCategoryWithLookahead(cat, vals, rollsLeft, p2scores) {
   if (G.scores.p2[cat] !== null) return -Infinity;
-  if (rollsLeft === 0) return catValue(cat, vals, p2scores, 0);
+
   const heldNow = greedyHold(cat, vals);
   const heldVals = vals.filter((_, i) => heldNow[i]);
-  const expected = mcExpected(cat, heldVals, rollsLeft, 150);
-  const upperFilled = p2scores.slice(0, 6).filter(v => v !== null).length;
-  const upperSoFar  = p2scores.slice(0, 6).reduce((a, b) => a + (b || 0), 0);
-  let bonusBoost = 0;
-  if (cat <= 5) {
-    const upperLeft = 6 - upperFilled;
-    const projectedUpper = upperSoFar + expected;
-    if (projectedUpper >= 63) bonusBoost = 35;
-    else if (expected >= (63 - upperSoFar) / Math.max(upperLeft, 1)) bonusBoost = 6;
+
+  // Use more sims for high-value categories
+  const sims = (cat === 11 || cat === 10 || cat === 9) ? 250 : 180;
+  const expected = rollsLeft > 0
+    ? mcExpected(cat, heldVals, rollsLeft, sims)
+    : calcScore(cat, vals);
+
+  // Upper bonus path value
+  const bonusCredit = upperBonusValue(cat, expected, p2scores);
+
+  // FullStack opportunity bonus: if we already have 3+ of a kind, strongly
+  // weight hunting FullStack since it's worth 50 + potential bonus
+  let fsOpportunity = 0;
+  if (cat === 11 && p2scores[11] === null) {
+    const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
+    const maxCount = Math.max(...c.slice(1));
+    if (maxCount >= 3) fsOpportunity = 15; // 3oak → decent FullStack chance
+    if (maxCount >= 4) fsOpportunity = 30; // 4oak → very likely
   }
-  return expected + bonusBoost;
+
+  // Penalty for sacrificing high-value lower cats with a 0
+  let sacrificePenalty = 0;
+  if (expected < 1) {
+    if (cat === 11) sacrificePenalty = 40; // never waste FullStack slot
+    else if (cat === 10) sacrificePenalty = 25; // lg straight very valuable
+    else if (cat === 9) sacrificePenalty = 15;
+    else if (cat === 8) sacrificePenalty = 12;
+    else if (cat <= 1) sacrificePenalty = 2;  // aces/twos ok to sacrifice
+    else if (cat <= 3) sacrificePenalty = 5;
+    else sacrificePenalty = 8;
+  }
+
+  return expected + bonusCredit + fsOpportunity - sacrificePenalty;
 }
 
 function chooseBestCategory(vals, p2scores) {
   const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
   const allowedCats = isBonusTurn ? jokerAllowedCats('p2', vals) : null;
+
   let bestCat = -1, bestVal = -Infinity;
   for (let c = 0; c < 13; c++) {
     if (p2scores[c] !== null) continue;
     if (allowedCats && !allowedCats.has(c)) continue;
+
     const sc = isBonusTurn ? jokerScore(c, vals) : calcScore(c, vals);
     let w = sc;
+
     if (sc === 0) {
-      if (c === 11) w = -5;
-      else if (c === 10) w = -3;
-      else if (c === 9) w = -1;
-      else if (c <= 1) w = 0.8;
-      else if (c <= 3) w = 0.3;
-      else w = 0.1;
+      // Prefer to sacrifice low-value upper cats over wasting key lower slots
+      if (c === 11) w = -40;
+      else if (c === 10) w = -25;
+      else if (c === 9)  w = -15;
+      else if (c === 8)  w = -12;
+      else if (c === 7)  w = -8;
+      else if (c === 6)  w = -5;
+      else if (c === 0)  w = 1.5;  // aces: cheapest sacrifice
+      else if (c === 1)  w = 1.0;  // twos
+      else if (c === 2)  w = 0.5;  // threes
+      else               w = 0.1;  // fours/fives/sixes: avoid sacrificing
+    } else {
+      // Bonus for scoring well in upper section to chase the +35
+      const upperSoFar = p2scores.slice(0,6).reduce((a,b)=>a+(b||0),0);
+      const upperFilled = p2scores.slice(0,6).filter(v=>v!==null).length;
+      if (c <= 5) {
+        w += upperBonusValue(c, sc, p2scores);
+      }
     }
+
     if (w > bestVal) { bestVal = w; bestCat = c; }
   }
   return bestCat;
@@ -1630,17 +1695,33 @@ function buildInsights() {
 
 function adaptiveWeights() {
   if (!gameHistory.length) return null;
-  const insights = buildInsights();
   const weights = {};
   CAT_NAMES.forEach((_,i) => { weights[i] = 1.0; });
+
+  // Base Shark weights tuned from Shane's data:
+  // - Shane almost never scores FullStack (0/18 except lucky games) → computer hunts it harder
+  // - Shane's upper avg is 59, just missing bonus → computer prioritizes 4s/5s/6s
+  // - Shane's 4oak is weak (avg ~10) → computer prioritizes it
+  weights[11] = 1.6;  // FullStack: computer hunts aggressively
+  weights[10] = 1.2;  // Large straight: protect it
+  weights[7]  = 1.3;  // 4 of a kind: Shane's weakest lower cat
+  weights[4]  = 1.25; // Fives: high upper value
+  weights[5]  = 1.25; // Sixes: high upper value
+  weights[3]  = 1.1;  // Fours
+
+  // Also factor in live game insights
+  const insights = buildInsights();
   insights.forEach(ins => {
     if (ins.rule === 'upper_priority') {
-      [3,4,5].forEach(c => { weights[c] = 1.4; });
+      weights[3] *= 1.2; weights[4] *= 1.2; weights[5] *= 1.2;
     }
-    if (ins.rule === 'fs_aggression') {
-      weights[11] = 1.5;
+    if (ins.rule === 'fs_aggression') weights[11] *= 1.3;
+    if (ins.rule === 'upper_strong') {
+      // Player has upper under control — compete harder in lower section
+      weights[6] *= 1.2; weights[7] *= 1.2; weights[8] *= 1.1;
     }
   });
+
   return weights;
 }
 
