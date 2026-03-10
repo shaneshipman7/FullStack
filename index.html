@@ -388,6 +388,7 @@ let mode = null;
 let pendingCat = null;
 let currentGameMoves = [];
 let aiDifficulty = 'easy';
+try { const sd = localStorage.getItem('fs_difficulty'); if (sd) aiDifficulty = sd; } catch(e) {}
 let watchComp = false;
 
 function toggleWatchComp() {
@@ -533,6 +534,10 @@ function doRoll() {
   document.getElementById('rollBtn').disabled = true;
   clearPreview();
 
+  // Flush any in-flight animation immediately so we start clean
+  _shakeGeneration++; // invalidates any pending shake callbacks
+  renderDice();       // snap dice to whatever G.dice currently is
+
   // Snapshot what's currently displayed before we change anything
   const oldDice = [...G.dice];
   const oldHeld = [...G.held];
@@ -581,6 +586,8 @@ function doRoll() {
 // ===== renderDiceShake — setTimeout-based, cannot get stuck =====
 // Uses CSS keyframe animation names (toggled A/B to force restart) + a
 // guaranteed setTimeout callback. No Web Animations API onfinish chaining.
+let _shakeGeneration = 0; // incremented on every new roll to cancel stale callbacks
+
 function renderDiceShake(oldVals, newVals, held, onComplete) {
   const dc = document.getElementById('diceContainer');
   const t = G ? G.turn : 'p1';
@@ -588,13 +595,17 @@ function renderDiceShake(oldVals, newVals, held, onComplete) {
   const SHAKE_MS = 380;
   const SETTLE_MS = 260;
 
+  // Cancel any previous in-flight shake by bumping the generation token
+  const myGen = ++_shakeGeneration;
+
   // Ensure 5 elements
   while (dc.children.length < 5) dc.appendChild(document.createElement('div'));
 
-  // Guard so onComplete fires exactly once
+  // Guard so onComplete fires exactly once, and only if still the active roll
   let done = false;
   function finish() {
     if (done) return;
+    if (_shakeGeneration !== myGen) return; // stale — a newer roll has started
     done = true;
     // Snap all dice to their final resting state
     for (let i = 0; i < 5; i++) {
@@ -641,6 +652,7 @@ function renderDiceShake(oldVals, newVals, held, onComplete) {
   // Phase 2: after shake, flip faces and start settle
   setTimeout(() => {
     if (done) return;
+    if (_shakeGeneration !== myGen) return;
     for (const i of rolling) {
       const die = dc.children[i];
       die.style.animation = '';
@@ -1198,6 +1210,17 @@ function applyComputerResult(finalDice, finalHeld, steps) {
 }
 
 initDiceListeners();
+
+// Restore saved difficulty UI
+(function() {
+  const btn = document.querySelector(`.diff-btn[data-diff="${aiDifficulty}"]`);
+  if (btn) {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const descEl = document.getElementById('diff-desc');
+    if (descEl && typeof DIFF_DESCS !== 'undefined') descEl.textContent = DIFF_DESCS[aiDifficulty];
+  }
+})();
 </script>
 
 <!-- ===== SCORE TRACKER ===== -->
@@ -1519,6 +1542,7 @@ function selectDiff(btn, diff) {
   btn.classList.add('active');
   aiDifficulty = diff;
   document.getElementById('diff-desc').textContent = DIFF_DESCS[diff];
+  try { localStorage.setItem('fs_difficulty', diff); } catch(e) {}
 }
 
 function recordMove(dice, held, rollsLeft, scoredCat, score) {
