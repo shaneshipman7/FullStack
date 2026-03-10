@@ -653,6 +653,10 @@ function renderDiceShake(oldVals, newVals, held, onComplete) {
   setTimeout(() => {
     if (done) return;
     if (_shakeGeneration !== myGen) return;
+    // Ensure ALL dice (held and rolling) have correct dataset.idx
+    for (let i = 0; i < 5; i++) {
+      dc.children[i].dataset.idx = i;
+    }
     for (const i of rolling) {
       const die = dc.children[i];
       die.style.animation = '';
