@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FullStacks</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMCIgZmlsbD0iIzBkMGQwZiIvPgogIDwhLS0gUm93IDEgLS0+CiAgPHJlY3QgeD0iMiIgIHk9IjMiICB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iMTEiIGN5PSIxMiIgcj0iMi44IiBmaWxsPSIjMGQwZDBmIi8+CiAgPHJlY3QgeD0iMjMiIHk9IjMiICB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIxMiIgcj0iMi44IiBmaWxsPSIjMGQwZDBmIi8+CiAgPHJlY3QgeD0iNDQiIHk9IjMiICB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iNTMiIGN5PSIxMiIgcj0iMi44IiBmaWxsPSIjMGQwZDBmIi8+CiAgPCEtLSBSb3cgMiAtLT4KICA8cmVjdCB4PSIyIiAgeT0iMjUiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSIxMSIgY3k9IjM0IiByPSIyLjgiIGZpbGw9IiMwZDBkMGYiLz4KICA8cmVjdCB4PSIyMyIgeT0iMjUiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSIzMiIgY3k9IjM0IiByPSIyLjgiIGZpbGw9IiMwZDBkMGYiLz4KICA8cmVjdCB4PSI0NCIgeT0iMjUiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSI1MyIgY3k9IjM0IiByPSIyLjgiIGZpbGw9IiMwZDBkMGYiLz4KICA8IS0tIEZTIGxhYmVsIC0tPgogIDx0ZXh0IHg9IjMyIiB5PSI1OCIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNlOGZmNDciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIyIj5GUzwvdGV4dD4KPC9zdmc+">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0f;
+  --surface: #161618;
+  --surface2: #1e1e22;
+  --border: #2a2a30;
+  --p1: #e8ff47;
+  --p2: #47c3ff;
+  --danger: #ff4757;
+  --text: #e8e8ee;
+  --muted: #666672;
+  --held: #ff9800;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; padding: 20px 16px 40px;
+  background-image: radial-gradient(ellipse at 20% 0%, #1a1a2e 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 100%, #0f1a0f 0%, transparent 50%);
+}
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  letter-spacing: 0.06em; color: var(--p1);
+  text-align: center; margin-bottom: 4px;
+  text-shadow: 0 0 40px rgba(232,255,71,0.3);
+}
+.subtitle { text-align:center; font-size:0.7em; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:24px; }
+
+/* ===== SCREENS ===== */
+.screen { display:none; }
+.screen.active { display:block; }
+
+/* ===== LOBBY ===== */
+#lobby { max-width:380px; margin:0 auto; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 20px; margin-bottom:14px; }
+.card h2 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.08em; margin-bottom:14px; }
+.card h2.c1 { color:var(--p1); } .card h2.c2 { color:var(--p2); }
+.divider { text-align:center; color:var(--muted); font-size:0.72em; letter-spacing:0.12em; margin:10px 0; }
+input[type=text] {
+  font-family:'IBM Plex Mono',monospace; background:var(--surface2);
+  border:1px solid var(--border); border-radius:6px; color:var(--text);
+  font-size:0.9em; padding:9px 12px; width:100%; margin-bottom:10px; outline:none;
+  transition:border-color 0.2s;
+}
+input[type=text]:focus { border-color:var(--p1); }
+input[type=text]::placeholder { color:var(--muted); }
+
+/* ===== BUTTONS ===== */
+button {
+  font-family:'IBM Plex Mono',monospace; padding:10px 20px;
+  font-size:0.88em; font-weight:600; letter-spacing:0.08em;
+  border:none; border-radius:6px; cursor:pointer; text-transform:uppercase;
+  transition:opacity 0.2s, transform 0.1s; display:block; width:100%; margin:5px 0;
+}
+button:active { transform:scale(0.97); }
+button:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+button.btn-p1   { background:var(--p1); color:#000; }
+button.btn-p2   { background:var(--p2); color:#000; }
+button.btn-comp { background:#555; color:#fff; }
+button.btn-soft { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+button.btn-danger { background:var(--danger); color:#fff; }
+button.inline { width:auto; display:inline-block; }
+
+/* ===== HANDOFF SCREEN ===== */
+#handoff { max-width:360px; margin:0 auto; text-align:center; padding:40px 20px; }
+.handoff-name {
+  font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:0.06em;
+  margin:16px 0 8px;
+}
+.handoff-name.p1 { color:var(--p1); text-shadow:0 0 30px rgba(232,255,71,0.4); }
+.handoff-name.p2 { color:var(--p2); text-shadow:0 0 30px rgba(71,195,255,0.4); }
+.handoff-sub { font-size:0.78em; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:28px; }
+.handoff-btn {
+  font-size:1em; padding:14px 28px; border-radius:8px; margin:0 auto;
+}
+
+/* ===== GAME ===== */
+#game { max-width:600px; margin:0 auto; }
+.turn-banner {
+  text-align:center; font-size:0.85em; font-weight:600; letter-spacing:0.1em;
+  text-transform:uppercase; padding:8px 16px; border-radius:6px; margin-bottom:14px;
+}
+.turn-banner.p1-turn { background:rgba(232,255,71,0.1); color:var(--p1); border:1px solid rgba(232,255,71,0.25); }
+.turn-banner.p2-turn { background:rgba(71,195,255,0.08); color:var(--p2); border:1px solid rgba(71,195,255,0.2); }
+.turn-banner.comp-turn { background:rgba(85,85,85,0.15); color:#aaa; border:1px solid #444; }
+.turn-banner.game-over { background:rgba(255,71,87,0.1); color:var(--danger); border:1px solid rgba(255,71,87,0.25); }
+
+.dice-area { text-align:center; margin-bottom:12px; padding:0 4px; }
+.dice-container { display:flex; justify-content:center; gap:clamp(5px,2vw,10px); padding:clamp(8px,2.5vw,14px) clamp(10px,3vw,18px); background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; box-sizing:border-box; }
+.die { width:clamp(40px,13vw,56px); height:auto; aspect-ratio:1/1; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:border-color 0.2s,box-shadow 0.2s; flex:0 0 clamp(40px,13vw,56px); min-width:0; max-width:56px; }
+.die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
+.die.locked { opacity:0.45; cursor:default; }
+.pip { width:clamp(8px,2.2vw,11px); height:clamp(8px,2.2vw,11px); background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
+.face-1 .pip:nth-child(1){top:50%;left:50%;transform:translate(-50%,-50%);}
+.face-2 .pip:nth-child(1){top:18%;left:18%;} .face-2 .pip:nth-child(2){bottom:18%;right:18%;}
+.face-3 .pip:nth-child(1){top:18%;left:18%;} .face-3 .pip:nth-child(2){top:50%;left:50%;transform:translate(-50%,-50%);} .face-3 .pip:nth-child(3){bottom:18%;right:18%;}
+.face-4 .pip:nth-child(1){top:18%;left:18%;} .face-4 .pip:nth-child(2){top:18%;right:18%;} .face-4 .pip:nth-child(3){bottom:18%;left:18%;} .face-4 .pip:nth-child(4){bottom:18%;right:18%;}
+.face-5 .pip:nth-child(1){top:18%;left:18%;} .face-5 .pip:nth-child(2){top:18%;right:18%;} .face-5 .pip:nth-child(3){top:50%;left:50%;transform:translate(-50%,-50%);} .face-5 .pip:nth-child(4){bottom:18%;left:18%;} .face-5 .pip:nth-child(5){bottom:18%;right:18%;}
+.face-6 .pip:nth-child(1){top:12%;left:18%;} .face-6 .pip:nth-child(2){top:36%;left:18%;} .face-6 .pip:nth-child(3){top:60%;left:18%;} .face-6 .pip:nth-child(4){top:12%;right:18%;} .face-6 .pip:nth-child(5){top:36%;right:18%;} .face-6 .pip:nth-child(6){top:60%;right:18%;}
+
+@keyframes shakeA { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-11deg)} 40%{transform:rotate(11deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
+@keyframes shakeB { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-11deg)} 40%{transform:rotate(11deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
+
+.controls { text-align:center; margin-bottom:10px; }
+.controls button { width:auto; min-width:170px; display:inline-block; margin:4px; }
+button.roll { background:var(--p1); color:#000; }
+
+#message { text-align:center; font-size:0.82em; min-height:1.5em; color:var(--p1); letter-spacing:0.05em; margin-bottom:14px; transition:color 0.3s; }
+
+/* SCORECARD */
+.scorecard-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:0.82em; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+th,td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:center; }
+thead th { background:var(--surface2); font-size:0.72em; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+thead th:first-child { text-align:left; }
+tbody tr th { text-align:left; font-weight:400; color:#bbb; font-size:0.88em; }
+tr.section-total th, tr.grand-total th { font-weight:600; color:var(--text); }
+tr.section-total td { color:var(--muted); font-size:0.85em; }
+tr.grand-total { background:var(--surface2); }
+tr.grand-total td { font-weight:700; font-size:1.05em; }
+tr.fs-bonus th { color:var(--p1); font-weight:600; }
+tr.fs-bonus td { color:var(--p1); }
+.score-cell { cursor:pointer; transition:background 0.15s; }
+.score-cell:hover:not(.filled):not(.locked-cell) { background:#2a2a35; }
+.score-cell.locked-cell { cursor:default; color:var(--muted) !important; }
+.score-cell.filled { cursor:default; }
+.score-cell.filled-p1 { color:rgba(232,255,71,0.8); }
+.score-cell.filled-p2 { color:rgba(71,195,255,0.8); }
+.score-cell.preview  { background:rgba(232,255,71,0.15)!important; color:var(--p1); font-weight:700; }
+.col-p1 { border-left:2px solid rgba(232,255,71,0.2); }
+.col-p2 { border-left:2px solid rgba(71,195,255,0.2); }
+#grandP1 { color:var(--p1)!important; }
+#grandP2 { color:var(--p2)!important; }
+.bottom-row { text-align:center; margin-top:16px; }
+
+/* ===== TRACKER PANEL ===== */
+#tracker-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 100;
+  width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(232,255,71,0.3);
+  background: rgba(232,255,71,0.15); color: var(--p1); font-size: 1rem;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+#tracker-toggle:hover { transform: scale(1.1); background: rgba(232,255,71,0.25); box-shadow: 0 4px 14px rgba(232,255,71,0.3); }
+#tracker-toggle .badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--danger); color: #fff; font-size: 0.55rem;
+  font-weight: 700; border-radius: 10px; padding: 1px 4px; min-width: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+#tracker-panel {
+  position: fixed; top: 58px; right: 16px; z-index: 99;
+  width: min(420px, calc(100vw - 40px));
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+  overflow: hidden; display: none; flex-direction: column;
+  max-height: calc(100vh - 74px);
+}
+#tracker-panel.open { display: flex; }
+
+.tp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.tp-header h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem;
+  letter-spacing: 0.1em; color: var(--p1); margin: 0;
+}
+.tp-tabs {
+  display: flex; gap: 4px; padding: 10px 12px;
+  border-bottom: 1px solid var(--border); background: var(--surface2);
+}
+.tp-tab {
+  flex: 1; padding: 6px 8px; font-size: 0.72em; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border-radius: 5px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+  transition: all 0.15s; margin: 0; width: auto;
+}
+.tp-tab.active { background: var(--p1); color: #000; border-color: var(--p1); }
+.tp-tab:hover:not(.active) { border-color: var(--p1); color: var(--p1); }
+
+.tp-body { overflow-y: auto; flex: 1; padding: 12px; }
+
+/* History tab */
+.game-record {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.game-record:hover { border-color: var(--p1); }
+.game-record.is-high { border-color: rgba(232,255,71,0.4); }
+.gr-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.gr-date { font-size: 0.68em; color: var(--muted); }
+.gr-mode { font-size: 0.65em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.gr-scores { display: flex; gap: 12px; }
+.gr-player { font-size: 0.8em; }
+.gr-player span { font-weight: 700; }
+.gr-player.winner span { color: var(--p1); }
+.gr-player.p2winner span { color: var(--p2); }
+.gr-hs-badge { font-size: 0.62em; background: rgba(232,255,71,0.15); color: var(--p1); border: 1px solid rgba(232,255,71,0.3); border-radius: 4px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.06em; }
+.empty-state { text-align: center; color: var(--muted); font-size: 0.8em; padding: 24px 12px; line-height: 1.7; }
+
+/* Stats tab */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.stat-box .label { font-size: 0.65em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.stat-box .value { font-size: 1.2em; font-weight: 700; color: var(--p1); font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+.stat-box .sub { font-size: 0.68em; color: var(--muted); margin-top: 2px; }
+.cat-breakdown { margin-top: 8px; }
+.cat-breakdown h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.75em; }
+.cat-row .cat-name { flex: 1; color: #bbb; }
+.cat-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.cat-bar { height: 100%; background: var(--p1); border-radius: 3px; transition: width 0.4s; }
+.cat-avg { width: 52px; text-align: right; color: var(--text); font-weight: 600; white-space: nowrap; }
+
+/* Analysis tab */
+.analysis-btn {
+  background: var(--p1); color: #000; border: none; border-radius: 8px;
+  padding: 10px 16px; font-size: 0.82em; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  width: 100%; margin-bottom: 12px; transition: opacity 0.2s;
+}
+.analysis-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.analysis-output {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: 0.78em;
+  line-height: 1.65; color: var(--text); white-space: pre-wrap;
+  min-height: 80px;
+}
+.analysis-output.loading { color: var(--muted); font-style: italic; }
+.diff-btn { font-family: 'IBM Plex Mono', monospace; font-weight: 700; cursor: pointer; transition: all 0.15s; flex: 1; padding: 7px 4px; font-size: 0.72em; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; letter-spacing: 0.06em; }
+.diff-btn:hover { opacity: 0.85; }
+.diff-btn.active { background: rgba(232,255,71,0.15) !important; color: var(--p1) !important; border-color: rgba(232,255,71,0.4) !important; }
+.diff-btn.active[data-diff="adaptive"] { background: rgba(71,195,255,0.15) !important; color: var(--p2) !important; border-color: rgba(71,195,255,0.4) !important; }
+
+.analysis-output .section-head {
+  color: var(--p1); font-weight: 700; font-size: 0.9em;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; margin-bottom: 4px;
+  display: block;
+}
+.analysis-hint { font-size: 0.7em; color: var(--muted); text-align: center; margin-bottom: 8px; }
+.score-dist { margin-bottom: 12px; }
+.score-dist h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.dist-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.72em; }
+.dist-label { width: 60px; color: var(--muted); }
+.dist-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.dist-bar { height: 100%; border-radius: 4px; }
+.dist-count { width: 20px; text-align: right; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>FullStacks</h1>
+<p class="subtitle" id="subtitle">Dice Game</p>
+
+<!-- ===== LOBBY ===== -->
+<div id="lobby" class="screen active">
+  <div style="max-width:380px;margin:0 auto;">
+    <div class="card">
+      <h2 class="c1">Pass &amp; Play</h2>
+      <input type="text" id="name1" placeholder="Player 1 name" maxlength="16" value="Player 1" onfocus="this.select()">
+      <input type="text" id="name2" placeholder="Player 2 name" maxlength="16" value="Player 2" onfocus="this.select()">
+      <button class="btn-p1" onclick="startPassPlay()">Start Game</button>
+    </div>
+    <div class="divider">— or —</div>
+    <div class="card">
+      <h2 class="c2">vs Computer</h2>
+      <input type="text" id="nameComp" placeholder="Your name" maxlength="16" value="Player 1" onfocus="this.select()">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72em;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">AI Difficulty</label>
+        <div style="display:flex;gap:6px;">
+          <button class="diff-btn active" data-diff="easy" onclick="selectDiff(this,'easy')">ROOKIE</button>
+          <button class="diff-btn" data-diff="medium" onclick="selectDiff(this,'medium')">CLUB</button>
+          <button class="diff-btn" data-diff="hard" onclick="selectDiff(this,'hard')">PRO</button>
+          <button class="diff-btn" data-diff="adaptive" onclick="selectDiff(this,'adaptive')">SHARK</button>
+        </div>
+        <div id="diff-desc" style="font-size:0.68em;color:var(--muted);margin-top:6px;text-align:center;">Rookie: rolls randomly, easy to beat</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;">
+        <div>
+          <div style="font-size:0.78em;font-weight:600;letter-spacing:0.06em;">Watch Computer Play</div>
+          <div style="font-size:0.65em;color:var(--muted);margin-top:2px;">Animate each roll & hold decision</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;margin:0;flex-shrink:0;">
+          <input type="checkbox" id="watchCompToggle" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="watchCompSlider" style="position:absolute;cursor:pointer;inset:0;background:#333;border-radius:11px;transition:0.25s;" onclick="toggleWatchComp()"></span>
+          <span id="watchCompKnob" style="position:absolute;content:'';height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:0.25s;pointer-events:none;"></span>
+        </label>
+      </div>
+      <button class="btn-comp" onclick="startVsComp()">Play vs Computer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HANDOFF SCREEN ===== -->
+<div id="handoff" class="screen">
+  <p style="font-size:0.72em;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;">Hand the phone to</p>
+  <div class="handoff-name" id="handoffName">Player 2</div>
+  <p class="handoff-sub" id="handoffSub">It's your turn!</p>
+  <button class="btn-p2 handoff-btn inline" id="handoffBtn" onclick="confirmHandoff()">I'm Ready — Start Turn</button>
+</div>
+
+<!-- ===== GAME ===== -->
+<div id="game" class="screen">
+  <div class="turn-banner p1-turn" id="turnBanner">Player 1's Turn</div>
+
+  <div class="dice-area">
+    <div class="dice-container" id="diceContainer"></div>
+  </div>
+  <div class="controls">
+    <button id="rollBtn" class="roll" onclick="doRoll()">Roll (3 left)</button>
+  </div>
+  <div id="message">Roll to start!</div>
+
+  <div class="scorecard-wrap">
+  <table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th class="col-p1" id="headP1">P1</th>
+      <th class="col-p2" id="headP2">P2</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr><th>Aces</th>        <td class="score-cell col-p1" data-cat="0" data-p="p1"></td><td class="score-cell col-p2" data-cat="0" data-p="p2"></td></tr>
+  <tr><th>Twos</th>        <td class="score-cell col-p1" data-cat="1" data-p="p1"></td><td class="score-cell col-p2" data-cat="1" data-p="p2"></td></tr>
+  <tr><th>Threes</th>      <td class="score-cell col-p1" data-cat="2" data-p="p1"></td><td class="score-cell col-p2" data-cat="2" data-p="p2"></td></tr>
+  <tr><th>Fours</th>       <td class="score-cell col-p1" data-cat="3" data-p="p1"></td><td class="score-cell col-p2" data-cat="3" data-p="p2"></td></tr>
+  <tr><th>Fives</th>       <td class="score-cell col-p1" data-cat="4" data-p="p1"></td><td class="score-cell col-p2" data-cat="4" data-p="p2"></td></tr>
+  <tr><th>Sixes</th>       <td class="score-cell col-p1" data-cat="5" data-p="p1"></td><td class="score-cell col-p2" data-cat="5" data-p="p2"></td></tr>
+  <tr class="section-total"><th>Upper Total</th><td class="col-p1" id="upperP1">0</td><td class="col-p2" id="upperP2">0</td></tr>
+  <tr><th>Bonus (≥63)</th> <td class="col-p1" id="bonusP1">—</td><td class="col-p2" id="bonusP2">—</td></tr>
+  <tr><th>3 of a Kind</th> <td class="score-cell col-p1" data-cat="6"  data-p="p1"></td><td class="score-cell col-p2" data-cat="6"  data-p="p2"></td></tr>
+  <tr><th>4 of a Kind</th> <td class="score-cell col-p1" data-cat="7"  data-p="p1"></td><td class="score-cell col-p2" data-cat="7"  data-p="p2"></td></tr>
+  <tr><th>Full House</th>  <td class="score-cell col-p1" data-cat="8"  data-p="p1"></td><td class="score-cell col-p2" data-cat="8"  data-p="p2"></td></tr>
+  <tr><th>Sm. Straight</th><td class="score-cell col-p1" data-cat="9"  data-p="p1"></td><td class="score-cell col-p2" data-cat="9"  data-p="p2"></td></tr>
+  <tr><th>Lg. Straight</th><td class="score-cell col-p1" data-cat="10" data-p="p1"></td><td class="score-cell col-p2" data-cat="10" data-p="p2"></td></tr>
+  <tr><th>FullStack!</th>  <td class="score-cell col-p1" data-cat="11" data-p="p1"></td><td class="score-cell col-p2" data-cat="11" data-p="p2"></td></tr>
+  <tr><th>Chance</th>      <td class="score-cell col-p1" data-cat="12" data-p="p1"></td><td class="score-cell col-p2" data-cat="12" data-p="p2"></td></tr>
+  <tr class="fs-bonus"><th>FullStack Bonus</th><td class="col-p1" id="fsBonusP1">—</td><td class="col-p2" id="fsBonusP2">—</td></tr>
+  <tr class="section-total"><th>Lower Total</th><td class="col-p1" id="lowerP1">0</td><td class="col-p2" id="lowerP2">0</td></tr>
+  <tr class="grand-total"><th>Grand Total</th><td class="col-p1" id="grandP1">0</td><td class="col-p2" id="grandP2">0</td></tr>
+  </tbody>
+  </table>
+  </div>
+  <div class="bottom-row">
+    <button class="btn-soft inline" style="font-size:0.8em;padding:8px 16px;" onclick="goLobby()">New Game</button>
+  </div>
+</div>
+
+<script>
+// ===== SCORE CALC =====
+function rollDie() { const a=new Uint32Array(1); crypto.getRandomValues(a); return (a[0]%6)+1; }
+
+function calcScore(cat, vals) {
+  const c=[0,0,0,0,0,0,0]; let sum=0;
+  vals.forEach(v=>{c[v]++;sum+=v;});
+  if(cat<=5)  return c[cat+1]*(cat+1);
+  if(cat===6) return c.some(x=>x>=3)?sum:0;
+  if(cat===7) return c.some(x=>x>=4)?sum:0;
+  if(cat===8) return (c.some(x=>x===3)&&c.some(x=>x===2))?25:0;
+  if(cat===9) { const u=[...new Set(vals)].sort((a,b)=>a-b); for(let i=0;i<=u.length-4;i++) if(u[i+3]===u[i]+3) return 30; return 0; }
+  if(cat===10){ const u=[...new Set(vals)].sort((a,b)=>a-b); return(u.length===5&&u[4]===u[0]+4)?40:0; }
+  if(cat===11) return new Set(vals).size===1?50:0;
+  if(cat===12) return sum;
+  return 0;
+}
+
+// ===== GAME STATE =====
+let G = null;
+let mode = null;
+let pendingCat = null;
+let currentGameMoves = [];
+let aiDifficulty = 'easy';
+let watchComp = false;
+
+function toggleWatchComp() {
+  watchComp = !watchComp;
+  const slider = document.getElementById('watchCompSlider');
+  const knob = document.getElementById('watchCompKnob');
+  slider.style.background = watchComp ? 'var(--p1)' : '#333';
+  knob.style.transform = watchComp ? 'translateX(18px)' : 'translateX(0)';
+}
+
+function freshGame(p1, p2) {
+  return {
+    names:     { p1, p2 },
+    scores:    { p1: Array(13).fill(null), p2: Array(13).fill(null) },
+    fsBonus:   { p1: 0, p2: 0 },
+    turn:      'p1',
+    dice:      [1,1,1,1,1],
+    held:      [false,false,false,false,false],
+    rollsLeft: 3,
+    gameOver:  false,
+    rolling:   false,
+  };
+}
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== START =====
+function startPassPlay() {
+  const p1 = document.getElementById('name1').value.trim() || 'Player 1';
+  const p2 = document.getElementById('name2').value.trim() || 'Player 2';
+  mode = 'passplay';
+  G = freshGame(p1, p2);
+  document.getElementById('subtitle').textContent = 'Pass & Play';
+  document.getElementById('headP1').textContent = p1;
+  document.getElementById('headP2').textContent = p2;
+  setupScoreCellListeners();
+  showHandoff('p1');
+}
+
+function startVsComp() {
+  const p1 = document.getElementById('nameComp').value.trim() || 'Player 1';
+  mode = 'vscomp';
+  G = freshGame(p1, 'Computer');
+  G.difficulty = aiDifficulty;
+  currentGameMoves = [];
+  document.getElementById('subtitle').textContent = `vs Computer · ${aiDifficulty === 'easy' ? 'ROOKIE' : aiDifficulty === 'medium' ? 'CLUB' : aiDifficulty === 'hard' ? 'PRO' : 'SHARK'}`;
+  document.getElementById('headP1').textContent = p1;
+  document.getElementById('headP2').textContent = 'Computer';
+  setupScoreCellListeners();
+  enterGame();
+}
+
+function goLobby() {
+  G = null; mode = null; pendingCat = null;
+  document.querySelectorAll('.score-cell').forEach(c => {
+    c.textContent = '';
+    const colClass = c.classList.contains('col-p1') ? 'col-p1' : 'col-p2';
+    c.className = `score-cell ${colClass}`;
+    c.style.background = '';
+  });
+  ['upperP1','upperP2','bonusP1','bonusP2','lowerP1','lowerP2','grandP1','grandP2','fsBonusP1','fsBonusP2']
+    .forEach(id => document.getElementById(id).textContent = id.startsWith('bonus')||id.startsWith('fs') ? '—' : '0');
+  showScreen('lobby');
+}
+
+// ===== HANDOFF SCREEN =====
+function showHandoff(nextPlayer) {
+  const name = G.names[nextPlayer];
+  const nameEl = document.getElementById('handoffName');
+  const btn = document.getElementById('handoffBtn');
+  nameEl.textContent = name;
+  nameEl.className = 'handoff-name ' + nextPlayer;
+  btn.className = `btn-${nextPlayer} handoff-btn inline`;
+  document.getElementById('handoffSub').textContent = "It's your turn!";
+  showScreen('handoff');
+}
+
+function confirmHandoff() {
+  enterGame();
+}
+
+function enterGame() {
+  pendingCat = null;
+  G.dice = [1,1,1,1,1];
+  G.held = [false,false,false,false,false];
+  G.rollsLeft = 3;
+  G.hasRolled = false;
+  G.rolling = false;
+
+  const t = G.turn;
+  const name = G.names[t];
+
+  const banner = document.getElementById('turnBanner');
+  if (G.gameOver) {
+    banner.className = 'turn-banner game-over';
+    banner.textContent = 'Game Over';
+  } else if (t === 'p2' && mode === 'vscomp') {
+    banner.className = 'turn-banner comp-turn';
+    banner.textContent = "Computer's Turn";
+  } else {
+    banner.className = `turn-banner ${t}-turn`;
+    banner.textContent = `${name}'s Turn`;
+  }
+
+  document.getElementById('rollBtn').disabled = false;
+  document.getElementById('rollBtn').textContent = 'Roll (3 left)';
+  document.getElementById('message').textContent = 'Roll to start!';
+  document.getElementById('message').style.color = t === 'p1' ? 'var(--p1)' : 'var(--p2)';
+  renderDice();
+  updateScorecard();
+  showScreen('game');
+
+  if (t === 'p2' && mode === 'vscomp') {
+    document.getElementById('rollBtn').disabled = true;
+    document.getElementById('message').textContent = 'Computer is thinking…';
+    setTimeout(runComputerTurnByDifficulty, 800);
+  }
+}
+
+// ===== JOKER RULE =====
+function isFullStack(vals) { return new Set(vals).size === 1; }
+
+function jokerAllowedCats(p, vals) {
+  const faceVal = vals[0];
+  const upperCat = faceVal - 1;
+  if (G.scores[p][upperCat] === null) return new Set([upperCat]);
+  const openLower = [6,7,8,9,10,11,12].filter(c => G.scores[p][c] === null);
+  if (openLower.length > 0) return new Set(openLower);
+  const openUpper = [0,1,2,3,4,5].filter(c => G.scores[p][c] === null);
+  return new Set(openUpper);
+}
+
+// ===== ROLL =====
+function doRoll() {
+  if (!G || G.gameOver || G.rollsLeft <= 0 || G.rolling) return;
+  if (G.turn === 'p2' && mode === 'vscomp') return;
+
+  G.rolling = true;
+  document.getElementById('rollBtn').disabled = true;
+  clearPreview();
+
+  // Flush any in-flight animation immediately so we start clean
+  _shakeGeneration++; // invalidates any pending shake callbacks
+  renderDice();       // snap dice to whatever G.dice currently is
+
+  // Snapshot what's currently displayed before we change anything
+  const oldDice = [...G.dice];
+  const oldHeld = [...G.held];
+
+  // Compute new dice values NOW (but don't write to G.dice yet)
+  const newDice = G.dice.map((v, i) => G.held[i] ? v : rollDie());
+  G.rollsLeft--;
+  G.hasRolled = true;
+  document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
+
+  // Run the shake animation from old→new, then commit
+  renderDiceShake(oldDice, newDice, oldHeld, () => {
+    // Commit new values only after animation fully completes
+    G.dice = newDice;
+    G.rolling = false;
+
+    // Re-render dice in their final resting state (no animation)
+    renderDice();
+
+    const p = G.turn;
+    const isFS = isFullStack(G.dice);
+    const isBonusTurn = isFS && G.scores[p][11] !== null;
+    if (isBonusTurn) {
+      G.fsBonus[p] += 100;
+      updateScorecard();
+    }
+
+    if (G.rollsLeft > 0 && !G.gameOver) {
+      document.getElementById('rollBtn').disabled = false;
+    }
+
+    const msgEl = document.getElementById('message');
+    msgEl.style.color = p === 'p1' ? 'var(--p1)' : 'var(--p2)';
+    if (isBonusTurn) {
+      msgEl.style.color = 'var(--p1)';
+      msgEl.textContent = `FullStack bonus! +100 🎲 Score in a valid category`;
+    } else {
+      msgEl.textContent = G.rollsLeft > 0
+        ? 'Hold dice to keep, roll again or score'
+        : 'Choose a category to score';
+    }
+    showHints();
+  });
+}
+
+// ===== renderDiceShake — setTimeout-based, cannot get stuck =====
+// Uses CSS keyframe animation names (toggled A/B to force restart) + a
+// guaranteed setTimeout callback. No Web Animations API onfinish chaining.
+let _shakeGeneration = 0; // incremented on every new roll to cancel stale callbacks
+
+function renderDiceShake(oldVals, newVals, held, onComplete) {
+  const dc = document.getElementById('diceContainer');
+  const t = G ? G.turn : 'p1';
+  const locked = !G || G.gameOver || (t === 'p2' && mode === 'vscomp');
+  const SHAKE_MS = 380;
+  const SETTLE_MS = 260;
+
+  // Cancel any previous in-flight shake by bumping the generation token
+  const myGen = ++_shakeGeneration;
+
+  // Ensure 5 elements
+  while (dc.children.length < 5) dc.appendChild(document.createElement('div'));
+
+  // Guard so onComplete fires exactly once, and only if still the active roll
+  let done = false;
+  function finish() {
+    if (done) return;
+    if (_shakeGeneration !== myGen) return; // stale — a newer roll has started
+    done = true;
+    // Snap all dice to their final resting state
+    for (let i = 0; i < 5; i++) {
+      const die = dc.children[i];
+      die.style.animation = '';
+      die.style.boxShadow = '';
+      die.className = `die face-${newVals[i]}${held[i] ? ' held' : ''}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
+      die.dataset.idx = i;
+    }
+    onComplete && onComplete();
+  }
+
+  // Find dice that actually need to roll
+  const rolling = [0,1,2,3,4].filter(i => !held[i]);
+
+  if (rolling.length === 0) {
+    // Nothing moves — just commit immediately
+    finish();
+    return;
+  }
+
+  // Phase 1: set initial state and start shake CSS animation
+  for (let i = 0; i < 5; i++) {
+    const die = dc.children[i];
+    die.dataset.idx = i;
+    die.style.animation = '';
+    die.style.boxShadow = '';
+    if (held[i]) {
+      // Held dice: show old value, held styling, subtle sympathetic shake
+      die.className = `die face-${oldVals[i]} held`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
+    } else {
+      // Rolling dice: show old value and kick off shake
+      die.className = `die face-${oldVals[i]}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
+      // Force animation restart by toggling between shakeA and shakeB names
+      die._shakeToggle = !die._shakeToggle;
+      const animName = die._shakeToggle ? 'shakeA' : 'shakeB';
+      die.style.animation = `${animName} ${SHAKE_MS}ms ease-in-out`;
+    }
+  }
+
+  // Phase 2: after shake, flip faces and start settle
+  setTimeout(() => {
+    if (done) return;
+    if (_shakeGeneration !== myGen) return;
+    for (const i of rolling) {
+      const die = dc.children[i];
+      die.style.animation = '';
+      die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
+      die.dataset.idx = i;
+      // Settle animation
+      die._shakeToggle = !die._shakeToggle;
+      const animName = die._shakeToggle ? 'shakeA' : 'shakeB';
+      die.style.animation = `${animName} ${SETTLE_MS}ms ease-out`;
+      // Green flash if value changed
+      if (oldVals[i] !== newVals[i]) {
+        die.style.boxShadow = '0 0 0 3px rgba(100,255,100,0.9)';
+        setTimeout(() => { if (die) die.style.boxShadow = ''; }, 350);
+      }
+    }
+  }, SHAKE_MS);
+
+  // Phase 3: after settle, snap to clean final state and fire callback
+  setTimeout(finish, SHAKE_MS + SETTLE_MS + 40);
+}
+
+// ===== SCORE CLICK =====
+function setupScoreCellListeners() {
+  document.querySelectorAll('.score-cell').forEach(cell => {
+    cell.onclick = () => {
+      const p = cell.dataset.p;
+      const cat = parseInt(cell.dataset.cat);
+      if (G.gameOver || G.turn !== p || G.rolling) return;
+      if (G.scores[p][cat] !== null) return;
+      if (G.rollsLeft === 3) return;
+      if (mode === 'vscomp' && p === 'p2') return;
+
+      const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
+      if (isBonusTurn) {
+        const allowed = jokerAllowedCats(p, G.dice);
+        if (!allowed.has(cat)) {
+          document.getElementById('message').textContent = 'Must score in a valid joker category first';
+          return;
+        }
+      }
+
+      let sc;
+      if (isBonusTurn) {
+        sc = jokerScore(cat, G.dice);
+      } else {
+        sc = calcScore(cat, G.dice);
+      }
+
+      if (pendingCat !== cat) {
+        clearPreview();
+        pendingCat = cat;
+        cell.textContent = sc;
+        cell.classList.add('preview');
+        document.getElementById('message').textContent = 'Tap again to confirm';
+        return;
+      }
+
+      clearPreview();
+      G.scores[p][cat] = sc;
+      if (p === 'p1') recordMove(G.dice, G.held, G.rollsLeft, cat, sc);
+      updateScorecard();
+
+      if (checkGameOver()) return;
+
+      const next = p === 'p1' ? 'p2' : 'p1';
+      G.turn = next;
+
+      if (mode === 'passplay') {
+        showHandoff(next);
+      } else {
+        enterGame();
+      }
+    };
+  });
+}
+
+function jokerScore(cat, vals) {
+  const faceVal = vals[0];
+  const sum = faceVal * 5;
+  if (cat <= 5)  return calcScore(cat, vals);
+  if (cat === 6) return sum;
+  if (cat === 7) return sum;
+  if (cat === 8) return 25;
+  if (cat === 9) return 30;
+  if (cat === 10) return 40;
+  if (cat === 11) return 50;
+  if (cat === 12) return sum;
+  return 0;
+}
+
+function clearPreview() {
+  document.querySelectorAll('.score-cell.preview').forEach(c => {
+    c.classList.remove('preview');
+    const cat = parseInt(c.dataset.cat);
+    const p = c.dataset.p;
+    if (G.scores[p][cat] === null) c.textContent = '';
+  });
+  pendingCat = null;
+}
+
+function showHints() {
+  const p = G.turn;
+  const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
+  const allowed = isBonusTurn ? jokerAllowedCats(p, G.dice) : null;
+
+  const other = p === 'p1' ? 'p2' : 'p1';
+  document.querySelectorAll(`.score-cell[data-p="${other}"]`).forEach(cell => {
+    const cat = parseInt(cell.dataset.cat);
+    if (G.scores[other][cat] === null && !cell.classList.contains('preview')) {
+      cell.textContent = '';
+      cell.style.background = '';
+    }
+  });
+
+  document.querySelectorAll(`.score-cell[data-p="${p}"]`).forEach(cell => {
+    const cat = parseInt(cell.dataset.cat);
+    if (G.scores[p][cat] !== null) return;
+    if (cell.classList.contains('preview')) return;
+
+    if (isBonusTurn) {
+      if (allowed.has(cat)) {
+        const sc = jokerScore(cat, G.dice);
+        cell.textContent = sc > 0 ? sc : '—';
+        cell.style.background = 'rgba(232,255,71,0.08)';
+      } else {
+        cell.textContent = '✗';
+        cell.style.background = '';
+      }
+    } else {
+      cell.style.background = '';
+      const sc = calcScore(cat, G.dice);
+      cell.textContent = sc > 0 ? sc : '—';
+    }
+  });
+}
+
+// ===== DICE RENDER =====
+function initDiceListeners() {
+  const dc = document.getElementById('diceContainer');
+  let lastTouch = 0;
+
+  dc.addEventListener('click', (e) => {
+    if (Date.now() - lastTouch < 400) return;
+    const die = e.target.closest('.die');
+    if (!die || !G) return;
+    const i = parseInt(die.dataset.idx);
+    if (isNaN(i) || G.rollsLeft >= 3 || G.rolling || G.gameOver) return;
+    if (G.turn === 'p2' && mode === 'vscomp') return;
+    G.held[i] = !G.held[i];
+    renderDice();
+  });
+  dc.addEventListener('touchend', (e) => {
+    const die = e.target.closest('.die');
+    if (!die || !G) return;
+    e.preventDefault();
+    lastTouch = Date.now();
+    const i = parseInt(die.dataset.idx);
+    if (isNaN(i) || G.rollsLeft >= 3 || G.rolling || G.gameOver) return;
+    if (G.turn === 'p2' && mode === 'vscomp') return;
+    G.held[i] = !G.held[i];
+    renderDice();
+  }, { passive: false });
+}
+
+function renderDice() {
+  const dc = document.getElementById('diceContainer');
+  if (!G) return;
+  const t = G.turn;
+  const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
+
+  while (dc.children.length < 5) {
+    dc.appendChild(document.createElement('div'));
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const v = G.dice[i];
+    const isHeld = G.held[i];
+    const die = dc.children[i];
+    die.dataset.idx = i;
+    die.className = `die face-${v}${isHeld ? ' held' : ''}${locked ? ' locked' : ''}`;
+    die.innerHTML = '<div class="pip"></div>'.repeat(v);
+  }
+}
+
+// ===== SCORECARD =====
+function updateScorecard() {
+  ['p1','p2'].forEach(p => {
+    const suf = p === 'p1' ? 'P1' : 'P2';
+    const t = G.turn;
+
+    for (let c=0; c<13; c++) {
+      const cell = document.querySelector(`.score-cell[data-p="${p}"][data-cat="${c}"]`);
+      if (G.scores[p][c] !== null) {
+        cell.textContent = G.scores[p][c];
+        cell.className = `score-cell col-${p} filled filled-${p}`;
+      } else if (!cell.classList.contains('preview')) {
+        const isActive = t === p && !G.gameOver && !(mode==='vscomp'&&p==='p2');
+        if (!isActive || G.rollsLeft === 3) cell.textContent = '';
+        cell.style.background = '';
+        cell.className = `score-cell col-${p}${isActive?'':' locked-cell'}`;
+      }
+    }
+
+    const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+    const bonus  = upper >= 63 ? 35 : 0;
+    const lower  = G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+    const grand  = upper + bonus + lower;
+    document.getElementById(`upper${suf}`).textContent = upper;
+    document.getElementById(`bonus${suf}`).textContent = bonus > 0 ? '+35' : `${upper}/63`;
+    document.getElementById(`lower${suf}`).textContent = lower;
+    document.getElementById(`grand${suf}`).textContent = grand;
+    document.getElementById(`fsBonus${suf}`).textContent = G.fsBonus[p] > 0 ? '+'+G.fsBonus[p] : '—';
+  });
+}
+
+// ===== GAME OVER =====
+function checkGameOver() {
+  if (!G.scores.p1.every(v=>v!==null) || !G.scores.p2.every(v=>v!==null)) return false;
+  G.gameOver = true;
+  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
+  const n1 = G.names.p1, n2 = G.names.p2;
+
+  const banner = document.getElementById('turnBanner');
+  banner.className = 'turn-banner game-over';
+  const msgEl = document.getElementById('message');
+
+  if (s1 > s2) {
+    banner.textContent = `🏆 ${n1} Wins!`;
+    msgEl.textContent = `${n1} wins! ${s1} vs ${s2}`;
+    msgEl.style.color = 'var(--p1)';
+  } else if (s2 > s1) {
+    banner.textContent = `🏆 ${n2} Wins!`;
+    msgEl.textContent = `${n2} wins! ${s2} vs ${s1}`;
+    msgEl.style.color = 'var(--p2)';
+  } else {
+    banner.textContent = "It's a Tie!";
+    msgEl.textContent = `Tie game! Both scored ${s1}`;
+    msgEl.style.color = 'var(--p1)';
+  }
+
+  document.getElementById('rollBtn').disabled = true;
+  renderDice();
+  setTimeout(() => saveGameRecord(G, mode), 300);
+  return true;
+}
+
+function grandTotal(p) {
+  const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+  const bonus = upper >= 63 ? 35 : 0;
+  return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+}
+
+// ===== COMPUTER AI — FAST SMART ENGINE =====
+
+// For each category, what dice values should we hold? Returns boolean[5].
+// This is the category-specific hold heuristic — fast, no MC needed.
+function greedyHold(cat, vals) {
+  const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
+
+  if (cat <= 5) {
+    // Upper: hold matching face
+    return vals.map(v => v === cat + 1);
+  }
+  if (cat === 6 || cat === 7 || cat === 11) {
+    // 3oak / 4oak / FullStack: hold the most-common face (prefer highest on tie)
+    const mx = Math.max(...c.slice(1));
+    let best = 1;
+    for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
+    return vals.map(v => v === best);
+  }
+  if (cat === 8) {
+    // Full house: hold 3oak + pair if we have it; else hold best pair
+    const h3 = c.findIndex((x, i) => i > 0 && x >= 3);
+    if (h3 > 0) return vals.map(v => c[v] >= 2);
+    for (let f = 6; f >= 1; f--) { if (c[f] >= 2) return vals.map(v => v === f); }
+    return [false,false,false,false,false];
+  }
+  if (cat === 9 || cat === 10) {
+    // Straights: hold the longest consecutive run
+    const u = [...new Set(vals)].sort((a,b) => a-b);
+    let best = [u[0]], cur = [u[0]];
+    for (let i = 1; i < u.length; i++) {
+      if (u[i] === u[i-1]+1) cur.push(u[i]);
+      else { if (cur.length > best.length) best = [...cur]; cur = [u[i]]; }
+    }
+    if (cur.length > best.length) best = [...cur];
+    const rs = new Set(best); const used = new Set();
+    return vals.map(v => { if (rs.has(v) && !used.has(v)) { used.add(v); return true; } return false; });
+  }
+  if (cat === 12) return vals.map(v => v >= 4); // Chance: hold 4s and up
+  return [false,false,false,false,false];
+}
+function holdForCat(cat, vals) { return greedyHold(cat, vals); }
+
+// Quick expected-score estimate for a category given held dice and rolls left.
+// Uses a small flat Monte Carlo (no recursion) — fast and accurate enough.
+function quickExpected(cat, vals, holdPat, rollsLeft) {
+  const held = vals.filter((_, i) => holdPat[i]);
+  const free = 5 - held.length;
+  if (rollsLeft === 0 || free === 0) return calcScore(cat, vals);
+
+  const SIMS = 60; // fast — 60 sims per eval
+  let total = 0;
+  for (let s = 0; s < SIMS; s++) {
+    const trial = [...held];
+    for (let d = 0; d < free; d++) trial.push(rollDie());
+
+    if (rollsLeft > 1) {
+      // One more roll after this — apply greedy hold and score best outcome
+      const h2 = greedyHold(cat, trial);
+      const held2 = trial.filter((_, i) => h2[i]);
+      const free2 = 5 - held2.length;
+      const trial2 = [...held2];
+      for (let d = 0; d < free2; d++) trial2.push(rollDie());
+      total += calcScore(cat, trial2);
+    } else {
+      total += calcScore(cat, trial);
+    }
+  }
+  return total / SIMS;
+}
+
+// Upper bonus credit — how much is this upper score worth toward the +35?
+function bonusCredit(cat, catScore, p2scores) {
+  if (cat > 5) return 0;
+  const soFar = p2scores.slice(0,6).reduce((a,b) => a+(b||0), 0);
+  const left  = p2scores.slice(0,6).filter(v => v === null).length;
+  if (left === 0) return 0;
+  const projected = soFar + catScore;
+  if (projected >= 63) return 35;
+  // Reachability check: remaining slots at ideal avg
+  const idealAvg = [3.5, 7, 10.5, 14, 17.5, 21];
+  const remainOpen = [0,1,2,3,4,5].filter(c => c !== cat && p2scores[c] === null)
+    .sort((a,b) => idealAvg[b]-idealAvg[a]).slice(0, left-1);
+  const maxReach = projected + remainOpen.reduce((s,c)=>s+idealAvg[c],0);
+  if (maxReach < 63) return 0;
+  const ideal = (cat+1)*3;
+  const onTrack = Math.min(1, projected/63);
+  return Math.round(onTrack * Math.min(1.2, catScore/Math.max(ideal,1)) * 26);
+}
+
+// Slot opportunity cost — penalty for burning this cat with a 0
+const SLOT_VALUE = [2,3,5,8,12,18, 18,22,20,24,35,45,15];
+
+function catUtility(cat, score, p2scores) {
+  const credit = bonusCredit(cat, score, p2scores);
+  const burnPenalty = score < 0.5 ? SLOT_VALUE[cat] * 1.8 : 0;
+  return score + credit - burnPenalty;
+}
+
+// Choose the best hold pattern for the current dice given all open categories.
+// Evaluates each open category's best hold, picks highest expected utility.
+function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
+  if (rollsLeft === 0) return vals.map(() => false);
+  const openCats = [];
+  for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
+  if (!openCats.length) return vals.map(() => false);
+
+  let bestPat = greedyHold(openCats[0], vals);
+  let bestUtil = -Infinity;
+
+  for (const cat of openCats) {
+    const pat = greedyHold(cat, vals);
+    const exp = quickExpected(cat, vals, pat, rollsLeft);
+    let u = exp + bonusCredit(cat, exp, p2scores);
+    if (weightFn) u *= (weightFn(cat) || 1.0);
+    if (u > bestUtil) { bestUtil = u; bestPat = pat; }
+  }
+  return bestPat;
+}
+
+// Choose the best category to score in with the final dice
+function chooseBestCategory(vals, p2scores) {
+  const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
+  const allowedCats = isBonusTurn ? jokerAllowedCats('p2', vals) : null;
+  let bestCat = -1, bestUtil = -Infinity;
+  for (let c = 0; c < 13; c++) {
+    if (p2scores[c] !== null) continue;
+    if (allowedCats && !allowedCats.has(c)) continue;
+    const sc = isBonusTurn ? jokerScore(c, vals) : calcScore(c, vals);
+    const u = catUtility(c, sc, p2scores);
+    if (u > bestUtil) { bestUtil = u; bestCat = c; }
+  }
+  return bestCat;
+}
+
+// PRO — 3 full rolls with smart holds
+function runComputerTurn() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie);
+  let ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 2, G.scores.p2, null);
+  cd = cd.map((v,i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 1, G.scores.p2, null);
+  cd = cd.map((v,i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = [false,false,false,false,false];
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  applyComputerResult(cd, ch, steps);
+}
+
+function computeEasyMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie);
+  steps.push({ dice: [...cd], held: [false,false,false,false,false] });
+  for (let r = 0; r < 2; r++) {
+    const held = cd.map(() => Math.random() < 0.25);
+    cd = cd.map((v,i) => held[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...held] });
+  }
+  let open = [];
+  for (let c=0; c<13; c++) { if (G.scores.p2[c] === null) open.push(c); }
+  const scorable = open.filter(c => calcScore(c,cd) > 0);
+  const bc = scorable.length > 0 && Math.random() > 0.3
+    ? scorable[Math.floor(Math.random() * scorable.length)]
+    : open[Math.floor(Math.random() * open.length)];
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  return { steps, finalDice: cd };
+}
+
+function computeMediumMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    let bc2 = -1, bp = -1;
+    for (let c = 0; c < 13; c++) {
+      if (G.scores.p2[c] !== null) continue;
+      const sc = calcScore(c, cd);
+      if (sc > bp) { bp = sc; bc2 = c; }
+    }
+    ch = bc2 >= 0 ? holdForCat(bc2, cd) : ch;
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+function computeHardMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 2, G.scores.p2, null);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 1, G.scores.p2, null);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+function computeAdaptiveMoves() {
+  const weights = adaptiveWeights();
+  const weightFn = weights ? (c => weights[c] || 1.0) : null;
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 2, G.scores.p2, weightFn);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 1, G.scores.p2, weightFn);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+// ===== ANIMATED COMPUTER PLAYBACK =====
+function playComputerStepsAnimated(steps, finalDice, onDone) {
+  const HOLD_DISPLAY_MS = 700;
+  let stepIdx = 0;
+
+  function playStep() {
+    if (stepIdx >= steps.length) { onDone(); return; }
+    const step = steps[stepIdx];
+    const prevDice = stepIdx === 0 ? [1,1,1,1,1] : steps[stepIdx - 1].dice;
+    const prevHeld = [false,false,false,false,false];
+
+    const rollNum = stepIdx + 1;
+    const msgEl = document.getElementById('message');
+    msgEl.style.color = 'var(--p2)';
+    msgEl.textContent = `Roll ${rollNum} of 3…`;
+
+    renderDiceShake(prevDice, step.dice, prevHeld, () => {
+      G.dice = step.dice;
+      const nextStep = steps[stepIdx + 1];
+      if (nextStep) {
+        G.held = [...step.held];
+        renderDice();
+        const heldCount = step.held.filter(Boolean).length;
+        msgEl.textContent = heldCount > 0
+          ? `Roll ${rollNum} done — holding ${heldCount} dice`
+          : `Roll ${rollNum} done — rolling all again`;
+      } else {
+        G.held = [false,false,false,false,false];
+        renderDice();
+        msgEl.textContent = `Scoring!`;
+      }
+      stepIdx++;
+      setTimeout(playStep, stepIdx < steps.length ? HOLD_DISPLAY_MS : 0);
+    });
+  }
+
+  playStep();
+}
+
+function applyComputerResult(finalDice, finalHeld, steps) {
+  if (watchComp) {
+    playComputerStepsAnimated(steps, finalDice, () => {
+      G.dice = finalDice;
+      G.held = [false,false,false,false,false];
+      G.rollsLeft = 3;
+      updateScorecard();
+      renderDice();
+      setTimeout(() => {
+        if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+      }, 600);
+    });
+  } else {
+    G.dice = finalDice;
+    G.held = [false,false,false,false,false];
+    G.rollsLeft = 3;
+    updateScorecard();
+    renderDice();
+    if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  }
+}
+
+initDiceListeners();
+</script>
+
+<!-- ===== SCORE TRACKER ===== -->
+<button id="tracker-toggle" onclick="toggleTracker()" title="Score Tracker">
+  📊
+  <span class="badge" id="tracker-badge" style="display:none">0</span>
+</button>
+
+<div id="tracker-panel">
+  <div class="tp-header">
+    <h3>Score Tracker</h3>
+    <button onclick="toggleTracker()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0;width:auto;margin:0;">✕</button>
+  </div>
+  <div class="tp-tabs">
+    <button class="tp-tab active" onclick="showTab('history')">History</button>
+    <button class="tp-tab" onclick="showTab('stats')">Stats</button>
+    <button class="tp-tab" onclick="showTab('analysis')">AI Analysis</button>
+    <button class="tp-tab" onclick="showTab('insights')">Insights</button>
+  </div>
+  <div class="tp-body" id="tp-body-history">
+    <div class="empty-state" id="history-empty">
+      No games recorded yet.<br>Finish a game to start tracking!
+    </div>
+    <div id="history-list"></div>
+  </div>
+  <div class="tp-body" id="tp-body-stats" style="display:none">
+    <div class="empty-state" id="stats-empty">Play at least one game to see stats.</div>
+    <div id="stats-content" style="display:none"></div>
+  </div>
+  <div class="tp-body" id="tp-body-analysis" style="display:none">
+    <p class="analysis-hint" id="analysis-hint">Need at least 3 games to run analysis.</p>
+    <button class="analysis-btn" id="analysis-btn" onclick="runAnalysis()" disabled>
+      🤖 Analyze My High Scores
+    </button>
+    <div class="analysis-output" id="analysis-output" style="display:none"></div>
+  </div>
+  <div class="tp-body" id="tp-body-insights" style="display:none">
+    <div id="insights-content"></div>
+  </div>
+</div>
+
+<script>
+// ===== TRACKER STATE =====
+let gameHistory = [];
+try { gameHistory = JSON.parse(localStorage.getItem('fs_history') || '[]'); } catch(e) {}
+
+const CAT_NAMES = ['Aces','Twos','Threes','Fours','Fives','Sixes',
+  '3 of a Kind','4 of a Kind','Full House','Sm. Straight','Lg. Straight','FullStack!','Chance'];
+
+let currentTab = 'history';
+let trackerOpen = false;
+
+function toggleTracker() {
+  trackerOpen = !trackerOpen;
+  document.getElementById('tracker-panel').classList.toggle('open', trackerOpen);
+  if (trackerOpen) renderCurrentTab();
+}
+
+function showTab(tab) {
+  currentTab = tab;
+  ['history','stats','analysis','insights'].forEach(t => {
+    document.getElementById(`tp-body-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.querySelectorAll('.tp-tab').forEach((el,i) => {
+      el.classList.toggle('active', ['history','stats','analysis','insights'][i] === tab);
+    });
+  });
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
+  if (currentTab === 'history') renderHistory();
+  else if (currentTab === 'stats') renderStats();
+  else if (currentTab === 'analysis') renderAnalysisTab();
+  else if (currentTab === 'insights') renderInsights();
+}
+
+function saveGameRecord(gameState, mode) {
+  const p1 = gameState.names.p1, p2 = gameState.names.p2;
+  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
+
+  const record = {
+    id: Date.now(),
+    date: new Date().toLocaleString(),
+    mode,
+    names: { p1, p2 },
+    scores: {
+      p1: [...gameState.scores.p1],
+      p2: [...gameState.scores.p2]
+    },
+    fsBonus: { ...gameState.fsBonus },
+    totals: { p1: s1, p2: s2 },
+    winner: s1 > s2 ? 'p1' : s2 > s1 ? 'p2' : 'tie',
+    upper: {
+      p1: gameState.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0),
+      p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0)
+    },
+    gotBonus: {
+      p1: gameState.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
+      p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
+    }
+  };
+
+  record.moves = [...currentGameMoves];
+  currentGameMoves = [];
+
+  gameHistory.unshift(record);
+  if (gameHistory.length > 50) gameHistory = gameHistory.slice(0, 50);
+  try { localStorage.setItem('fs_history', JSON.stringify(gameHistory)); } catch(e) {}
+
+  const badge = document.getElementById('tracker-badge');
+  badge.textContent = gameHistory.length;
+  badge.style.display = 'block';
+
+  if (trackerOpen) renderCurrentTab();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  list.innerHTML = '';
+
+  if (!gameHistory.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const allScores = gameHistory.flatMap(g => [g.totals.p1, g.totals.p2]);
+  const highScore = Math.max(...allScores);
+
+  gameHistory.forEach(g => {
+    const isHigh = g.totals.p1 === highScore || g.totals.p2 === highScore;
+    const div = document.createElement('div');
+    div.className = `game-record${isHigh ? ' is-high' : ''}`;
+
+    const w = g.winner;
+    const p1class = w === 'p1' ? 'gr-player winner' : 'gr-player';
+    const p2class = w === 'p2' ? 'gr-player p2winner' : 'gr-player';
+    const hsBadge = isHigh ? '<span class="gr-hs-badge">🏆 HIGH SCORE</span>' : '';
+
+    div.innerHTML = `
+      <div class="gr-top">
+        <span class="gr-date">${g.date}</span>
+        <span class="gr-mode">${g.mode === 'vscomp' ? 'vs CPU' : '2P'} ${hsBadge}</span>
+      </div>
+      <div class="gr-scores">
+        <div class="${p1class}">${g.names.p1}: <span>${g.totals.p1}</span>${g.gotBonus.p1 ? ' ✓' : ''}</div>
+        <div class="${p2class}">${g.names.p2}: <span>${g.totals.p2}</span>${g.gotBonus.p2 ? ' ✓' : ''}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function renderStats() {
+  const empty = document.getElementById('stats-empty');
+  const content = document.getElementById('stats-content');
+  if (!gameHistory.length) { empty.style.display = 'block'; content.style.display = 'none'; return; }
+  empty.style.display = 'none'; content.style.display = 'block';
+
+  const humanGames = gameHistory.map(g => ({
+    score: g.totals.p1,
+    scores: g.scores.p1,
+    fsBonus: g.fsBonus.p1,
+    gotBonus: g.gotBonus.p1,
+    mode: g.mode
+  }));
+
+  const allScores = humanGames.map(g => g.score);
+  const highScore = Math.max(...allScores);
+  const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0) / allScores.length);
+  const wins = gameHistory.filter(g => g.winner === 'p1').length;
+  const bonusGames = humanGames.filter(g => g.gotBonus).length;
+
+  const CAT_MAX = [5, 10, 15, 20, 25, 30, 30, 30, 25, 30, 40, 50, 30];
+  const FIXED_CATS = new Set([8, 9, 10, 11]);
+  const n = humanGames.length;
+
+  const catAvgs = CAT_NAMES.map((_, ci) => {
+    const vals = humanGames.map(g => g.scores[ci] || 0);
+    return Math.round(vals.reduce((a,b)=>a+b,0) / vals.length * 10) / 10;
+  });
+  const catHits = CAT_NAMES.map((_, ci) =>
+    humanGames.filter(g => (g.scores[ci] || 0) > 0).length
+  );
+
+  content.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">High Score</div><div class="value">${highScore}</div><div class="sub">all time</div></div>
+      <div class="stat-box"><div class="label">Avg Score</div><div class="value">${avgScore}</div><div class="sub">per game</div></div>
+      <div class="stat-box"><div class="label">Games</div><div class="value">${gameHistory.length}</div><div class="sub">${wins} wins</div></div>
+      <div class="stat-box"><div class="label">Bonus Rate</div><div class="value">${Math.round(bonusGames/humanGames.length*100)}%</div><div class="sub">upper ≥63</div></div>
+    </div>
+    <div class="cat-breakdown">
+      <h4>Avg Score by Category</h4>
+      ${CAT_NAMES.map((name, i) => {
+        const isFixed = FIXED_CATS.has(i);
+        let pct, label;
+        if (isFixed) {
+          pct = Math.round(catHits[i] / n * 100);
+          label = `<span style="color:var(--muted);font-weight:400;">${catHits[i]}</span>/<span style="color:var(--muted);font-weight:400;">${n}</span>`;
+        } else {
+          pct = CAT_MAX[i] > 0 ? Math.round(catAvgs[i] / CAT_MAX[i] * 100) : 0;
+          label = `${catAvgs[i]}<span style="color:var(--muted);font-weight:400;">/${CAT_MAX[i]}</span>`;
+        }
+        const barColor = pct >= 75 ? 'var(--p1)' : pct >= 40 ? '#f0a500' : 'var(--danger)';
+        return `
+        <div class="cat-row">
+          <span class="cat-name">${name}</span>
+          <div class="cat-bar-wrap">
+            <div class="cat-bar" style="width:${pct}%;background:${barColor};"></div>
+          </div>
+          <span class="cat-avg" style="width:52px;font-size:0.85em;">${label}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderAnalysisTab() {
+  const btn = document.getElementById('analysis-btn');
+  const hint = document.getElementById('analysis-hint');
+  if (gameHistory.length >= 3) {
+    btn.disabled = false;
+    hint.textContent = `${gameHistory.length} games recorded — ready to analyze.`;
+  } else {
+    btn.disabled = true;
+    hint.textContent = `Need at least 3 games to run analysis. (${gameHistory.length}/3)`;
+  }
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('analysis-btn');
+  const output = document.getElementById('analysis-output');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyzing...';
+  output.style.display = 'block';
+  output.className = 'analysis-output loading';
+  output.textContent = 'Sending your game data to AI for analysis…';
+
+  const humanGames = gameHistory.map(g => ({
+    score: g.totals.p1,
+    cats: g.scores.p1,
+    fsBonus: g.fsBonus.p1,
+    gotUpperBonus: g.gotBonus.p1,
+    upperTotal: g.upper.p1,
+    won: g.winner === 'p1',
+    mode: g.mode
+  }));
+
+  const allScores = humanGames.map(g => g.score).sort((a,b) => b-a);
+  const highScore = allScores[0];
+  const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
+  const topThird = humanGames.filter(g => g.score >= allScores[Math.floor(allScores.length/3)]);
+  const bottomThird = humanGames.filter(g => g.score <= allScores[Math.floor(allScores.length*2/3)]);
+
+  function catAvg(games, ci) {
+    return Math.round(games.map(g => g.cats[ci] || 0).reduce((a,b)=>a+b,0) / games.length * 10) / 10;
+  }
+
+  const catDiffs = CAT_NAMES.map((name, i) => ({
+    name,
+    topAvg: catAvg(topThird, i),
+    botAvg: catAvg(bottomThird, i),
+    diff: catAvg(topThird, i) - catAvg(bottomThird, i)
+  })).sort((a,b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  const prompt = `You are analyzing scores for a dice game called FullStacks (a Yahtzee variant with a "FullStack" = five of a kind worth 50pts + 100pt bonus per extra).
+
+GAME DATA (${humanGames.length} games, player perspective):
+- High score: ${highScore}, Average: ${avgScore}
+- Upper bonus rate (need ≥63 upper): ${Math.round(humanGames.filter(g=>g.gotUpperBonus).length/humanGames.length*100)}%
+- All scores: ${allScores.join(', ')}
+
+CATEGORY PERFORMANCE (avg score in top 1/3 games vs bottom 1/3):
+${catDiffs.slice(0,8).map(c => `  ${c.name}: top=${c.topAvg} vs bot=${c.botAvg} (diff: ${c.diff > 0 ? '+' : ''}${c.diff})`).join('\n')}
+
+HIGH SCORE GAMES details:
+${topThird.slice(0,3).map((g,i) => `  Game ${i+1} (${g.score}pts): upper=${g.upperTotal}${g.gotUpperBonus?' [BONUS]':''}, fsBonus=${g.fsBonus}, won=${g.won}`).join('\n')}
+
+Write a SHORT, punchy analysis (3-4 paragraphs max) covering:
+1. What separates high-scoring games from low ones (based on the category data)
+2. One or two specific strategic patterns you notice
+3. One concrete tip to improve their average score
+
+Use plain text only. Be direct and specific, not generic. Reference actual numbers from the data.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No response received.';
+    output.className = 'analysis-output';
+    output.textContent = text;
+  } catch(e) {
+    output.className = 'analysis-output';
+    output.textContent = 'Error connecting to AI. Please try again.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🤖 Analyze My High Scores';
+}
+
+// ===== DIFFICULTY & LEARNING ENGINE =====
+let learnedStrategies = {};
+try { learnedStrategies = JSON.parse(localStorage.getItem('fs_strategies') || '{}'); } catch(e) {}
+
+const DIFF_DESCS = {
+  easy: 'Rookie: rolls randomly, easy to beat',
+  medium: 'Club: basic strategy, casual play',
+  hard: 'Pro: strong play, targets 240–280',
+  adaptive: 'Shark: learns your patterns, hunts your weaknesses'
+};
+
+function selectDiff(btn, diff) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  aiDifficulty = diff;
+  document.getElementById('diff-desc').textContent = DIFF_DESCS[diff];
+}
+
+function recordMove(dice, held, rollsLeft, scoredCat, score) {
+  const diceKey = [...dice].sort().join('');
+  const upperSoFar = G ? G.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0) : 0;
+  const upperFilled = G ? G.scores.p1.slice(0,6).filter(v=>v!==null).length : 0;
+  const openCats = G ? G.scores.p1.map((v,i)=>v===null?i:-1).filter(i=>i>=0) : [];
+  currentGameMoves.push({
+    dice: [...dice], held: [...held], rollsLeft, scoredCat, score,
+    diceKey, upperSoFar, upperFilled, openCats: [...openCats],
+  });
+}
+
+// ===== DEEP COACHING ENGINE =====
+// Expected averages a solid player achieves per category (benchmark)
+const CAT_BENCHMARK = [2.5, 5.0, 8.0, 11.0, 14.5, 18.0, 19.0, 15.0, 18.0, 24.0, 30.0, 25.0, 22.0];
+// Max possible per category
+const CAT_MAX_SC    = [5,   10,  15,  20,   25,   30,   30,   30,   25,   30,   40,   50,   30];
+// Categories where 0 is common and expected (fixed-score cats)
+const FIXED_CATS = new Set([8,9,10,11]);
+// How bad is it to score 0 here (opportunity cost ranking)
+const SACRIFICE_PAIN = [1,2,3,5,7,9,  8,12,15,20,30,40,6];
+
+function buildInsights() {
+  const insights = [];
+  if (!gameHistory.length) return insights;
+
+  const n = gameHistory.length;
+
+  // --- Build per-category stats ---
+  const catStats = Array.from({length:13}, (_,i) => ({
+    name: CAT_NAMES[i], idx: i,
+    vals: gameHistory.map(g => g.scores.p1[i]).filter(v => v !== null),
+    zeros: 0, avg: 0, hitRate: 0
+  }));
+  catStats.forEach(cs => {
+    cs.zeros = cs.vals.filter(v => v === 0).length;
+    cs.avg   = cs.vals.length ? cs.vals.reduce((a,b)=>a+b,0)/cs.vals.length : null;
+    cs.hitRate = cs.vals.length ? cs.vals.filter(v=>v>0).length/cs.vals.length : null;
+  });
+
+  const allScores = gameHistory.map(g => g.totals.p1);
+  const avgScore  = allScores.reduce((a,b)=>a+b,0)/n;
+  const highScore = Math.max(...allScores);
+
+  // --- Upper bonus analysis ---
+  const bonusGames = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length;
+  const bonusRate  = bonusGames / n;
+  const upperAvgs  = catStats.slice(0,6).map(cs => cs.avg ?? 0);
+  const upperTotal = upperAvgs.reduce((a,b)=>a+b,0);
+  const upperGap   = 63 - upperTotal; // how far from ideal per-game average to bonus
+
+  if (bonusRate < 0.35 && n >= 3) {
+    // Find worst upper offenders
+    const upperGaps = catStats.slice(0,6).map((cs,i) => ({
+      name: cs.name, gap: CAT_BENCHMARK[i] - (cs.avg??0), idx: i
+    })).filter(g => g.gap > 1.5).sort((a,b) => b.gap - a.gap);
+    const topGap = upperGaps[0];
+    insights.push({
+      type: 'warning', rule: 'upper_priority',
+      title: `Upper bonus: only ${Math.round(bonusRate*100)}% hit rate`,
+      detail: topGap
+        ? `You need avg ${Math.round(upperGap)} more pts/game across the upper section. Your biggest drag is ${topGap.name} — you're averaging ${(catStats[topGap.idx].avg||0).toFixed(1)} but need ~${CAT_BENCHMARK[topGap.idx]}. Dedicate rolls 1–2 to hitting your face value before pivoting to lower cats.`
+        : `You're averaging ${Math.round(upperTotal)}/63 in the upper section. You need ${Math.round(upperGap)} more pts/game. Focus on 4s, 5s, 6s first — they contribute the most weight toward the +35 bonus.`
+    });
+  } else if (bonusRate >= 0.7 && n >= 3) {
+    insights.push({
+      type: 'strength', rule: 'upper_strong',
+      title: `Upper bonus locked in ${Math.round(bonusRate*100)}% of games`,
+      detail: `Averaging ${Math.round(upperTotal)}/63 across upper cats. That consistency earns you the +35 more than 2 out of 3 games — it's your biggest single scoring advantage.`
+    });
+  }
+
+  // --- FullStack analysis ---
+  const fsStats = catStats[11];
+  if (fsStats.vals.length >= 2) {
+    const hitRate = fsStats.hitRate;
+    const fsAvg   = fsStats.avg ?? 0;
+    if (hitRate < 0.25) {
+      insights.push({
+        type: 'warning', rule: 'fs_aggression',
+        title: `FullStack! hit rate: ${Math.round(hitRate*100)}% — leaving points on the table`,
+        detail: `You're averaging ${fsAvg.toFixed(1)} pts on the FullStack slot (benchmark: 25). If you roll 3+ of any face after roll 1, hold ALL of them and go for five-of-a-kind — the 50-pt payoff plus +100 bonus potential makes it worth the gamble even from 3-of-a-kind. Don't settle for 3oak scoring early.`
+      });
+    } else if (hitRate >= 0.4) {
+      insights.push({
+        type: 'strength', rule: 'fs_strength',
+        title: `FullStack! hit rate: ${Math.round(hitRate*100)}% — elite`,
+        detail: `Averaging ${fsAvg.toFixed(1)} pts on the FullStack slot. That's well above the ~25pt benchmark. You understand when to chase it.`
+      });
+    }
+  }
+
+  // --- Per-category gaps vs benchmark (find 2 biggest losers) ---
+  const catGaps = catStats
+    .filter(cs => cs.avg !== null && cs.vals.length >= Math.max(2, n*0.5))
+    .map(cs => ({
+      cs,
+      gap: CAT_BENCHMARK[cs.idx] - cs.avg,
+      pct: cs.avg / CAT_BENCHMARK[cs.idx]
+    }))
+    .filter(g => g.gap > 3 && !FIXED_CATS.has(g.cs.idx))
+    .sort((a,b) => b.gap - a.gap);
+
+  catGaps.slice(0,2).forEach(({cs, gap, pct}) => {
+    const advice = catCoachingTip(cs.idx, cs, n);
+    if (advice) insights.push({
+      type: 'tip', rule: `cat_gap_${cs.idx}`,
+      title: `${cs.name}: averaging ${cs.avg.toFixed(1)} (benchmark ${CAT_BENCHMARK[cs.idx]})`,
+      detail: advice
+    });
+  });
+
+  // --- Fixed-cat hit rates ---
+  const fixedChecks = [
+    { idx:9,  bench:0.72, name:'Sm. Straight', tip:'Any 4 sequential values scores 30. After roll 1, hold your longest run even if it\'s just 3 in a row — you have 2 more rolls to complete it.' },
+    { idx:10, bench:0.50, name:'Lg. Straight', tip:'Five sequential values scores 40. Hold a 4-run every time you see one. 1-2-3-4 and 3-4-5-6 both work — don\'t break a 4-run for anything except FullStack.' },
+    { idx:8,  bench:0.62, name:'Full House',   tip:'Hold your pair and 3oak whenever you have them. If you have two pairs, keep the higher one and reroll the other two — you need exactly a 3+2 split.' },
+  ];
+  fixedChecks.forEach(({idx,bench,name,tip}) => {
+    const cs = catStats[idx];
+    if (cs.vals.length < 2) return;
+    if (cs.hitRate < bench - 0.15) {
+      insights.push({
+        type: 'tip', rule: `fixed_${idx}`,
+        title: `${name}: only hitting ${Math.round(cs.hitRate*100)}% (expect ~${Math.round(bench*100)}%)`,
+        detail: tip
+      });
+    } else if (cs.hitRate >= bench + 0.1) {
+      insights.push({
+        type: 'strength', rule: `fixed_strength_${idx}`,
+        title: `${name}: hitting ${Math.round(cs.hitRate*100)}% — strong`,
+        detail: `Above the ~${Math.round(bench*100)}% benchmark. You're reading these dice well.`
+      });
+    }
+  });
+
+  // --- Sacrifice pattern analysis ---
+  if (n >= 3) {
+    const badSacrifices = catStats
+      .filter(cs => !FIXED_CATS.has(cs.idx) && cs.vals.length >= 2)
+      .filter(cs => cs.zeros/Math.max(cs.vals.length,1) > 0.4 && SACRIFICE_PAIN[cs.idx] >= 7)
+      .sort((a,b) => SACRIFICE_PAIN[b.idx] - SACRIFICE_PAIN[a.idx]);
+    if (badSacrifices.length > 0) {
+      const worst = badSacrifices[0];
+      const zeroPct = Math.round(worst.zeros/worst.vals.length*100);
+      insights.push({
+        type: 'warning', rule: 'sacrifice',
+        title: `Burning ${worst.name} with 0s — ${zeroPct}% of the time`,
+        detail: `${worst.name} is high-value (slot worth ~${SACRIFICE_PAIN[worst.idx]} opportunity pts). When you're stuck, sacrifice Aces or Twos first — they cost the least. Save ${worst.name} until you have a real shot at it.`
+      });
+    }
+  }
+
+  // --- Trend analysis ---
+  if (n >= 5) {
+    const recent = gameHistory.slice(0,3).map(g=>g.totals.p1);
+    const older  = gameHistory.slice(-3).map(g=>g.totals.p1);
+    const rAvg   = recent.reduce((a,b)=>a+b,0)/recent.length;
+    const oAvg   = older.reduce((a,b)=>a+b,0)/older.length;
+    const delta  = Math.round(rAvg - oAvg);
+    if (delta >= 15) {
+      insights.push({ type:'strength', rule:'trending_up',
+        title:`Up ${delta} pts — you're getting sharper`,
+        detail:`Recent avg ${Math.round(rAvg)} vs earlier ${Math.round(oAvg)}. The improvement is real — keep the pressure on upper cats early and don't waste high-value slots.`
+      });
+    } else if (delta <= -15) {
+      insights.push({ type:'warning', rule:'trending_down',
+        title:`Down ${Math.abs(delta)} pts recently`,
+        detail:`Recent avg ${Math.round(rAvg)} vs earlier ${Math.round(oAvg)}. This usually means rushing the scoring decision — always preview a category before confirming. Two taps = less regret.`
+      });
+    }
+  }
+
+  // --- Score ceiling estimate ---
+  if (n >= 4) {
+    const theoretical = estimateCeiling(catStats, bonusRate);
+    const gap = theoretical - avgScore;
+    if (gap > 20) {
+      insights.push({
+        type: 'tip', rule: 'ceiling',
+        title: `Your scoring ceiling: ~${theoretical} pts (gap: +${Math.round(gap)})`,
+        detail: `Based on your best category performances across all games, a peak game for you would score around ${theoretical}. Your current average is ${Math.round(avgScore)}. Close that gap by: (1) fixing your worst 2 categories above, and (2) getting the upper bonus more consistently.`
+      });
+    }
+  }
+
+  return insights;
+}
+
+function catCoachingTip(idx, cs, n) {
+  const avg = cs.avg.toFixed(1);
+  const bench = CAT_BENCHMARK[idx];
+  if (idx <= 5) {
+    const face = idx + 1;
+    const ideal = face * 3;
+    return `Averaging ${avg} on ${cs.name} (ideal: ~${ideal}). You want at least 3×${face}=${ideal} to stay on pace for the upper bonus. After roll 1, hold every ${face} you have — even a single one — and spend rolls 2–3 hunting more. Don't break for a different category until you've secured your count.`;
+  }
+  if (idx === 6) return `3 of a Kind scores the full dice sum — worth 20–25 on average with good dice. Averaging ${avg} suggests you're often settling for it with weak counts. Hold 3+ of the highest face you rolled and reroll the rest.`;
+  if (idx === 7) return `4 of a Kind averaging ${avg} (benchmark ${bench}). This is one of the hardest lower cats — if you have 3oak after roll 1, hold all three and go for 4oak. Don't pivot away unless you already scored 3oak.`;
+  if (idx === 12) return `Chance is your safety valve — it scores the total of all 5 dice. Averaging ${avg} means you're using it when your dice are cold. That's fine, but try to maximize it: hold 5s and 6s and reroll the rest before settling here.`;
+  return null;
+}
+
+function estimateCeiling(catStats, bonusRate) {
+  // For each cat, use player's personal best performance if enough data, else benchmark
+  let ceiling = 0;
+  catStats.forEach((cs, i) => {
+    if (cs.vals.length >= 2) {
+      // Use 80th-percentile score for this player (their good-game performance)
+      const sorted = [...cs.vals].sort((a,b)=>a-b);
+      const p80 = sorted[Math.floor(sorted.length * 0.8)] ?? sorted[sorted.length-1];
+      ceiling += p80;
+    } else {
+      ceiling += CAT_BENCHMARK[i];
+    }
+  });
+  // Add bonus if they have a decent hit rate
+  if (bonusRate >= 0.3) ceiling += 35;
+  return Math.round(ceiling);
+}
+
+function adaptiveWeights() {
+  if (!gameHistory.length) return null;
+  const weights = {};
+  CAT_NAMES.forEach((_,i) => { weights[i] = 1.0; });
+
+  // Base Shark weights tuned from Shane's data:
+  // - Shane almost never scores FullStack (0/18 except lucky games) → computer hunts it harder
+  // - Shane's upper avg is 59, just missing bonus → computer prioritizes 4s/5s/6s
+  // - Shane's 4oak is weak (avg ~10) → computer prioritizes it
+  weights[11] = 1.6;  // FullStack: computer hunts aggressively
+  weights[10] = 1.2;  // Large straight: protect it
+  weights[7]  = 1.3;  // 4 of a kind: Shane's weakest lower cat
+  weights[4]  = 1.25; // Fives: high upper value
+  weights[5]  = 1.25; // Sixes: high upper value
+  weights[3]  = 1.1;  // Fours
+
+  // Also factor in live game insights
+  const insights = buildInsights();
+  insights.forEach(ins => {
+    if (ins.rule === 'upper_priority') {
+      weights[3] *= 1.2; weights[4] *= 1.2; weights[5] *= 1.2;
+    }
+    if (ins.rule === 'fs_aggression') weights[11] *= 1.3;
+    if (ins.rule === 'upper_strong') {
+      // Player has upper under control — compete harder in lower section
+      weights[6] *= 1.2; weights[7] *= 1.2; weights[8] *= 1.1;
+    }
+  });
+
+  return weights;
+}
+
+function runComputerTurnByDifficulty() {
+  const diff = aiDifficulty;
+  if (diff === 'easy') return runComputerTurnEasy();
+  if (diff === 'medium') return runComputerTurnMedium();
+  if (diff === 'hard') return runComputerTurn();
+  if (diff === 'adaptive') return runComputerTurnAdaptive();
+}
+
+function runComputerTurnEasy() {
+  const { steps, finalDice } = computeEasyMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
+}
+
+function runComputerTurnMedium() {
+  const { steps, finalDice } = computeMediumMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
+}
+
+function runComputerTurnAdaptive() {
+  const { steps, finalDice } = computeAdaptiveMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
+}
+
+function renderInsights() {
+  const el = document.getElementById('insights-content');
+  if (!gameHistory.length) {
+    el.innerHTML = `<div class="empty-state">Play your first game to unlock coaching.<br><br>After a few games the coach reads your patterns and tells you exactly what to fix.</div>`;
+    return;
+  }
+
+  const insights = buildInsights();
+  const n = gameHistory.length;
+  const allScores = gameHistory.map(g => g.totals.p1);
+  const avgScore  = Math.round(allScores.reduce((a,b)=>a+b,0)/n);
+  const highScore = Math.max(...allScores);
+  const bonusRate = Math.round(gameHistory.filter(g=>g.gotBonus&&g.gotBonus.p1).length/n*100);
+  const wins      = gameHistory.filter(g=>g.winner==='p1').length;
+
+  const typeIcon  = { warning:'⚠️', tip:'💡', strength:'✅' };
+  const typeColor = { warning:'rgba(255,71,87,0.12)', tip:'rgba(232,255,71,0.07)', strength:'rgba(80,200,100,0.1)' };
+  const typeBorder= { warning:'rgba(255,71,87,0.35)', tip:'rgba(232,255,71,0.3)', strength:'rgba(80,200,100,0.3)' };
+  const typeLabel = { warning:'ISSUE', tip:'TIP', strength:'STRENGTH' };
+
+  let html = '';
+
+  // Score summary bar
+  html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+    <div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Your Numbers · ${n} game${n!==1?'s':''}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;text-align:center;">
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${avgScore}</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Avg</div></div>
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${highScore}</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Best</div></div>
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${bonusRate}%</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Bonus</div></div>
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${wins}/${n}</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Wins</div></div>
+    </div>
+  </div>`;
+
+  // Section label
+  const issueCount = insights.filter(i=>i.type==='warning').length;
+  const tipCount   = insights.filter(i=>i.type==='tip').length;
+  const strengthCount = insights.filter(i=>i.type==='strength').length;
+  html += `<div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">
+    ${issueCount} issue${issueCount!==1?'s':''} · ${tipCount} tip${tipCount!==1?'s':''} · ${strengthCount} strength${strengthCount!==1?'s':''}
+  </div>`;
+
+  if (insights.length === 0) {
+    html += `<div class="empty-state" style="padding:16px 0;">Play a few more games to surface deeper patterns.</div>`;
+  }
+
+  insights.forEach(ins => {
+    html += `<div style="background:${typeColor[ins.type]};border:1px solid ${typeBorder[ins.type]};border-radius:9px;padding:11px 13px;margin-bottom:9px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+        <span style="font-size:1em;">${typeIcon[ins.type]}</span>
+        <span style="font-size:0.62em;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${ins.type==='warning'?'var(--danger)':ins.type==='strength'?'#5dc87a':'var(--p1)'};">${typeLabel[ins.type]}</span>
+      </div>
+      <div style="font-size:0.82em;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3;">${ins.title}</div>
+      <div style="font-size:0.73em;color:#bbb;line-height:1.6;">${ins.detail}</div>
+    </div>`;
+  });
+
+  // Export strip
+  html += `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:13px;display:flex;flex-direction:column;gap:7px;">
+    <div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;">Export</div>
+    <button onclick="exportInsightsFile()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;">📥 Download Coaching Report</button>
+    <button onclick="copyInsightsText()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;">📋 Copy to Clipboard</button>
+    <button onclick="exportFullData()" style="background:rgba(232,255,71,0.1);border:1px solid rgba(232,255,71,0.3);color:var(--p1);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;">📤 Export Full Game Data for AI</button>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function buildInsightText() {
+  const insights = buildInsights();
+  const lines = [];
+  lines.push('=== FULLSTACKS STRATEGY INSIGHTS ===');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`Games analyzed: ${gameHistory.length}`);
+  lines.push('');
+
+  if (gameHistory.length > 0) {
+    const scores = gameHistory.map(g => g.totals.p1);
+    lines.push('--- SCORE SUMMARY ---');
+    lines.push(`High Score: ${Math.max(...scores)}`);
+    lines.push(`Average: ${Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)}`);
+    lines.push(`Low Score: ${Math.min(...scores)}`);
+    const bonusRate = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length / gameHistory.length;
+    lines.push(`Upper Bonus Rate: ${Math.round(bonusRate*100)}%`);
+    lines.push('');
+
+    lines.push('--- CATEGORY AVERAGES ---');
+    CAT_NAMES.forEach((name, ci) => {
+      const vals = gameHistory.map(g => g.scores.p1[ci]).filter(v => v !== null);
+      if (vals.length > 0) {
+        const avg = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+        const zeroPct = Math.round(vals.filter(v=>v===0).length/vals.length*100);
+        lines.push(`  ${name.padEnd(14)} avg=${avg}  zeroes=${zeroPct}%  (${vals.length} games)`);
+      }
+    });
+    lines.push('');
+  }
+
+  lines.push('--- STRATEGY INSIGHTS ---');
+  if (insights.length === 0) {
+    lines.push('No major issues detected yet. Keep playing!');
+  } else {
+    insights.forEach((ins, i) => {
+      const typeLabel = { warning: '[ISSUE]', tip: '[TIP]', strength: '[STRENGTH]' }[ins.type];
+      lines.push(`${i+1}. ${typeLabel} ${ins.title}`);
+      lines.push(`   ${ins.detail}`);
+      lines.push('');
+    });
+  }
+
+  lines.push('--- RECENT GAMES ---');
+  gameHistory.slice(0,10).forEach((g,i) => {
+    lines.push(`  ${g.date} | Score: ${g.totals.p1} | Mode: ${g.mode} | Bonus: ${g.gotBonus && g.gotBonus.p1 ? 'YES' : 'no'} | ${g.winner === 'p1' ? 'WIN' : g.winner === 'tie' ? 'TIE' : 'LOSS'}`);
+  });
+
+  return lines.join('\n');
+}
+
+function exportInsightsFile() {
+  const text = buildInsightText();
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fullstacks-insights-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyInsightsText() {
+  const text = buildInsightText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('#insights-content button:last-child');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(()=>btn.textContent=orig, 2000); }
+  }).catch(() => {
+    alert('Copy failed — use Download instead.');
+  });
+}
+
+function buildFullDataText() {
+  const lines = [];
+  lines.push('=== FULLSTACKS FULL GAME DATA EXPORT ===');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`Total games: ${gameHistory.length}`);
+  lines.push('');
+  lines.push('CATEGORIES: Aces,Twos,Threes,Fours,Fives,Sixes,3oak,4oak,FullHouse,SmStr,LgStr,FullStack,Chance');
+  lines.push('');
+  gameHistory.forEach((g, idx) => {
+    lines.push(`--- GAME ${idx + 1} ---`);
+    lines.push(`Date: ${g.date} | Mode: ${g.mode} | Winner: ${g.winner}`);
+    lines.push(`${g.names.p1} (P1): total=${g.totals.p1} upper=${g.upper.p1} bonus=${g.gotBonus.p1?'YES':'no'} fsBonus=${g.fsBonus.p1}`);
+    lines.push(`  scores: [${g.scores.p1.map(v => v === null ? 'null' : v).join(', ')}]`);
+    lines.push(`${g.names.p2} (P2): total=${g.totals.p2} upper=${g.upper.p2} bonus=${g.gotBonus.p2?'YES':'no'} fsBonus=${g.fsBonus.p2}`);
+    lines.push(`  scores: [${g.scores.p2.map(v => v === null ? 'null' : v).join(', ')}]`);
+    lines.push('');
+  });
+  lines.push('=== RAW JSON ===');
+  lines.push(JSON.stringify(gameHistory, null, 2));
+  return lines.join('\n');
+}
+
+function exportFullData() {
+  const text = buildFullDataText();
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fullstacks-data-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyFullData() {
+  const text = buildFullDataText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-full-btn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(()=>btn.textContent=orig, 2500); }
+  }).catch(() => {
+    alert('Copy failed — use the Download button instead.');
+  });
+}
+
+if (gameHistory.length > 0) {
+  const badge = document.getElementById('tracker-badge');
+  badge.textContent = gameHistory.length;
+  badge.style.display = 'block';
+}
+</script>
+</body></html>
