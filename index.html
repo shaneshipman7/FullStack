@@ -108,6 +108,9 @@ button.inline { width:auto; display:inline-block; }
 .face-5 .pip:nth-child(1){top:18%;left:18%;} .face-5 .pip:nth-child(2){top:18%;right:18%;} .face-5 .pip:nth-child(3){top:50%;left:50%;transform:translate(-50%,-50%);} .face-5 .pip:nth-child(4){bottom:18%;left:18%;} .face-5 .pip:nth-child(5){bottom:18%;right:18%;}
 .face-6 .pip:nth-child(1){top:12%;left:18%;} .face-6 .pip:nth-child(2){top:36%;left:18%;} .face-6 .pip:nth-child(3){top:60%;left:18%;} .face-6 .pip:nth-child(4){top:12%;right:18%;} .face-6 .pip:nth-child(5){top:36%;right:18%;} .face-6 .pip:nth-child(6){top:60%;right:18%;}
 
+@keyframes shakeA { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-11deg)} 40%{transform:rotate(11deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
+@keyframes shakeB { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-11deg)} 40%{transform:rotate(11deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
+
 .controls { text-align:center; margin-bottom:10px; }
 .controls button { width:auto; min-width:170px; display:inline-block; margin:4px; }
 button.roll { background:var(--p1); color:#000; }
@@ -575,128 +578,89 @@ function doRoll() {
   });
 }
 
-// ===== FIXED renderDiceShake =====
-// Key fixes:
-// 1. Capture die element references ONCE at the start — never re-query mid-animation
-// 2. Safety timeout guarantees onComplete always fires even if animations glitch
-// 3. A guard flag prevents onComplete from firing twice
+// ===== renderDiceShake — setTimeout-based, cannot get stuck =====
+// Uses CSS keyframe animation names (toggled A/B to force restart) + a
+// guaranteed setTimeout callback. No Web Animations API onfinish chaining.
 function renderDiceShake(oldVals, newVals, held, onComplete) {
   const dc = document.getElementById('diceContainer');
   const t = G ? G.turn : 'p1';
   const locked = !G || G.gameOver || (t === 'p2' && mode === 'vscomp');
-  const SHAKE_MS = 400;
-  const SETTLE_MS = 280;
-  const TOTAL_MS = SHAKE_MS + SETTLE_MS + 60; // generous safety margin
+  const SHAKE_MS = 380;
+  const SETTLE_MS = 260;
 
-  // Ensure 5 die elements exist
+  // Ensure 5 elements
   while (dc.children.length < 5) dc.appendChild(document.createElement('div'));
 
-  // === CAPTURE ELEMENT REFERENCES NOW before any DOM mutation ===
-  const dieEls = [];
-  for (let i = 0; i < 5; i++) dieEls.push(dc.children[i]);
-
-  // Set initial state on all dice (showing OLD values)
-  for (let i = 0; i < 5; i++) {
-    const die = dieEls[i];
-    die.dataset.idx = i;
-    die.className = `die face-${oldVals[i]}${held[i] ? ' held' : ''}${locked ? ' locked' : ''}`;
-    die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
-  }
-
-  // Count only the dice that need to animate
-  let pending = 0;
-  for (let i = 0; i < 5; i++) {
-    if (!held[i]) pending++;
-  }
-
-  // If nothing to animate (all held), fire immediately
-  if (pending === 0) {
+  // Guard so onComplete fires exactly once
+  let done = false;
+  function finish() {
+    if (done) return;
+    done = true;
+    // Snap all dice to their final resting state
+    for (let i = 0; i < 5; i++) {
+      const die = dc.children[i];
+      die.style.animation = '';
+      die.style.boxShadow = '';
+      die.className = `die face-${newVals[i]}${held[i] ? ' held' : ''}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
+      die.dataset.idx = i;
+    }
     onComplete && onComplete();
+  }
+
+  // Find dice that actually need to roll
+  const rolling = [0,1,2,3,4].filter(i => !held[i]);
+
+  if (rolling.length === 0) {
+    // Nothing moves — just commit immediately
+    finish();
     return;
   }
 
-  // Guard: ensure onComplete fires exactly once
-  let completed = false;
-  function finish() {
-    if (completed) return;
-    completed = true;
-    onComplete && onComplete();
-  }
-
-  // Safety net: if animations stall for any reason, force completion
-  const safetyTimer = setTimeout(finish, TOTAL_MS + 200);
-
-  let settled = 0; // count of dice that have finished their settle animation
-
+  // Phase 1: set initial state and start shake CSS animation
   for (let i = 0; i < 5; i++) {
-    if (held[i]) continue;
-
-    const die = dieEls[i]; // captured reference — stable throughout
-    const valueChanged = oldVals[i] !== newVals[i];
-
-    // Phase 1: shake animation on OLD face
-    const shakeAnim = die.animate([
-      { transform: 'rotate(0deg)' },
-      { transform: 'rotate(-12deg)' },
-      { transform: 'rotate(12deg)' },
-      { transform: 'rotate(-10deg)' },
-      { transform: 'rotate(10deg)' },
-      { transform: 'rotate(-4deg)' },
-      { transform: 'rotate(0deg)' },
-    ], { duration: SHAKE_MS, easing: 'ease-in-out', fill: 'none' });
-
-    shakeAnim.onfinish = () => {
-      // Flip to NEW face value
-      die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
-      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
-
-      // Phase 2: settle shake on NEW face
-      const settleAnim = die.animate([
-        { transform: 'rotate(0deg)' },
-        { transform: 'rotate(-8deg)' },
-        { transform: 'rotate(7deg)' },
-        { transform: 'rotate(-4deg)' },
-        { transform: 'rotate(2deg)' },
-        { transform: 'rotate(0deg)' },
-      ], { duration: SETTLE_MS, easing: 'ease-out', fill: 'none' });
-
-      // Green flash on value change (runs in parallel with settle)
-      if (valueChanged) {
-        die.animate([
-          { boxShadow: '0 0 0 3px rgba(100,255,100,0.9)' },
-          { boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }
-        ], { duration: 400, easing: 'ease-out', fill: 'none' });
-      }
-
-      settleAnim.onfinish = () => {
-        settled++;
-        if (settled >= pending) {
-          clearTimeout(safetyTimer);
-          finish();
-        }
-      };
-
-      // Safety: if settle animation itself doesn't fire onfinish
-      settleAnim.oncancel = () => {
-        settled++;
-        if (settled >= pending) {
-          clearTimeout(safetyTimer);
-          finish();
-        }
-      };
-    };
-
-    // Safety: if shake animation is cancelled before finishing
-    shakeAnim.oncancel = () => {
-      die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
-      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
-      settled++;
-      if (settled >= pending) {
-        clearTimeout(safetyTimer);
-        finish();
-      }
-    };
+    const die = dc.children[i];
+    die.dataset.idx = i;
+    die.style.animation = '';
+    die.style.boxShadow = '';
+    if (held[i]) {
+      // Held dice: show old value, held styling, subtle sympathetic shake
+      die.className = `die face-${oldVals[i]} held`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
+    } else {
+      // Rolling dice: show old value and kick off shake
+      die.className = `die face-${oldVals[i]}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
+      // Force animation restart by toggling between shakeA and shakeB names
+      die._shakeToggle = !die._shakeToggle;
+      const animName = die._shakeToggle ? 'shakeA' : 'shakeB';
+      die.style.animation = `${animName} ${SHAKE_MS}ms ease-in-out`;
+    }
   }
+
+  // Phase 2: after shake, flip faces and start settle
+  setTimeout(() => {
+    if (done) return;
+    for (const i of rolling) {
+      const die = dc.children[i];
+      die.style.animation = '';
+      die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
+      die.dataset.idx = i;
+      // Settle animation
+      die._shakeToggle = !die._shakeToggle;
+      const animName = die._shakeToggle ? 'shakeA' : 'shakeB';
+      die.style.animation = `${animName} ${SETTLE_MS}ms ease-out`;
+      // Green flash if value changed
+      if (oldVals[i] !== newVals[i]) {
+        die.style.boxShadow = '0 0 0 3px rgba(100,255,100,0.9)';
+        setTimeout(() => { if (die) die.style.boxShadow = ''; }, 350);
+      }
+    }
+  }, SHAKE_MS);
+
+  // Phase 3: after settle, snap to clean final state and fire callback
+  setTimeout(finish, SHAKE_MS + SETTLE_MS + 40);
 }
 
 // ===== SCORE CLICK =====
@@ -930,203 +894,155 @@ function grandTotal(p) {
   return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
 }
 
-// ===== COMPUTER AI =====
+// ===== COMPUTER AI — FAST SMART ENGINE =====
 
-// Monte Carlo: simulate completions of remaining dice given held values
-function mcExpected(cat, heldVals, rollsLeft, sims = 300) {
-  if (rollsLeft === 0) return calcScore(cat, [...heldVals]);
-  let total = 0;
-  const freeCount = 5 - heldVals.length;
-  for (let s = 0; s < sims; s++) {
-    let trial = [...heldVals];
-    for (let d = 0; d < freeCount; d++) trial.push(rollDie());
-    if (rollsLeft > 1) {
-      const bestHeld = greedyHold(cat, trial);
-      const heldNext = trial.filter((_, i) => bestHeld[i]);
-      total += mcExpected(cat, heldNext, rollsLeft - 1, Math.max(30, Math.floor(sims / 4)));
-    } else {
-      total += calcScore(cat, trial);
-    }
-  }
-  return total / sims;
-}
-
+// For each category, what dice values should we hold? Returns boolean[5].
+// This is the category-specific hold heuristic — fast, no MC needed.
 function greedyHold(cat, vals) {
   const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
 
-  // Upper section: hold matching face value
-  if (cat <= 5) return vals.map(v => v === cat + 1);
-
-  // FullStack, 3oak, 4oak: hold the highest-count face, prefer high values on ties
-  if (cat === 11 || cat === 6 || cat === 7) {
+  if (cat <= 5) {
+    // Upper: hold matching face
+    return vals.map(v => v === cat + 1);
+  }
+  if (cat === 6 || cat === 7 || cat === 11) {
+    // 3oak / 4oak / FullStack: hold the most-common face (prefer highest on tie)
     const mx = Math.max(...c.slice(1));
-    // Among faces tied for most common, pick highest face value (better sum)
     let best = 1;
     for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
     return vals.map(v => v === best);
   }
-
-  // Full house: hold the three-of-a-kind face + pair face
   if (cat === 8) {
+    // Full house: hold 3oak + pair if we have it; else hold best pair
     const h3 = c.findIndex((x, i) => i > 0 && x >= 3);
     if (h3 > 0) return vals.map(v => c[v] >= 2);
-    // No 3oak yet — hold any pair, prefer higher face
-    for (let f = 6; f >= 1; f--) {
-      if (c[f] === 2) return vals.map(v => v === f);
-    }
+    for (let f = 6; f >= 1; f--) { if (c[f] >= 2) return vals.map(v => v === f); }
     return [false,false,false,false,false];
   }
-
-  // Straights: hold longest run, breaking ties toward middle values (3,4 most flexible)
   if (cat === 9 || cat === 10) {
-    const u = [...new Set(vals)].sort((a, b) => a - b);
-    let bestRun = [], curRun = [u[0]];
+    // Straights: hold the longest consecutive run
+    const u = [...new Set(vals)].sort((a,b) => a-b);
+    let best = [u[0]], cur = [u[0]];
     for (let i = 1; i < u.length; i++) {
-      if (u[i] === u[i-1] + 1) curRun.push(u[i]);
-      else { if (curRun.length > bestRun.length) bestRun = [...curRun]; curRun = [u[i]]; }
+      if (u[i] === u[i-1]+1) cur.push(u[i]);
+      else { if (cur.length > best.length) best = [...cur]; cur = [u[i]]; }
     }
-    if (curRun.length > bestRun.length) bestRun = [...curRun];
-    // If multiple runs of same length, prefer the one containing 3 or 4 (more flexibility)
-    const rs = new Set(bestRun);
-    const used = new Set();
+    if (cur.length > best.length) best = [...cur];
+    const rs = new Set(best); const used = new Set();
     return vals.map(v => { if (rs.has(v) && !used.has(v)) { used.add(v); return true; } return false; });
   }
-
-  // Chance: hold anything 4 or higher
-  if (cat === 12) return vals.map(v => v >= 4);
-
+  if (cat === 12) return vals.map(v => v >= 4); // Chance: hold 4s and up
   return [false,false,false,false,false];
 }
-
 function holdForCat(cat, vals) { return greedyHold(cat, vals); }
 
-// Upper bonus tracking: how much is the bonus worth given current trajectory?
-// Returns the expected bonus value (0–35) based on how on-track we are
-function upperBonusValue(cat, expectedCatScore, p2scores) {
+// Quick expected-score estimate for a category given held dice and rolls left.
+// Uses a small flat Monte Carlo (no recursion) — fast and accurate enough.
+function quickExpected(cat, vals, holdPat, rollsLeft) {
+  const held = vals.filter((_, i) => holdPat[i]);
+  const free = 5 - held.length;
+  if (rollsLeft === 0 || free === 0) return calcScore(cat, vals);
+
+  const SIMS = 60; // fast — 60 sims per eval
+  let total = 0;
+  for (let s = 0; s < SIMS; s++) {
+    const trial = [...held];
+    for (let d = 0; d < free; d++) trial.push(rollDie());
+
+    if (rollsLeft > 1) {
+      // One more roll after this — apply greedy hold and score best outcome
+      const h2 = greedyHold(cat, trial);
+      const held2 = trial.filter((_, i) => h2[i]);
+      const free2 = 5 - held2.length;
+      const trial2 = [...held2];
+      for (let d = 0; d < free2; d++) trial2.push(rollDie());
+      total += calcScore(cat, trial2);
+    } else {
+      total += calcScore(cat, trial);
+    }
+  }
+  return total / SIMS;
+}
+
+// Upper bonus credit — how much is this upper score worth toward the +35?
+function bonusCredit(cat, catScore, p2scores) {
   if (cat > 5) return 0;
-  const upperFilled = p2scores.slice(0, 6).filter(v => v !== null).length;
-  const upperSoFar  = p2scores.slice(0, 6).reduce((a, b) => a + (b || 0), 0);
-  const upperLeft   = 6 - upperFilled; // includes this category
-  if (upperLeft === 0) return 0;
-
-  const projectedTotal = upperSoFar + expectedCatScore;
-
-  // If this scores puts us at/over 63, full bonus
-  if (projectedTotal >= 63) return 35;
-
-  // Project remaining slots at their ideal values (cat+1)*3 average per slot
-  // to see if bonus is still achievable
-  const remainingSlots = upperLeft - 1;
-  // Ideal average per upper slot to hit 63: ~10.5. Weight by how close we are.
-  const neededFromRest = 63 - projectedTotal;
-  const maxFromRest = remainingSlots * 18; // best case all sixes
-  if (maxFromRest < neededFromRest) return 0; // bonus impossible
-
-  // Proportion of bonus reachability × 35, scaled by how well this cat scores
-  // relative to what it needs to contribute
-  const idealContrib = (cat + 1) * 3; // average contribution if you score 3 of this face
-  const onTrackFraction = Math.min(1, expectedCatScore / Math.max(idealContrib, 1));
-  return Math.round(onTrackFraction * 20); // up to 20pt bonus-path credit
+  const soFar = p2scores.slice(0,6).reduce((a,b) => a+(b||0), 0);
+  const left  = p2scores.slice(0,6).filter(v => v === null).length;
+  if (left === 0) return 0;
+  const projected = soFar + catScore;
+  if (projected >= 63) return 35;
+  // Reachability check: remaining slots at ideal avg
+  const idealAvg = [3.5, 7, 10.5, 14, 17.5, 21];
+  const remainOpen = [0,1,2,3,4,5].filter(c => c !== cat && p2scores[c] === null)
+    .sort((a,b) => idealAvg[b]-idealAvg[a]).slice(0, left-1);
+  const maxReach = projected + remainOpen.reduce((s,c)=>s+idealAvg[c],0);
+  if (maxReach < 63) return 0;
+  const ideal = (cat+1)*3;
+  const onTrack = Math.min(1, projected/63);
+  return Math.round(onTrack * Math.min(1.2, catScore/Math.max(ideal,1)) * 26);
 }
 
-function evalCategoryWithLookahead(cat, vals, rollsLeft, p2scores) {
-  if (G.scores.p2[cat] !== null) return -Infinity;
+// Slot opportunity cost — penalty for burning this cat with a 0
+const SLOT_VALUE = [2,3,5,8,12,18, 18,22,20,24,35,45,15];
 
-  const heldNow = greedyHold(cat, vals);
-  const heldVals = vals.filter((_, i) => heldNow[i]);
-
-  // Use more sims for high-value categories
-  const sims = (cat === 11 || cat === 10 || cat === 9) ? 250 : 180;
-  const expected = rollsLeft > 0
-    ? mcExpected(cat, heldVals, rollsLeft, sims)
-    : calcScore(cat, vals);
-
-  // Upper bonus path value
-  const bonusCredit = upperBonusValue(cat, expected, p2scores);
-
-  // FullStack opportunity bonus: if we already have 3+ of a kind, strongly
-  // weight hunting FullStack since it's worth 50 + potential bonus
-  let fsOpportunity = 0;
-  if (cat === 11 && p2scores[11] === null) {
-    const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
-    const maxCount = Math.max(...c.slice(1));
-    if (maxCount >= 3) fsOpportunity = 15; // 3oak → decent FullStack chance
-    if (maxCount >= 4) fsOpportunity = 30; // 4oak → very likely
-  }
-
-  // Penalty for sacrificing high-value lower cats with a 0
-  let sacrificePenalty = 0;
-  if (expected < 1) {
-    if (cat === 11) sacrificePenalty = 40; // never waste FullStack slot
-    else if (cat === 10) sacrificePenalty = 25; // lg straight very valuable
-    else if (cat === 9) sacrificePenalty = 15;
-    else if (cat === 8) sacrificePenalty = 12;
-    else if (cat <= 1) sacrificePenalty = 2;  // aces/twos ok to sacrifice
-    else if (cat <= 3) sacrificePenalty = 5;
-    else sacrificePenalty = 8;
-  }
-
-  return expected + bonusCredit + fsOpportunity - sacrificePenalty;
+function catUtility(cat, score, p2scores) {
+  const credit = bonusCredit(cat, score, p2scores);
+  const burnPenalty = score < 0.5 ? SLOT_VALUE[cat] * 1.8 : 0;
+  return score + credit - burnPenalty;
 }
 
+// Choose the best hold pattern for the current dice given all open categories.
+// Evaluates each open category's best hold, picks highest expected utility.
+function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
+  if (rollsLeft === 0) return vals.map(() => false);
+  const openCats = [];
+  for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
+  if (!openCats.length) return vals.map(() => false);
+
+  let bestPat = greedyHold(openCats[0], vals);
+  let bestUtil = -Infinity;
+
+  for (const cat of openCats) {
+    const pat = greedyHold(cat, vals);
+    const exp = quickExpected(cat, vals, pat, rollsLeft);
+    let u = exp + bonusCredit(cat, exp, p2scores);
+    if (weightFn) u *= (weightFn(cat) || 1.0);
+    if (u > bestUtil) { bestUtil = u; bestPat = pat; }
+  }
+  return bestPat;
+}
+
+// Choose the best category to score in with the final dice
 function chooseBestCategory(vals, p2scores) {
   const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
   const allowedCats = isBonusTurn ? jokerAllowedCats('p2', vals) : null;
-
-  let bestCat = -1, bestVal = -Infinity;
+  let bestCat = -1, bestUtil = -Infinity;
   for (let c = 0; c < 13; c++) {
     if (p2scores[c] !== null) continue;
     if (allowedCats && !allowedCats.has(c)) continue;
-
     const sc = isBonusTurn ? jokerScore(c, vals) : calcScore(c, vals);
-    let w = sc;
-
-    if (sc === 0) {
-      // Prefer to sacrifice low-value upper cats over wasting key lower slots
-      if (c === 11) w = -40;
-      else if (c === 10) w = -25;
-      else if (c === 9)  w = -15;
-      else if (c === 8)  w = -12;
-      else if (c === 7)  w = -8;
-      else if (c === 6)  w = -5;
-      else if (c === 0)  w = 1.5;  // aces: cheapest sacrifice
-      else if (c === 1)  w = 1.0;  // twos
-      else if (c === 2)  w = 0.5;  // threes
-      else               w = 0.1;  // fours/fives/sixes: avoid sacrificing
-    } else {
-      // Bonus for scoring well in upper section to chase the +35
-      const upperSoFar = p2scores.slice(0,6).reduce((a,b)=>a+(b||0),0);
-      const upperFilled = p2scores.slice(0,6).filter(v=>v!==null).length;
-      if (c <= 5) {
-        w += upperBonusValue(c, sc, p2scores);
-      }
-    }
-
-    if (w > bestVal) { bestVal = w; bestCat = c; }
+    const u = catUtility(c, sc, p2scores);
+    if (u > bestUtil) { bestUtil = u; bestCat = c; }
   }
   return bestCat;
 }
 
-function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
-  let bestCat = -1, bestPotential = -Infinity;
-  for (let c = 0; c < 13; c++) {
-    if (p2scores[c] !== null) continue;
-    let pot = evalCategoryWithLookahead(c, vals, rollsLeft, p2scores);
-    if (weightFn) pot *= (weightFn(c) || 1.0);
-    if (pot > bestPotential) { bestPotential = pot; bestCat = c; }
-  }
-  return bestCat >= 0 ? greedyHold(bestCat, vals) : [false,false,false,false,false];
-}
-
+// PRO — 3 full rolls with smart holds
 function runComputerTurn() {
   const steps = [];
-  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  let cd = Array.from({length:5}, rollDie);
+  let ch = [false,false,false,false,false];
   steps.push({ dice: [...cd], held: [...ch] });
-  for (let roll = 0; roll < 2; roll++) {
-    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, null);
-    cd = cd.map((v, i) => ch[i] ? v : rollDie());
-    steps.push({ dice: [...cd], held: [...ch] });
-  }
+
+  ch = chooseBestHold(cd, 2, G.scores.p2, null);
+  cd = cd.map((v,i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 1, G.scores.p2, null);
+  cd = cd.map((v,i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
   ch = [false,false,false,false,false];
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
@@ -1182,11 +1098,15 @@ function computeHardMoves() {
   const steps = [];
   let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
   steps.push({ dice: [...cd], held: [...ch] });
-  for (let roll = 0; roll < 2; roll++) {
-    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, null);
-    cd = cd.map((v, i) => ch[i] ? v : rollDie());
-    steps.push({ dice: [...cd], held: [...ch] });
-  }
+
+  ch = chooseBestHold(cd, 2, G.scores.p2, null);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 1, G.scores.p2, null);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
   const bc = chooseBestCategory(cd, G.scores.p2);
@@ -1200,11 +1120,15 @@ function computeAdaptiveMoves() {
   const steps = [];
   let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
   steps.push({ dice: [...cd], held: [...ch] });
-  for (let roll = 0; roll < 2; roll++) {
-    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, weightFn);
-    cd = cd.map((v, i) => ch[i] ? v : rollDie());
-    steps.push({ dice: [...cd], held: [...ch] });
-  }
+
+  ch = chooseBestHold(cd, 2, G.scores.p2, weightFn);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
+  ch = chooseBestHold(cd, 1, G.scores.p2, weightFn);
+  cd = cd.map((v, i) => ch[i] ? v : rollDie());
+  steps.push({ dice: [...cd], held: [...ch] });
+
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
   const bc = chooseBestCategory(cd, G.scores.p2);
@@ -1375,6 +1299,9 @@ function saveGameRecord(gameState, mode) {
       p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
     }
   };
+
+  record.moves = [...currentGameMoves];
+  currentGameMoves = [];
 
   gameHistory.unshift(record);
   if (gameHistory.length > 50) gameHistory = gameHistory.slice(0, 50);
@@ -1595,102 +1522,223 @@ function selectDiff(btn, diff) {
 }
 
 function recordMove(dice, held, rollsLeft, scoredCat, score) {
-  if (mode !== 'vscomp') return;
   const diceKey = [...dice].sort().join('');
+  const upperSoFar = G ? G.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0) : 0;
+  const upperFilled = G ? G.scores.p1.slice(0,6).filter(v=>v!==null).length : 0;
+  const openCats = G ? G.scores.p1.map((v,i)=>v===null?i:-1).filter(i=>i>=0) : [];
   currentGameMoves.push({
     dice: [...dice], held: [...held], rollsLeft, scoredCat, score,
-    diceKey,
-    upperProgress: G ? G.scores.p1.slice(0,6).filter(v=>v!==null).length : 0,
+    diceKey, upperSoFar, upperFilled, openCats: [...openCats],
   });
 }
 
+// ===== DEEP COACHING ENGINE =====
+// Expected averages a solid player achieves per category (benchmark)
+const CAT_BENCHMARK = [2.5, 5.0, 8.0, 11.0, 14.5, 18.0, 19.0, 15.0, 18.0, 24.0, 30.0, 25.0, 22.0];
+// Max possible per category
+const CAT_MAX_SC    = [5,   10,  15,  20,   25,   30,   30,   30,   25,   30,   40,   50,   30];
+// Categories where 0 is common and expected (fixed-score cats)
+const FIXED_CATS = new Set([8,9,10,11]);
+// How bad is it to score 0 here (opportunity cost ranking)
+const SACRIFICE_PAIN = [1,2,3,5,7,9,  8,12,15,20,30,40,6];
+
 function buildInsights() {
   const insights = [];
-  const catData = {};
-  CAT_NAMES.forEach((n,i) => { catData[i] = { zeroes: 0, total: 0, count: 0, name: n }; });
+  if (!gameHistory.length) return insights;
 
-  gameHistory.forEach(g => {
-    g.scores.p1.forEach((sc, ci) => {
-      if (sc !== null) {
-        catData[ci].count++;
-        catData[ci].total += sc;
-        if (sc === 0) catData[ci].zeroes++;
-      }
+  const n = gameHistory.length;
+
+  // --- Build per-category stats ---
+  const catStats = Array.from({length:13}, (_,i) => ({
+    name: CAT_NAMES[i], idx: i,
+    vals: gameHistory.map(g => g.scores.p1[i]).filter(v => v !== null),
+    zeros: 0, avg: 0, hitRate: 0
+  }));
+  catStats.forEach(cs => {
+    cs.zeros = cs.vals.filter(v => v === 0).length;
+    cs.avg   = cs.vals.length ? cs.vals.reduce((a,b)=>a+b,0)/cs.vals.length : null;
+    cs.hitRate = cs.vals.length ? cs.vals.filter(v=>v>0).length/cs.vals.length : null;
+  });
+
+  const allScores = gameHistory.map(g => g.totals.p1);
+  const avgScore  = allScores.reduce((a,b)=>a+b,0)/n;
+  const highScore = Math.max(...allScores);
+
+  // --- Upper bonus analysis ---
+  const bonusGames = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length;
+  const bonusRate  = bonusGames / n;
+  const upperAvgs  = catStats.slice(0,6).map(cs => cs.avg ?? 0);
+  const upperTotal = upperAvgs.reduce((a,b)=>a+b,0);
+  const upperGap   = 63 - upperTotal; // how far from ideal per-game average to bonus
+
+  if (bonusRate < 0.35 && n >= 3) {
+    // Find worst upper offenders
+    const upperGaps = catStats.slice(0,6).map((cs,i) => ({
+      name: cs.name, gap: CAT_BENCHMARK[i] - (cs.avg??0), idx: i
+    })).filter(g => g.gap > 1.5).sort((a,b) => b.gap - a.gap);
+    const topGap = upperGaps[0];
+    insights.push({
+      type: 'warning', rule: 'upper_priority',
+      title: `Upper bonus: only ${Math.round(bonusRate*100)}% hit rate`,
+      detail: topGap
+        ? `You need avg ${Math.round(upperGap)} more pts/game across the upper section. Your biggest drag is ${topGap.name} — you're averaging ${(catStats[topGap.idx].avg||0).toFixed(1)} but need ~${CAT_BENCHMARK[topGap.idx]}. Dedicate rolls 1–2 to hitting your face value before pivoting to lower cats.`
+        : `You're averaging ${Math.round(upperTotal)}/63 in the upper section. You need ${Math.round(upperGap)} more pts/game. Focus on 4s, 5s, 6s first — they contribute the most weight toward the +35 bonus.`
+    });
+  } else if (bonusRate >= 0.7 && n >= 3) {
+    insights.push({
+      type: 'strength', rule: 'upper_strong',
+      title: `Upper bonus locked in ${Math.round(bonusRate*100)}% of games`,
+      detail: `Averaging ${Math.round(upperTotal)}/63 across upper cats. That consistency earns you the +35 more than 2 out of 3 games — it's your biggest single scoring advantage.`
+    });
+  }
+
+  // --- FullStack analysis ---
+  const fsStats = catStats[11];
+  if (fsStats.vals.length >= 2) {
+    const hitRate = fsStats.hitRate;
+    const fsAvg   = fsStats.avg ?? 0;
+    if (hitRate < 0.25) {
+      insights.push({
+        type: 'warning', rule: 'fs_aggression',
+        title: `FullStack! hit rate: ${Math.round(hitRate*100)}% — leaving points on the table`,
+        detail: `You're averaging ${fsAvg.toFixed(1)} pts on the FullStack slot (benchmark: 25). If you roll 3+ of any face after roll 1, hold ALL of them and go for five-of-a-kind — the 50-pt payoff plus +100 bonus potential makes it worth the gamble even from 3-of-a-kind. Don't settle for 3oak scoring early.`
+      });
+    } else if (hitRate >= 0.4) {
+      insights.push({
+        type: 'strength', rule: 'fs_strength',
+        title: `FullStack! hit rate: ${Math.round(hitRate*100)}% — elite`,
+        detail: `Averaging ${fsAvg.toFixed(1)} pts on the FullStack slot. That's well above the ~25pt benchmark. You understand when to chase it.`
+      });
+    }
+  }
+
+  // --- Per-category gaps vs benchmark (find 2 biggest losers) ---
+  const catGaps = catStats
+    .filter(cs => cs.avg !== null && cs.vals.length >= Math.max(2, n*0.5))
+    .map(cs => ({
+      cs,
+      gap: CAT_BENCHMARK[cs.idx] - cs.avg,
+      pct: cs.avg / CAT_BENCHMARK[cs.idx]
+    }))
+    .filter(g => g.gap > 3 && !FIXED_CATS.has(g.cs.idx))
+    .sort((a,b) => b.gap - a.gap);
+
+  catGaps.slice(0,2).forEach(({cs, gap, pct}) => {
+    const advice = catCoachingTip(cs.idx, cs, n);
+    if (advice) insights.push({
+      type: 'tip', rule: `cat_gap_${cs.idx}`,
+      title: `${cs.name}: averaging ${cs.avg.toFixed(1)} (benchmark ${CAT_BENCHMARK[cs.idx]})`,
+      detail: advice
     });
   });
 
-  const zeroWasters = Object.values(catData)
-    .filter(c => c.count > 2 && c.zeroes / c.count > 0.3)
-    .sort((a,b) => b.zeroes/b.count - a.zeroes/a.count);
-
-  if (zeroWasters.length > 0) {
-    insights.push({
-      type: 'warning',
-      title: `Scoring 0 too often in: ${zeroWasters[0].name}`,
-      detail: `You zero out ${Math.round(zeroWasters[0].zeroes/zeroWasters[0].count*100)}% of the time. Consider using it as a sacrifice slot earlier.`,
-      rule: 'sacrifice_timing'
-    });
-  }
-
-  const bonusGames = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length;
-  const bonusRate = gameHistory.length > 0 ? bonusGames / gameHistory.length : 0;
-  if (gameHistory.length >= 3) {
-    if (bonusRate < 0.4) {
+  // --- Fixed-cat hit rates ---
+  const fixedChecks = [
+    { idx:9,  bench:0.72, name:'Sm. Straight', tip:'Any 4 sequential values scores 30. After roll 1, hold your longest run even if it\'s just 3 in a row — you have 2 more rolls to complete it.' },
+    { idx:10, bench:0.50, name:'Lg. Straight', tip:'Five sequential values scores 40. Hold a 4-run every time you see one. 1-2-3-4 and 3-4-5-6 both work — don\'t break a 4-run for anything except FullStack.' },
+    { idx:8,  bench:0.62, name:'Full House',   tip:'Hold your pair and 3oak whenever you have them. If you have two pairs, keep the higher one and reroll the other two — you need exactly a 3+2 split.' },
+  ];
+  fixedChecks.forEach(({idx,bench,name,tip}) => {
+    const cs = catStats[idx];
+    if (cs.vals.length < 2) return;
+    if (cs.hitRate < bench - 0.15) {
       insights.push({
-        type: 'tip',
-        title: 'Upper bonus slipping away',
-        detail: `You only get the +35 bonus ${Math.round(bonusRate*100)}% of games. Prioritize 4s, 5s, 6s early — they carry the most weight.`,
-        rule: 'upper_priority'
+        type: 'tip', rule: `fixed_${idx}`,
+        title: `${name}: only hitting ${Math.round(cs.hitRate*100)}% (expect ~${Math.round(bench*100)}%)`,
+        detail: tip
       });
-    } else if (bonusRate >= 0.7) {
+    } else if (cs.hitRate >= bench + 0.1) {
       insights.push({
-        type: 'strength',
-        title: 'Upper section mastery',
-        detail: `You're getting the +35 bonus ${Math.round(bonusRate*100)}% of games. That's excellent — keep protecting those upper slots.`,
-        rule: 'upper_strong'
+        type: 'strength', rule: `fixed_strength_${idx}`,
+        title: `${name}: hitting ${Math.round(cs.hitRate*100)}% — strong`,
+        detail: `Above the ~${Math.round(bench*100)}% benchmark. You're reading these dice well.`
+      });
+    }
+  });
+
+  // --- Sacrifice pattern analysis ---
+  if (n >= 3) {
+    const badSacrifices = catStats
+      .filter(cs => !FIXED_CATS.has(cs.idx) && cs.vals.length >= 2)
+      .filter(cs => cs.zeros/Math.max(cs.vals.length,1) > 0.4 && SACRIFICE_PAIN[cs.idx] >= 7)
+      .sort((a,b) => SACRIFICE_PAIN[b.idx] - SACRIFICE_PAIN[a.idx]);
+    if (badSacrifices.length > 0) {
+      const worst = badSacrifices[0];
+      const zeroPct = Math.round(worst.zeros/worst.vals.length*100);
+      insights.push({
+        type: 'warning', rule: 'sacrifice',
+        title: `Burning ${worst.name} with 0s — ${zeroPct}% of the time`,
+        detail: `${worst.name} is high-value (slot worth ~${SACRIFICE_PAIN[worst.idx]} opportunity pts). When you're stuck, sacrifice Aces or Twos first — they cost the least. Save ${worst.name} until you have a real shot at it.`
       });
     }
   }
 
-  const fsScores = gameHistory.map(g => g.scores.p1[11]).filter(v => v !== null);
-  const fsHits = fsScores.filter(v => v > 0).length;
-  if (fsScores.length >= 3) {
-    const hitRate = fsHits / fsScores.length;
-    if (hitRate < 0.3) {
-      insights.push({
-        type: 'tip',
-        title: 'FullStack! rarely hitting',
-        detail: `Only ${Math.round(hitRate*100)}% FullStack hit rate. If you have 3+ of a kind after roll 1, hold all of them and go for it — the 50pts + bonus potential is worth the risk.`,
-        rule: 'fs_aggression'
-      });
-    }
-  }
-
-  if (gameHistory.length >= 5) {
+  // --- Trend analysis ---
+  if (n >= 5) {
     const recent = gameHistory.slice(0,3).map(g=>g.totals.p1);
-    const older = gameHistory.slice(-3).map(g=>g.totals.p1);
-    const recentAvg = recent.reduce((a,b)=>a+b,0)/recent.length;
-    const olderAvg = older.reduce((a,b)=>a+b,0)/older.length;
-    if (recentAvg > olderAvg + 15) {
-      insights.push({ type: 'strength', title: 'You\'re improving!', detail: `Recent average: ${Math.round(recentAvg)} vs earlier: ${Math.round(olderAvg)}. +${Math.round(recentAvg-olderAvg)} pts improvement.`, rule: 'trending_up' });
-    } else if (recentAvg < olderAvg - 15) {
-      insights.push({ type: 'warning', title: 'Recent scores dipping', detail: `Recent avg: ${Math.round(recentAvg)} vs earlier: ${Math.round(olderAvg)}. You may be rushing category decisions — slow down and preview scores before committing.`, rule: 'trending_down' });
+    const older  = gameHistory.slice(-3).map(g=>g.totals.p1);
+    const rAvg   = recent.reduce((a,b)=>a+b,0)/recent.length;
+    const oAvg   = older.reduce((a,b)=>a+b,0)/older.length;
+    const delta  = Math.round(rAvg - oAvg);
+    if (delta >= 15) {
+      insights.push({ type:'strength', rule:'trending_up',
+        title:`Up ${delta} pts — you're getting sharper`,
+        detail:`Recent avg ${Math.round(rAvg)} vs earlier ${Math.round(oAvg)}. The improvement is real — keep the pressure on upper cats early and don't waste high-value slots.`
+      });
+    } else if (delta <= -15) {
+      insights.push({ type:'warning', rule:'trending_down',
+        title:`Down ${Math.abs(delta)} pts recently`,
+        detail:`Recent avg ${Math.round(rAvg)} vs earlier ${Math.round(oAvg)}. This usually means rushing the scoring decision — always preview a category before confirming. Two taps = less regret.`
+      });
     }
   }
 
-  const smSt = gameHistory.map(g=>g.scores.p1[9]).filter(v=>v!==null);
-  const lgSt = gameHistory.map(g=>g.scores.p1[10]).filter(v=>v!==null);
-  if (smSt.length >= 3 && lgSt.length >= 3) {
-    const smHit = smSt.filter(v=>v>0).length/smSt.length;
-    const lgHit = lgSt.filter(v=>v>0).length/lgSt.length;
-    if (lgHit > 0.5) {
-      insights.push({ type: 'strength', title: 'Strong straight game', detail: `You hit large straights ${Math.round(lgHit*100)}% of the time. Keep building sequences from your first roll.`, rule: 'straight_strength' });
-    } else if (smHit < 0.5) {
-      insights.push({ type: 'tip', title: 'Missing easy straights', detail: `Small straights only hit ${Math.round(smHit*100)}% of the time. Any 4 sequential values qualifies — look for 1-2-3-4 or 3-4-5-6 after your first roll.`, rule: 'straight_tip' });
+  // --- Score ceiling estimate ---
+  if (n >= 4) {
+    const theoretical = estimateCeiling(catStats, bonusRate);
+    const gap = theoretical - avgScore;
+    if (gap > 20) {
+      insights.push({
+        type: 'tip', rule: 'ceiling',
+        title: `Your scoring ceiling: ~${theoretical} pts (gap: +${Math.round(gap)})`,
+        detail: `Based on your best category performances across all games, a peak game for you would score around ${theoretical}. Your current average is ${Math.round(avgScore)}. Close that gap by: (1) fixing your worst 2 categories above, and (2) getting the upper bonus more consistently.`
+      });
     }
   }
 
   return insights;
+}
+
+function catCoachingTip(idx, cs, n) {
+  const avg = cs.avg.toFixed(1);
+  const bench = CAT_BENCHMARK[idx];
+  if (idx <= 5) {
+    const face = idx + 1;
+    const ideal = face * 3;
+    return `Averaging ${avg} on ${cs.name} (ideal: ~${ideal}). You want at least 3×${face}=${ideal} to stay on pace for the upper bonus. After roll 1, hold every ${face} you have — even a single one — and spend rolls 2–3 hunting more. Don't break for a different category until you've secured your count.`;
+  }
+  if (idx === 6) return `3 of a Kind scores the full dice sum — worth 20–25 on average with good dice. Averaging ${avg} suggests you're often settling for it with weak counts. Hold 3+ of the highest face you rolled and reroll the rest.`;
+  if (idx === 7) return `4 of a Kind averaging ${avg} (benchmark ${bench}). This is one of the hardest lower cats — if you have 3oak after roll 1, hold all three and go for 4oak. Don't pivot away unless you already scored 3oak.`;
+  if (idx === 12) return `Chance is your safety valve — it scores the total of all 5 dice. Averaging ${avg} means you're using it when your dice are cold. That's fine, but try to maximize it: hold 5s and 6s and reroll the rest before settling here.`;
+  return null;
+}
+
+function estimateCeiling(catStats, bonusRate) {
+  // For each cat, use player's personal best performance if enough data, else benchmark
+  let ceiling = 0;
+  catStats.forEach((cs, i) => {
+    if (cs.vals.length >= 2) {
+      // Use 80th-percentile score for this player (their good-game performance)
+      const sorted = [...cs.vals].sort((a,b)=>a-b);
+      const p80 = sorted[Math.floor(sorted.length * 0.8)] ?? sorted[sorted.length-1];
+      ceiling += p80;
+    } else {
+      ceiling += CAT_BENCHMARK[i];
+    }
+  });
+  // Add bonus if they have a decent hit rate
+  if (bonusRate >= 0.3) ceiling += 35;
+  return Math.round(ceiling);
 }
 
 function adaptiveWeights() {
@@ -1750,39 +1798,67 @@ function runComputerTurnAdaptive() {
 
 function renderInsights() {
   const el = document.getElementById('insights-content');
-  const insights = buildInsights();
+  if (!gameHistory.length) {
+    el.innerHTML = `<div class="empty-state">Play your first game to unlock coaching.<br><br>After a few games the coach reads your patterns and tells you exactly what to fix.</div>`;
+    return;
+  }
 
-  const typeIcon = { warning: '⚠️', tip: '💡', strength: '✅' };
-  const typeColor = { warning: 'rgba(255,71,87,0.15)', tip: 'rgba(232,255,71,0.08)', strength: 'rgba(100,220,100,0.1)' };
-  const typeBorder = { warning: 'rgba(255,71,87,0.3)', tip: 'rgba(232,255,71,0.25)', strength: 'rgba(100,220,100,0.25)' };
+  const insights = buildInsights();
+  const n = gameHistory.length;
+  const allScores = gameHistory.map(g => g.totals.p1);
+  const avgScore  = Math.round(allScores.reduce((a,b)=>a+b,0)/n);
+  const highScore = Math.max(...allScores);
+  const bonusRate = Math.round(gameHistory.filter(g=>g.gotBonus&&g.gotBonus.p1).length/n*100);
+  const wins      = gameHistory.filter(g=>g.winner==='p1').length;
+
+  const typeIcon  = { warning:'⚠️', tip:'💡', strength:'✅' };
+  const typeColor = { warning:'rgba(255,71,87,0.12)', tip:'rgba(232,255,71,0.07)', strength:'rgba(80,200,100,0.1)' };
+  const typeBorder= { warning:'rgba(255,71,87,0.35)', tip:'rgba(232,255,71,0.3)', strength:'rgba(80,200,100,0.3)' };
+  const typeLabel = { warning:'ISSUE', tip:'TIP', strength:'STRENGTH' };
 
   let html = '';
 
-  if (gameHistory.length < 2) {
-    html = `<div class="empty-state">Play at least 2 games to unlock strategy insights.<br><br>The AI watches your patterns and tells you exactly what to fix.</div>`;
-  } else {
-    html += `<div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">${insights.length} insight${insights.length!==1?'s':''} from ${gameHistory.length} games</div>`;
-    insights.forEach(ins => {
-      html += `<div style="background:${typeColor[ins.type]};border:1px solid ${typeBorder[ins.type]};border-radius:8px;padding:10px 12px;margin-bottom:8px;">
-        <div style="font-size:0.8em;font-weight:700;margin-bottom:4px;">${typeIcon[ins.type]} ${ins.title}</div>
-        <div style="font-size:0.73em;color:#bbb;line-height:1.55;">${ins.detail}</div>
-      </div>`;
-    });
-    if (insights.length === 0) {
-      html += `<div class="empty-state">Looking good — no major issues found yet. Play more games for deeper patterns.</div>`;
-    }
-    html += `<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
-      <div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Export Strategy Log</div>
-      <button onclick="exportInsightsFile()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin:0;">📥 Download Insights as .txt</button>
-      <button onclick="copyInsightsText()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin-top:6px;">📋 Copy to Clipboard</button>
+  // Score summary bar
+  html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+    <div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Your Numbers · ${n} game${n!==1?'s':''}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;text-align:center;">
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${avgScore}</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Avg</div></div>
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${highScore}</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Best</div></div>
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${bonusRate}%</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Bonus</div></div>
+      <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--p1);letter-spacing:0.05em;">${wins}/${n}</div><div style="font-size:0.6em;color:var(--muted);text-transform:uppercase;">Wins</div></div>
     </div>
-    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:12px;">
-      <div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Share with AI for analysis</div>
-      <div style="font-size:0.65em;color:var(--muted);margin-bottom:8px;line-height:1.5;">Exports your full raw game history — all 13 category scores per game. Paste this into Claude to get deeper AI improvements.</div>
-      <button onclick="exportFullData()" style="background:rgba(232,255,71,0.12);border:1px solid rgba(232,255,71,0.35);color:var(--p1);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;margin:0;">📤 Export Full Game Data</button>
-      <button onclick="copyFullData()" id="copy-full-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin-top:6px;">📋 Copy Full Data to Clipboard</button>
-    </div>`;
+  </div>`;
+
+  // Section label
+  const issueCount = insights.filter(i=>i.type==='warning').length;
+  const tipCount   = insights.filter(i=>i.type==='tip').length;
+  const strengthCount = insights.filter(i=>i.type==='strength').length;
+  html += `<div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">
+    ${issueCount} issue${issueCount!==1?'s':''} · ${tipCount} tip${tipCount!==1?'s':''} · ${strengthCount} strength${strengthCount!==1?'s':''}
+  </div>`;
+
+  if (insights.length === 0) {
+    html += `<div class="empty-state" style="padding:16px 0;">Play a few more games to surface deeper patterns.</div>`;
   }
+
+  insights.forEach(ins => {
+    html += `<div style="background:${typeColor[ins.type]};border:1px solid ${typeBorder[ins.type]};border-radius:9px;padding:11px 13px;margin-bottom:9px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+        <span style="font-size:1em;">${typeIcon[ins.type]}</span>
+        <span style="font-size:0.62em;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${ins.type==='warning'?'var(--danger)':ins.type==='strength'?'#5dc87a':'var(--p1)'};">${typeLabel[ins.type]}</span>
+      </div>
+      <div style="font-size:0.82em;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3;">${ins.title}</div>
+      <div style="font-size:0.73em;color:#bbb;line-height:1.6;">${ins.detail}</div>
+    </div>`;
+  });
+
+  // Export strip
+  html += `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:13px;display:flex;flex-direction:column;gap:7px;">
+    <div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;">Export</div>
+    <button onclick="exportInsightsFile()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;">📥 Download Coaching Report</button>
+    <button onclick="copyInsightsText()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;">📋 Copy to Clipboard</button>
+    <button onclick="exportFullData()" style="background:rgba(232,255,71,0.1);border:1px solid rgba(232,255,71,0.3);color:var(--p1);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;">📤 Export Full Game Data for AI</button>
+  </div>`;
 
   el.innerHTML = html;
 }
