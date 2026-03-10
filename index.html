@@ -1,385 +1,1829 @@
-"""
-OPEN Pre-Run Pattern Scanner — FULL DYNAMIC VERSION (Robust Pre-Filter)
-Fingerprints OPEN's pre-run and scans current Russell 2000 small-caps dynamically via IWM ETF holdings CSV.
-"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FullStacks</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMCIgZmlsbD0iIzBkMGQwZiIvPgogIDwhLS0gUm93IDEgLS0+CiAgPHJlY3QgeD0iMiIgIHk9IjMiICB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iMTEiIGN5PSIxMiIgcj0iMi44IiBmaWxsPSIjMGQwZDBmIi8+CiAgPHJlY3QgeD0iMjMiIHk9IjMiICB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIxMiIgcj0iMi44IiBmaWxsPSIjMGQwZDBmIi8+CiAgPHJlY3QgeD0iNDQiIHk9IjMiICB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIzIiBmaWxsPSIjZThmZjQ3Ii8+CiAgPGNpcmNsZSBjeD0iNTMiIGN5PSIxMiIgcj0iMi44IiBmaWxsPSIjMGQwZDBmIi8+CiAgPCEtLSBSb3cgMiAtLT4KICA8cmVjdCB4PSIyIiAgeT0iMjUiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSIxMSIgY3k9IjM0IiByPSIyLjgiIGZpbGw9IiMwZDBkMGYiLz4KICA8cmVjdCB4PSIyMyIgeT0iMjUiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSIzMiIgY3k9IjM0IiByPSIyLjgiIGZpbGw9IiMwZDBkMGYiLz4KICA8cmVjdCB4PSI0NCIgeT0iMjUiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjMiIGZpbGw9IiNlOGZmNDciLz4KICA8Y2lyY2xlIGN4PSI1MyIgY3k9IjM0IiByPSIyLjgiIGZpbGw9IiMwZDBkMGYiLz4KICA8IS0tIEZTIGxhYmVsIC0tPgogIDx0ZXh0IHg9IjMyIiB5PSI1OCIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNlOGZmNDciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIyIj5GUzwvdGV4dD4KPC9zdmc+">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0f;
+  --surface: #161618;
+  --surface2: #1e1e22;
+  --border: #2a2a30;
+  --p1: #e8ff47;
+  --p2: #47c3ff;
+  --danger: #ff4757;
+  --text: #e8e8ee;
+  --muted: #666672;
+  --held: #ff9800;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; padding: 20px 16px 40px;
+  background-image: radial-gradient(ellipse at 20% 0%, #1a1a2e 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 100%, #0f1a0f 0%, transparent 50%);
+}
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  letter-spacing: 0.06em; color: var(--p1);
+  text-align: center; margin-bottom: 4px;
+  text-shadow: 0 0 40px rgba(232,255,71,0.3);
+}
+.subtitle { text-align:center; font-size:0.7em; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:24px; }
 
-import yfinance as yf
-import pandas as pd
-import numpy as np
-import requests
-from io import StringIO
-from datetime import datetime, timedelta
-import warnings
-import time
-warnings.filterwarnings('ignore')
+/* ===== SCREENS ===== */
+.screen { display:none; }
+.screen.active { display:block; }
 
-# ─────────────────────────────────────────────
-# CONFIG
-# ─────────────────────────────────────────────
-OPEN_PRE_RUN_START  = "2024-06-01"
-OPEN_PRE_RUN_END    = "2024-10-01"
-LOOKBACK_DAYS       = 400
-TODAY               = datetime.today().date()
-ONE_YEAR_AGO        = TODAY - timedelta(days=LOOKBACK_DAYS)
+/* ===== LOBBY ===== */
+#lobby { max-width:380px; margin:0 auto; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 20px; margin-bottom:14px; }
+.card h2 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.08em; margin-bottom:14px; }
+.card h2.c1 { color:var(--p1); } .card h2.c2 { color:var(--p2); }
+.divider { text-align:center; color:var(--muted); font-size:0.72em; letter-spacing:0.12em; margin:10px 0; }
+input[type=text] {
+  font-family:'IBM Plex Mono',monospace; background:var(--surface2);
+  border:1px solid var(--border); border-radius:6px; color:var(--text);
+  font-size:0.9em; padding:9px 12px; width:100%; margin-bottom:10px; outline:none;
+  transition:border-color 0.2s;
+}
+input[type=text]:focus { border-color:var(--p1); }
+input[type=text]::placeholder { color:var(--muted); }
 
-PRICE_MAX           = 25
-PRICE_MIN           = 1
-VOL_MIN_PCT         = 60
-CORR_MIN            = 0.25
-MAX_TICKERS_TO_SCAN = 300   # increase to 500+ if you want broader scan (slower)
+/* ===== BUTTONS ===== */
+button {
+  font-family:'IBM Plex Mono',monospace; padding:10px 20px;
+  font-size:0.88em; font-weight:600; letter-spacing:0.08em;
+  border:none; border-radius:6px; cursor:pointer; text-transform:uppercase;
+  transition:opacity 0.2s, transform 0.1s; display:block; width:100%; margin:5px 0;
+}
+button:active { transform:scale(0.97); }
+button:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+button.btn-p1   { background:var(--p1); color:#000; }
+button.btn-p2   { background:var(--p2); color:#000; }
+button.btn-comp { background:#555; color:#fff; }
+button.btn-soft { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+button.btn-danger { background:var(--danger); color:#fff; }
+button.inline { width:auto; display:inline-block; }
 
-IWM_HOLDINGS_URL = "https://www.ishares.com/us/products/239710/ishares-russell-2000-etf/1467271812596.ajax?fileType=csv&fileName=IWM_holdings&dataType=fund"
+/* ===== HANDOFF SCREEN ===== */
+#handoff { max-width:360px; margin:0 auto; text-align:center; padding:40px 20px; }
+.handoff-name {
+  font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:0.06em;
+  margin:16px 0 8px;
+}
+.handoff-name.p1 { color:var(--p1); text-shadow:0 0 30px rgba(232,255,71,0.4); }
+.handoff-name.p2 { color:var(--p2); text-shadow:0 0 30px rgba(71,195,255,0.4); }
+.handoff-sub { font-size:0.78em; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:28px; }
+.handoff-btn {
+  font-size:1em; padding:14px 28px; border-radius:8px; margin:0 auto;
+}
 
-# ─────────────────────────────────────────────
-# DYNAMIC UNIVERSE: Fetch & Parse Russell 2000 from IWM CSV
-# ─────────────────────────────────────────────
+/* ===== GAME ===== */
+#game { max-width:600px; margin:0 auto; }
+.turn-banner {
+  text-align:center; font-size:0.85em; font-weight:600; letter-spacing:0.1em;
+  text-transform:uppercase; padding:8px 16px; border-radius:6px; margin-bottom:14px;
+}
+.turn-banner.p1-turn { background:rgba(232,255,71,0.1); color:var(--p1); border:1px solid rgba(232,255,71,0.25); }
+.turn-banner.p2-turn { background:rgba(71,195,255,0.08); color:var(--p2); border:1px solid rgba(71,195,255,0.2); }
+.turn-banner.comp-turn { background:rgba(85,85,85,0.15); color:#aaa; border:1px solid #444; }
+.turn-banner.game-over { background:rgba(255,71,87,0.1); color:var(--danger); border:1px solid rgba(255,71,87,0.25); }
 
-def get_russell_2000_tickers():
-    print("Fetching current Russell 2000 holdings from iShares IWM ETF CSV...")
-    try:
-        response = requests.get(IWM_HOLDINGS_URL, timeout=20)
-        response.raise_for_status()
-        csv_text = response.text
-        
-        lines = csv_text.splitlines()
-        skip_rows = 0
-        header_found = False
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped.startswith('"Ticker"') or 'Ticker' in stripped or 'Symbol' in stripped:
-                skip_rows = i
-                header_found = True
-                break
-        
-        if not header_found:
-            raise ValueError("Could not locate header row containing 'Ticker' or 'Symbol'")
-        
-        csv_data = StringIO('\n'.join(lines[skip_rows:]))
-        df = pd.read_csv(csv_data, on_bad_lines='skip')
-        
-        df.columns = df.columns.str.strip().str.replace('"', '').str.replace("'", "")
-        
-        ticker_col = None
-        possible_cols = ['Ticker', 'Symbol', 'Issuer Ticker', 'Holding Ticker']
-        for col in possible_cols:
-            if col in df.columns:
-                ticker_col = col
-                break
-        
-        if ticker_col is None:
-            raise ValueError(f"No ticker column found. Columns: {list(df.columns)}")
-        
-        tickers = df[ticker_col].dropna().astype(str).str.strip().tolist()
-        tickers = [t for t in tickers if t.isalnum() and 1 <= len(t) <= 5 and not t.isdigit()]
-        
-        print(f"Successfully parsed {len(tickers)} tickers from IWM holdings CSV.")
-        return list(set(tickers))
-    
-    except Exception as e:
-        print(f"Failed to fetch/parse IWM CSV: {type(e).__name__}: {str(e)}")
-        print("URL:", IWM_HOLDINGS_URL)
-        return []
+.dice-area { text-align:center; margin-bottom:12px; padding:0 4px; }
+.dice-container { display:flex; justify-content:center; gap:clamp(5px,2vw,10px); padding:clamp(8px,2.5vw,14px) clamp(10px,3vw,18px); background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; box-sizing:border-box; }
+.die { width:clamp(40px,13vw,56px); height:auto; aspect-ratio:1/1; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:border-color 0.2s,box-shadow 0.2s; flex:0 0 clamp(40px,13vw,56px); min-width:0; max-width:56px; }
+.die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
+.die.locked { opacity:0.45; cursor:default; }
+.pip { width:clamp(8px,2.2vw,11px); height:clamp(8px,2.2vw,11px); background:#222; border-radius:50%; position:absolute; box-shadow:inset 0 1px 2px rgba(0,0,0,0.5); }
+.face-1 .pip:nth-child(1){top:50%;left:50%;transform:translate(-50%,-50%);}
+.face-2 .pip:nth-child(1){top:18%;left:18%;} .face-2 .pip:nth-child(2){bottom:18%;right:18%;}
+.face-3 .pip:nth-child(1){top:18%;left:18%;} .face-3 .pip:nth-child(2){top:50%;left:50%;transform:translate(-50%,-50%);} .face-3 .pip:nth-child(3){bottom:18%;right:18%;}
+.face-4 .pip:nth-child(1){top:18%;left:18%;} .face-4 .pip:nth-child(2){top:18%;right:18%;} .face-4 .pip:nth-child(3){bottom:18%;left:18%;} .face-4 .pip:nth-child(4){bottom:18%;right:18%;}
+.face-5 .pip:nth-child(1){top:18%;left:18%;} .face-5 .pip:nth-child(2){top:18%;right:18%;} .face-5 .pip:nth-child(3){top:50%;left:50%;transform:translate(-50%,-50%);} .face-5 .pip:nth-child(4){bottom:18%;left:18%;} .face-5 .pip:nth-child(5){bottom:18%;right:18%;}
+.face-6 .pip:nth-child(1){top:12%;left:18%;} .face-6 .pip:nth-child(2){top:36%;left:18%;} .face-6 .pip:nth-child(3){top:60%;left:18%;} .face-6 .pip:nth-child(4){top:12%;right:18%;} .face-6 .pip:nth-child(5){top:36%;right:18%;} .face-6 .pip:nth-child(6){top:60%;right:18%;}
 
-# ─────────────────────────────────────────────
-# Pre-filter with robust error handling
-# ─────────────────────────────────────────────
+.controls { text-align:center; margin-bottom:10px; }
+.controls button { width:auto; min-width:170px; display:inline-block; margin:4px; }
+button.roll { background:var(--p1); color:#000; }
 
-def pre_filter_tickers(tickers):
-    print(f"Pre-filtering {len(tickers)} tickers (price ${PRICE_MIN}-${PRICE_MAX}, small/mid-cap)...")
-    filtered = []
-    skipped = 0
-    for ticker in tickers:
-        try:
-            info = yf.Ticker(ticker).info or {}
-            
-            # Try multiple possible price keys
-            price_keys = ['regularMarketPrice', 'previousClose', 'currentPrice', 
-                          'regularMarketPreviousClose', 'fiftyTwoWeekHigh']
-            price = None
-            for key in price_keys:
-                if info.get(key) is not None:
-                    price = float(info[key])
-                    break
-            
-            mcap = info.get('marketCap', 0)
-            
-            if price is not None and PRICE_MIN <= price <= PRICE_MAX and 300000000 <= mcap <= 10000000000:
-                filtered.append(ticker)
-            
-            time.sleep(0.4)  # prevent rate limiting
-            
-            if len(filtered) >= MAX_TICKERS_TO_SCAN * 1.2:
-                break
-        
-        except Exception:
-            skipped += 1
-            # Uncomment next line for debug:
-            # print(f"Skipped {ticker} (data error)")
-            continue
-    
-    print(f"Pre-filtered to {len(filtered)} candidates ({skipped} skipped due to data errors).")
-    return filtered[:MAX_TICKERS_TO_SCAN]
+#message { text-align:center; font-size:0.82em; min-height:1.5em; color:var(--p1); letter-spacing:0.05em; margin-bottom:14px; transition:color 0.3s; }
 
-# ─────────────────────────────────────────────
-# INDICATOR FUNCTIONS
-# ─────────────────────────────────────────────
+/* SCORECARD */
+.scorecard-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:0.82em; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+th,td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:center; }
+thead th { background:var(--surface2); font-size:0.72em; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+thead th:first-child { text-align:left; }
+tbody tr th { text-align:left; font-weight:400; color:#bbb; font-size:0.88em; }
+tr.section-total th, tr.grand-total th { font-weight:600; color:var(--text); }
+tr.section-total td { color:var(--muted); font-size:0.85em; }
+tr.grand-total { background:var(--surface2); }
+tr.grand-total td { font-weight:700; font-size:1.05em; }
+tr.fs-bonus th { color:var(--p1); font-weight:600; }
+tr.fs-bonus td { color:var(--p1); }
+.score-cell { cursor:pointer; transition:background 0.15s; }
+.score-cell:hover:not(.filled):not(.locked-cell) { background:#2a2a35; }
+.score-cell.locked-cell { cursor:default; color:var(--muted) !important; }
+.score-cell.filled { cursor:default; }
+.score-cell.filled-p1 { color:rgba(232,255,71,0.8); }
+.score-cell.filled-p2 { color:rgba(71,195,255,0.8); }
+.score-cell.preview  { background:rgba(232,255,71,0.15)!important; color:var(--p1); font-weight:700; }
+.col-p1 { border-left:2px solid rgba(232,255,71,0.2); }
+.col-p2 { border-left:2px solid rgba(71,195,255,0.2); }
+#grandP1 { color:var(--p1)!important; }
+#grandP2 { color:var(--p2)!important; }
+.bottom-row { text-align:center; margin-top:16px; }
 
-def compute_rsi(prices, period=14):
-    delta = prices.diff()
-    gain  = delta.clip(lower=0)
-    loss  = -delta.clip(upper=0)
-    avg_gain = gain.ewm(com=period - 1, min_periods=period).mean()
-    avg_loss = loss.ewm(com=period - 1, min_periods=period).mean()
-    rs = avg_gain / avg_loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
+/* ===== TRACKER PANEL ===== */
+#tracker-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 100;
+  width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(232,255,71,0.3);
+  background: rgba(232,255,71,0.15); color: var(--p1); font-size: 1rem;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+#tracker-toggle:hover { transform: scale(1.1); background: rgba(232,255,71,0.25); box-shadow: 0 4px 14px rgba(232,255,71,0.3); }
+#tracker-toggle .badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--danger); color: #fff; font-size: 0.55rem;
+  font-weight: 700; border-radius: 10px; padding: 1px 4px; min-width: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+}
 
-def compute_atr(hist, period=14):
-    high, low, close = hist['High'], hist['Low'], hist['Close']
-    prev_close = close.shift(1)
-    tr = pd.concat([high - low, (high - prev_close).abs(), (low - prev_close).abs()], axis=1).max(axis=1)
-    return tr.rolling(period).mean()
+#tracker-panel {
+  position: fixed; top: 58px; right: 16px; z-index: 99;
+  width: min(420px, calc(100vw - 40px));
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+  overflow: hidden; display: none; flex-direction: column;
+  max-height: calc(100vh - 74px);
+}
+#tracker-panel.open { display: flex; }
 
-def volume_surge_score(hist, lookback=20):
-    vol = hist['Volume']
-    if len(vol) < lookback + 5:
-        return 0.0
-    avg_recent = vol.iloc[-5:].mean()
-    avg_base   = vol.iloc[-lookback:-5].mean()
-    if avg_base <= 0 or np.isnan(avg_base):
-        return 0.0
-    return avg_recent / avg_base
+.tp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.tp-header h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem;
+  letter-spacing: 0.1em; color: var(--p1); margin: 0;
+}
+.tp-tabs {
+  display: flex; gap: 4px; padding: 10px 12px;
+  border-bottom: 1px solid var(--border); background: var(--surface2);
+}
+.tp-tab {
+  flex: 1; padding: 6px 8px; font-size: 0.72em; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border-radius: 5px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+  transition: all 0.15s; margin: 0; width: auto;
+}
+.tp-tab.active { background: var(--p1); color: #000; border-color: var(--p1); }
+.tp-tab:hover:not(.active) { border-color: var(--p1); color: var(--p1); }
 
-def rsi_buildup_score(rsi_series):
-    if rsi_series.dropna().empty or len(rsi_series.dropna()) < 3:
-        return 0.0
-    recent_rsi = rsi_series.dropna().iloc[-5:]
-    current_rsi = recent_rsi.iloc[-1]
-    rising = recent_rsi.iloc[-1] > recent_rsi.iloc[-3]
-    in_zone = 45 <= current_rsi <= 72
-    score = 0.0
-    if in_zone:   score += 0.5
-    if rising:    score += 0.3
-    if current_rsi > 55: score += 0.2
-    return min(score, 1.0)
+.tp-body { overflow-y: auto; flex: 1; padding: 12px; }
 
-def compression_score(hist, atr_series, lookback=20):
-    if atr_series.dropna().empty or len(atr_series.dropna()) < lookback:
-        return 0.0
-    recent_atr   = atr_series.dropna().iloc[-5:].mean()
-    baseline_atr = atr_series.dropna().iloc[-lookback:-5].mean()
-    if baseline_atr <= 0 or np.isnan(baseline_atr):
-        return 0.0
-    compression_ratio = recent_atr / baseline_atr
-    score = max(0, 1 - compression_ratio)
-    return min(score, 1.0)
+/* History tab */
+.game-record {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.game-record:hover { border-color: var(--p1); }
+.game-record.is-high { border-color: rgba(232,255,71,0.4); }
+.gr-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.gr-date { font-size: 0.68em; color: var(--muted); }
+.gr-mode { font-size: 0.65em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.gr-scores { display: flex; gap: 12px; }
+.gr-player { font-size: 0.8em; }
+.gr-player span { font-weight: 700; }
+.gr-player.winner span { color: var(--p1); }
+.gr-player.p2winner span { color: var(--p2); }
+.gr-hs-badge { font-size: 0.62em; background: rgba(232,255,71,0.15); color: var(--p1); border: 1px solid rgba(232,255,71,0.3); border-radius: 4px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.06em; }
+.empty-state { text-align: center; color: var(--muted); font-size: 0.8em; padding: 24px 12px; line-height: 1.7; }
 
-# ─────────────────────────────────────────────
-# FINGERPRINT OPEN
-# ─────────────────────────────────────────────
+/* Stats tab */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.stat-box .label { font-size: 0.65em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.stat-box .value { font-size: 1.2em; font-weight: 700; color: var(--p1); font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+.stat-box .sub { font-size: 0.68em; color: var(--muted); margin-top: 2px; }
+.cat-breakdown { margin-top: 8px; }
+.cat-breakdown h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.75em; }
+.cat-row .cat-name { flex: 1; color: #bbb; }
+.cat-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.cat-bar { height: 100%; background: var(--p1); border-radius: 3px; transition: width 0.4s; }
+.cat-avg { width: 52px; text-align: right; color: var(--text); font-weight: 600; white-space: nowrap; }
 
-def get_open_fingerprint():
-    print("=" * 60)
-    print("FINGERPRINTING OPEN'S PRE-RUN PATTERN")
-    print("=" * 60)
+/* Analysis tab */
+.analysis-btn {
+  background: var(--p1); color: #000; border: none; border-radius: 8px;
+  padding: 10px 16px; font-size: 0.82em; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  width: 100%; margin-bottom: 12px; transition: opacity 0.2s;
+}
+.analysis-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.analysis-output {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: 0.78em;
+  line-height: 1.65; color: var(--text); white-space: pre-wrap;
+  min-height: 80px;
+}
+.analysis-output.loading { color: var(--muted); font-style: italic; }
+.diff-btn { font-family: 'IBM Plex Mono', monospace; font-weight: 700; cursor: pointer; transition: all 0.15s; flex: 1; padding: 7px 4px; font-size: 0.72em; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; letter-spacing: 0.06em; }
+.diff-btn:hover { opacity: 0.85; }
+.diff-btn.active { background: rgba(232,255,71,0.15) !important; color: var(--p1) !important; border-color: rgba(232,255,71,0.4) !important; }
+.diff-btn.active[data-diff="adaptive"] { background: rgba(71,195,255,0.15) !important; color: var(--p2) !important; border-color: rgba(71,195,255,0.4) !important; }
 
-    hist = yf.download('OPEN', start=ONE_YEAR_AGO, end=TODAY, progress=False)
-    if hist.empty:
-        raise ValueError("No data for OPEN")
+.analysis-output .section-head {
+  color: var(--p1); font-weight: 700; font-size: 0.9em;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; margin-bottom: 4px;
+  display: block;
+}
+.analysis-hint { font-size: 0.7em; color: var(--muted); text-align: center; margin-bottom: 8px; }
+.score-dist { margin-bottom: 12px; }
+.score-dist h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.dist-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.72em; }
+.dist-label { width: 60px; color: var(--muted); }
+.dist-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.dist-bar { height: 100%; border-radius: 4px; }
+.dist-count { width: 20px; text-align: right; color: var(--muted); }
+</style>
+</head>
+<body>
 
-    if isinstance(hist.columns, pd.MultiIndex):
-        if 'OPEN' in hist.columns.levels[1]:
-            hist = hist.xs('OPEN', axis=1, level=1, drop_level=True)
-        else:
-            hist.columns = hist.columns.get_level_values(0)
+<h1>FullStacks</h1>
+<p class="subtitle" id="subtitle">Dice Game</p>
 
-    prices  = hist['Close']
-    returns = prices.pct_change().dropna()
-    rsi     = compute_rsi(prices)
-    atr     = compute_atr(hist)
+<!-- ===== LOBBY ===== -->
+<div id="lobby" class="screen active">
+  <div style="max-width:380px;margin:0 auto;">
+    <div class="card">
+      <h2 class="c1">Pass &amp; Play</h2>
+      <input type="text" id="name1" placeholder="Player 1 name" maxlength="16" value="Player 1" onfocus="this.select()">
+      <input type="text" id="name2" placeholder="Player 2 name" maxlength="16" value="Player 2" onfocus="this.select()">
+      <button class="btn-p1" onclick="startPassPlay()">Start Game</button>
+    </div>
+    <div class="divider">— or —</div>
+    <div class="card">
+      <h2 class="c2">vs Computer</h2>
+      <input type="text" id="nameComp" placeholder="Your name" maxlength="16" value="Player 1" onfocus="this.select()">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72em;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">AI Difficulty</label>
+        <div style="display:flex;gap:6px;">
+          <button class="diff-btn active" data-diff="easy" onclick="selectDiff(this,'easy')">ROOKIE</button>
+          <button class="diff-btn" data-diff="medium" onclick="selectDiff(this,'medium')">CLUB</button>
+          <button class="diff-btn" data-diff="hard" onclick="selectDiff(this,'hard')">PRO</button>
+          <button class="diff-btn" data-diff="adaptive" onclick="selectDiff(this,'adaptive')">SHARK</button>
+        </div>
+        <div id="diff-desc" style="font-size:0.68em;color:var(--muted);margin-top:6px;text-align:center;">Rookie: rolls randomly, easy to beat</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;">
+        <div>
+          <div style="font-size:0.78em;font-weight:600;letter-spacing:0.06em;">Watch Computer Play</div>
+          <div style="font-size:0.65em;color:var(--muted);margin-top:2px;">Animate each roll & hold decision</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;margin:0;flex-shrink:0;">
+          <input type="checkbox" id="watchCompToggle" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="watchCompSlider" style="position:absolute;cursor:pointer;inset:0;background:#333;border-radius:11px;transition:0.25s;" onclick="toggleWatchComp()"></span>
+          <span id="watchCompKnob" style="position:absolute;content:'';height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:0.25s;pointer-events:none;"></span>
+        </label>
+      </div>
+      <button class="btn-comp" onclick="startVsComp()">Play vs Computer</button>
+    </div>
+  </div>
+</div>
 
-    fwd_30 = prices.pct_change(30).shift(-30)
-    if fwd_30.dropna().empty:
-        best_date = prices.index[-1]
-    else:
-        best_date = fwd_30.idxmax()
+<!-- ===== HANDOFF SCREEN ===== -->
+<div id="handoff" class="screen">
+  <p style="font-size:0.72em;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;">Hand the phone to</p>
+  <div class="handoff-name" id="handoffName">Player 2</div>
+  <p class="handoff-sub" id="handoffSub">It's your turn!</p>
+  <button class="btn-p2 handoff-btn inline" id="handoffBtn" onclick="confirmHandoff()">I'm Ready — Start Turn</button>
+</div>
 
-    print(f"\nOPEN's strongest 30-day run started around: {best_date.date()}")
+<!-- ===== GAME ===== -->
+<div id="game" class="screen">
+  <div class="turn-banner p1-turn" id="turnBanner">Player 1's Turn</div>
 
-    pre_run_start = best_date - timedelta(days=45)
-    pre_run_end   = best_date - timedelta(days=5)
-    pre_hist = hist.loc[pre_run_start:pre_run_end]
+  <div class="dice-area">
+    <div class="dice-container" id="diceContainer"></div>
+  </div>
+  <div class="controls">
+    <button id="rollBtn" class="roll" onclick="doRoll()">Roll (3 left)</button>
+  </div>
+  <div id="message">Roll to start!</div>
 
-    if len(pre_hist) < 10:
-        print("Warning: limited pre-run data → using last 55 days")
-        pre_hist = hist.iloc[-60:-5]
+  <div class="scorecard-wrap">
+  <table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th class="col-p1" id="headP1">P1</th>
+      <th class="col-p2" id="headP2">P2</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr><th>Aces</th>        <td class="score-cell col-p1" data-cat="0" data-p="p1"></td><td class="score-cell col-p2" data-cat="0" data-p="p2"></td></tr>
+  <tr><th>Twos</th>        <td class="score-cell col-p1" data-cat="1" data-p="p1"></td><td class="score-cell col-p2" data-cat="1" data-p="p2"></td></tr>
+  <tr><th>Threes</th>      <td class="score-cell col-p1" data-cat="2" data-p="p1"></td><td class="score-cell col-p2" data-cat="2" data-p="p2"></td></tr>
+  <tr><th>Fours</th>       <td class="score-cell col-p1" data-cat="3" data-p="p1"></td><td class="score-cell col-p2" data-cat="3" data-p="p2"></td></tr>
+  <tr><th>Fives</th>       <td class="score-cell col-p1" data-cat="4" data-p="p1"></td><td class="score-cell col-p2" data-cat="4" data-p="p2"></td></tr>
+  <tr><th>Sixes</th>       <td class="score-cell col-p1" data-cat="5" data-p="p1"></td><td class="score-cell col-p2" data-cat="5" data-p="p2"></td></tr>
+  <tr class="section-total"><th>Upper Total</th><td class="col-p1" id="upperP1">0</td><td class="col-p2" id="upperP2">0</td></tr>
+  <tr><th>Bonus (≥63)</th> <td class="col-p1" id="bonusP1">—</td><td class="col-p2" id="bonusP2">—</td></tr>
+  <tr><th>3 of a Kind</th> <td class="score-cell col-p1" data-cat="6"  data-p="p1"></td><td class="score-cell col-p2" data-cat="6"  data-p="p2"></td></tr>
+  <tr><th>4 of a Kind</th> <td class="score-cell col-p1" data-cat="7"  data-p="p1"></td><td class="score-cell col-p2" data-cat="7"  data-p="p2"></td></tr>
+  <tr><th>Full House</th>  <td class="score-cell col-p1" data-cat="8"  data-p="p1"></td><td class="score-cell col-p2" data-cat="8"  data-p="p2"></td></tr>
+  <tr><th>Sm. Straight</th><td class="score-cell col-p1" data-cat="9"  data-p="p1"></td><td class="score-cell col-p2" data-cat="9"  data-p="p2"></td></tr>
+  <tr><th>Lg. Straight</th><td class="score-cell col-p1" data-cat="10" data-p="p1"></td><td class="score-cell col-p2" data-cat="10" data-p="p2"></td></tr>
+  <tr><th>FullStack!</th>  <td class="score-cell col-p1" data-cat="11" data-p="p1"></td><td class="score-cell col-p2" data-cat="11" data-p="p2"></td></tr>
+  <tr><th>Chance</th>      <td class="score-cell col-p1" data-cat="12" data-p="p1"></td><td class="score-cell col-p2" data-cat="12" data-p="p2"></td></tr>
+  <tr class="fs-bonus"><th>FullStack Bonus</th><td class="col-p1" id="fsBonusP1">—</td><td class="col-p2" id="fsBonusP2">—</td></tr>
+  <tr class="section-total"><th>Lower Total</th><td class="col-p1" id="lowerP1">0</td><td class="col-p2" id="lowerP2">0</td></tr>
+  <tr class="grand-total"><th>Grand Total</th><td class="col-p1" id="grandP1">0</td><td class="col-p2" id="grandP2">0</td></tr>
+  </tbody>
+  </table>
+  </div>
+  <div class="bottom-row">
+    <button class="btn-soft inline" style="font-size:0.8em;padding:8px 16px;" onclick="goLobby()">New Game</button>
+  </div>
+</div>
 
-    pre_prices  = pre_hist['Close']
-    pre_returns = pre_prices.pct_change().dropna()
-    pre_rsi     = compute_rsi(pre_prices)
-    pre_atr     = compute_atr(pre_hist)
-    pre_vol_surge = volume_surge_score(pre_hist)
-    pre_rsi_score = rsi_buildup_score(pre_rsi)
-    pre_comp      = compression_score(pre_hist, pre_atr)
-    ann_vol       = pre_returns.std() * np.sqrt(252) if len(pre_returns) > 1 else 0.0
+<script>
+// ===== SCORE CALC =====
+function rollDie() { const a=new Uint32Array(1); crypto.getRandomValues(a); return (a[0]%6)+1; }
 
-    print(f"\nOPEN Pre-Run Fingerprint:")
-    print(f"  Ann Vol     : {ann_vol*100:.1f}%")
-    print(f"  Vol Surge   : {pre_vol_surge:.2f}x")
-    print(f"  RSI Score   : {pre_rsi_score:.2f}")
-    print(f"  Compression : {pre_comp:.2f}")
-    if not pre_rsi.dropna().empty:
-        print(f"  RSI entry   : {pre_rsi.dropna().iloc[-1]:.1f}")
+function calcScore(cat, vals) {
+  const c=[0,0,0,0,0,0,0]; let sum=0;
+  vals.forEach(v=>{c[v]++;sum+=v;});
+  if(cat<=5)  return c[cat+1]*(cat+1);
+  if(cat===6) return c.some(x=>x>=3)?sum:0;
+  if(cat===7) return c.some(x=>x>=4)?sum:0;
+  if(cat===8) return (c.some(x=>x===3)&&c.some(x=>x===2))?25:0;
+  if(cat===9) { const u=[...new Set(vals)].sort((a,b)=>a-b); for(let i=0;i<=u.length-4;i++) if(u[i+3]===u[i]+3) return 30; return 0; }
+  if(cat===10){ const u=[...new Set(vals)].sort((a,b)=>a-b); return(u.length===5&&u[4]===u[0]+4)?40:0; }
+  if(cat===11) return new Set(vals).size===1?50:0;
+  if(cat===12) return sum;
+  return 0;
+}
 
-    return {
-        'returns':    returns,
-        'ann_vol':    ann_vol,
-        'vol_surge':  pre_vol_surge,
-        'rsi_score':  pre_rsi_score,
-        'comp_score': pre_comp,
+// ===== GAME STATE =====
+let G = null;
+let mode = null;
+let pendingCat = null;
+let currentGameMoves = [];
+let aiDifficulty = 'easy';
+let watchComp = false;
+
+function toggleWatchComp() {
+  watchComp = !watchComp;
+  const slider = document.getElementById('watchCompSlider');
+  const knob = document.getElementById('watchCompKnob');
+  slider.style.background = watchComp ? 'var(--p1)' : '#333';
+  knob.style.transform = watchComp ? 'translateX(18px)' : 'translateX(0)';
+}
+
+function freshGame(p1, p2) {
+  return {
+    names:     { p1, p2 },
+    scores:    { p1: Array(13).fill(null), p2: Array(13).fill(null) },
+    fsBonus:   { p1: 0, p2: 0 },
+    turn:      'p1',
+    dice:      [1,1,1,1,1],
+    held:      [false,false,false,false,false],
+    rollsLeft: 3,
+    gameOver:  false,
+    rolling:   false,
+  };
+}
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== START =====
+function startPassPlay() {
+  const p1 = document.getElementById('name1').value.trim() || 'Player 1';
+  const p2 = document.getElementById('name2').value.trim() || 'Player 2';
+  mode = 'passplay';
+  G = freshGame(p1, p2);
+  document.getElementById('subtitle').textContent = 'Pass & Play';
+  document.getElementById('headP1').textContent = p1;
+  document.getElementById('headP2').textContent = p2;
+  setupScoreCellListeners();
+  showHandoff('p1');
+}
+
+function startVsComp() {
+  const p1 = document.getElementById('nameComp').value.trim() || 'Player 1';
+  mode = 'vscomp';
+  G = freshGame(p1, 'Computer');
+  G.difficulty = aiDifficulty;
+  currentGameMoves = [];
+  document.getElementById('subtitle').textContent = `vs Computer · ${aiDifficulty === 'easy' ? 'ROOKIE' : aiDifficulty === 'medium' ? 'CLUB' : aiDifficulty === 'hard' ? 'PRO' : 'SHARK'}`;
+  document.getElementById('headP1').textContent = p1;
+  document.getElementById('headP2').textContent = 'Computer';
+  setupScoreCellListeners();
+  enterGame();
+}
+
+function goLobby() {
+  G = null; mode = null; pendingCat = null;
+  document.querySelectorAll('.score-cell').forEach(c => {
+    c.textContent = '';
+    const colClass = c.classList.contains('col-p1') ? 'col-p1' : 'col-p2';
+    c.className = `score-cell ${colClass}`;
+    c.style.background = '';
+  });
+  ['upperP1','upperP2','bonusP1','bonusP2','lowerP1','lowerP2','grandP1','grandP2','fsBonusP1','fsBonusP2']
+    .forEach(id => document.getElementById(id).textContent = id.startsWith('bonus')||id.startsWith('fs') ? '—' : '0');
+  showScreen('lobby');
+}
+
+// ===== HANDOFF SCREEN =====
+function showHandoff(nextPlayer) {
+  const name = G.names[nextPlayer];
+  const nameEl = document.getElementById('handoffName');
+  const btn = document.getElementById('handoffBtn');
+  nameEl.textContent = name;
+  nameEl.className = 'handoff-name ' + nextPlayer;
+  btn.className = `btn-${nextPlayer} handoff-btn inline`;
+  document.getElementById('handoffSub').textContent = "It's your turn!";
+  showScreen('handoff');
+}
+
+function confirmHandoff() {
+  enterGame();
+}
+
+function enterGame() {
+  pendingCat = null;
+  G.dice = [1,1,1,1,1];
+  G.held = [false,false,false,false,false];
+  G.rollsLeft = 3;
+  G.hasRolled = false;
+  G.rolling = false;
+
+  const t = G.turn;
+  const name = G.names[t];
+
+  const banner = document.getElementById('turnBanner');
+  if (G.gameOver) {
+    banner.className = 'turn-banner game-over';
+    banner.textContent = 'Game Over';
+  } else if (t === 'p2' && mode === 'vscomp') {
+    banner.className = 'turn-banner comp-turn';
+    banner.textContent = "Computer's Turn";
+  } else {
+    banner.className = `turn-banner ${t}-turn`;
+    banner.textContent = `${name}'s Turn`;
+  }
+
+  document.getElementById('rollBtn').disabled = false;
+  document.getElementById('rollBtn').textContent = 'Roll (3 left)';
+  document.getElementById('message').textContent = 'Roll to start!';
+  document.getElementById('message').style.color = t === 'p1' ? 'var(--p1)' : 'var(--p2)';
+  renderDice();
+  updateScorecard();
+  showScreen('game');
+
+  if (t === 'p2' && mode === 'vscomp') {
+    document.getElementById('rollBtn').disabled = true;
+    document.getElementById('message').textContent = 'Computer is thinking…';
+    setTimeout(runComputerTurnByDifficulty, 800);
+  }
+}
+
+// ===== JOKER RULE =====
+function isFullStack(vals) { return new Set(vals).size === 1; }
+
+function jokerAllowedCats(p, vals) {
+  const faceVal = vals[0];
+  const upperCat = faceVal - 1;
+  if (G.scores[p][upperCat] === null) return new Set([upperCat]);
+  const openLower = [6,7,8,9,10,11,12].filter(c => G.scores[p][c] === null);
+  if (openLower.length > 0) return new Set(openLower);
+  const openUpper = [0,1,2,3,4,5].filter(c => G.scores[p][c] === null);
+  return new Set(openUpper);
+}
+
+// ===== ROLL =====
+function doRoll() {
+  if (!G || G.gameOver || G.rollsLeft <= 0 || G.rolling) return;
+  if (G.turn === 'p2' && mode === 'vscomp') return;
+
+  G.rolling = true;
+  document.getElementById('rollBtn').disabled = true;
+  clearPreview();
+
+  // Snapshot what's currently displayed before we change anything
+  const oldDice = [...G.dice];
+  const oldHeld = [...G.held];
+
+  // Compute new dice values NOW (but don't write to G.dice yet)
+  const newDice = G.dice.map((v, i) => G.held[i] ? v : rollDie());
+  G.rollsLeft--;
+  G.hasRolled = true;
+  document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
+
+  // Run the shake animation from old→new, then commit
+  renderDiceShake(oldDice, newDice, oldHeld, () => {
+    // Commit new values only after animation fully completes
+    G.dice = newDice;
+    G.rolling = false;
+
+    // Re-render dice in their final resting state (no animation)
+    renderDice();
+
+    const p = G.turn;
+    const isFS = isFullStack(G.dice);
+    const isBonusTurn = isFS && G.scores[p][11] !== null;
+    if (isBonusTurn) {
+      G.fsBonus[p] += 100;
+      updateScorecard();
     }
 
-# ─────────────────────────────────────────────
-# SCAN SINGLE TICKER
-# ─────────────────────────────────────────────
+    if (G.rollsLeft > 0 && !G.gameOver) {
+      document.getElementById('rollBtn').disabled = false;
+    }
 
-def scan_ticker(ticker, open_data):
-    try:
-        hist = yf.download(ticker, start=ONE_YEAR_AGO, end=TODAY, progress=False)
-        if hist.empty or len(hist) < 60:
-            return None
+    const msgEl = document.getElementById('message');
+    msgEl.style.color = p === 'p1' ? 'var(--p1)' : 'var(--p2)';
+    if (isBonusTurn) {
+      msgEl.style.color = 'var(--p1)';
+      msgEl.textContent = `FullStack bonus! +100 🎲 Score in a valid category`;
+    } else {
+      msgEl.textContent = G.rollsLeft > 0
+        ? 'Hold dice to keep, roll again or score'
+        : 'Choose a category to score';
+    }
+    showHints();
+  });
+}
 
-        if isinstance(hist.columns, pd.MultiIndex):
-            if ticker in hist.columns.levels[1]:
-                hist = hist.xs(ticker, axis=1, level=1, drop_level=True)
-            else:
-                hist.columns = hist.columns.get_level_values(0)
+// ===== FIXED renderDiceShake =====
+// Key fixes:
+// 1. Capture die element references ONCE at the start — never re-query mid-animation
+// 2. Safety timeout guarantees onComplete always fires even if animations glitch
+// 3. A guard flag prevents onComplete from firing twice
+function renderDiceShake(oldVals, newVals, held, onComplete) {
+  const dc = document.getElementById('diceContainer');
+  const t = G ? G.turn : 'p1';
+  const locked = !G || G.gameOver || (t === 'p2' && mode === 'vscomp');
+  const SHAKE_MS = 400;
+  const SETTLE_MS = 280;
+  const TOTAL_MS = SHAKE_MS + SETTLE_MS + 60; // generous safety margin
 
-        prices  = hist['Close']
-        returns = prices.pct_change().dropna()
+  // Ensure 5 die elements exist
+  while (dc.children.length < 5) dc.appendChild(document.createElement('div'));
 
-        if len(returns) < 30:
-            return None
+  // === CAPTURE ELEMENT REFERENCES NOW before any DOM mutation ===
+  const dieEls = [];
+  for (let i = 0; i < 5; i++) dieEls.push(dc.children[i]);
 
-        price   = float(prices.iloc[-1])
-        ann_vol = returns.std() * np.sqrt(252) if len(returns) > 10 else 0.0
+  // Set initial state on all dice (showing OLD values)
+  for (let i = 0; i < 5; i++) {
+    const die = dieEls[i];
+    die.dataset.idx = i;
+    die.className = `die face-${oldVals[i]}${held[i] ? ' held' : ''}${locked ? ' locked' : ''}`;
+    die.innerHTML = '<div class="pip"></div>'.repeat(oldVals[i]);
+  }
 
-        if not (PRICE_MIN <= price <= PRICE_MAX):
-            return None
-        if ann_vol < VOL_MIN_PCT / 100:
-            return None
+  // Count only the dice that need to animate
+  let pending = 0;
+  for (let i = 0; i < 5; i++) {
+    if (!held[i]) pending++;
+  }
 
-        open_ret = open_data['returns']
-        aligned_open = open_ret.reindex(returns.index).ffill().dropna()
-        ret_aligned  = returns.reindex(aligned_open.index).dropna()
-        if len(ret_aligned) < 20:
-            return None
+  // If nothing to animate (all held), fire immediately
+  if (pending === 0) {
+    onComplete && onComplete();
+    return;
+  }
 
-        corr = float(ret_aligned.corr(aligned_open))
-        if np.isnan(corr) or corr < CORR_MIN:
-            return None
+  // Guard: ensure onComplete fires exactly once
+  let completed = false;
+  function finish() {
+    if (completed) return;
+    completed = true;
+    onComplete && onComplete();
+  }
 
-        rsi    = compute_rsi(prices)
-        atr    = compute_atr(hist)
-        v_score = volume_surge_score(hist)
-        r_score = rsi_buildup_score(rsi)
-        c_score = compression_score(hist, atr)
+  // Safety net: if animations stall for any reason, force completion
+  const safetyTimer = setTimeout(finish, TOTAL_MS + 200);
 
-        open_v = open_data['vol_surge']
-        open_r = open_data['rsi_score']
-        open_c = open_data['comp_score']
+  let settled = 0; // count of dice that have finished their settle animation
 
-        vol_match = max(0, 1 - abs(v_score - open_v) / max(open_v, 0.01))
-        rsi_match = max(0, 1 - abs(r_score - open_r))
-        cmp_match = max(0, 1 - abs(c_score - open_c))
+  for (let i = 0; i < 5; i++) {
+    if (held[i]) continue;
 
-        composite = (vol_match * 0.4) + (rsi_match * 0.35) + (cmp_match * 0.25)
+    const die = dieEls[i]; // captured reference — stable throughout
+    const valueChanged = oldVals[i] !== newVals[i];
 
-        beta = corr * (ann_vol / open_data['ann_vol']) if open_data['ann_vol'] > 0 else np.nan
+    // Phase 1: shake animation on OLD face
+    const shakeAnim = die.animate([
+      { transform: 'rotate(0deg)' },
+      { transform: 'rotate(-12deg)' },
+      { transform: 'rotate(12deg)' },
+      { transform: 'rotate(-10deg)' },
+      { transform: 'rotate(10deg)' },
+      { transform: 'rotate(-4deg)' },
+      { transform: 'rotate(0deg)' },
+    ], { duration: SHAKE_MS, easing: 'ease-in-out', fill: 'none' });
 
-        info   = yf.Ticker(ticker).info or {}
-        sector = info.get('sector') or info.get('industry') or 'N/A'
-        mktcap = info.get('marketCap', None)
-        mktcap_str = f"{mktcap/1e9:.2f}B" if mktcap and mktcap > 0 else 'N/A'
-        cur_rsi = float(rsi.dropna().iloc[-1]) if not rsi.dropna().empty else np.nan
+    shakeAnim.onfinish = () => {
+      // Flip to NEW face value
+      die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
 
-        return {
-            'Ticker':        ticker,
-            'Price':         round(price, 2),
-            'Vol%':          round(ann_vol * 100, 1),
-            'Corr_OPEN':     round(corr, 2),
-            'Beta_OPEN':     round(beta, 2) if not np.isnan(beta) else 'N/A',
-            'Vol_Surge':     round(v_score, 2),
-            'RSI':           round(cur_rsi, 1) if not np.isnan(cur_rsi) else 'N/A',
-            'RSI_Score':     round(r_score, 2),
-            'Compression':   round(c_score, 2),
-            'Match_Score':   round(composite * 100, 1),
-            'Market_Cap':    mktcap_str,
-            'Sector':        sector,
+      // Phase 2: settle shake on NEW face
+      const settleAnim = die.animate([
+        { transform: 'rotate(0deg)' },
+        { transform: 'rotate(-8deg)' },
+        { transform: 'rotate(7deg)' },
+        { transform: 'rotate(-4deg)' },
+        { transform: 'rotate(2deg)' },
+        { transform: 'rotate(0deg)' },
+      ], { duration: SETTLE_MS, easing: 'ease-out', fill: 'none' });
+
+      // Green flash on value change (runs in parallel with settle)
+      if (valueChanged) {
+        die.animate([
+          { boxShadow: '0 0 0 3px rgba(100,255,100,0.9)' },
+          { boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }
+        ], { duration: 400, easing: 'ease-out', fill: 'none' });
+      }
+
+      settleAnim.onfinish = () => {
+        settled++;
+        if (settled >= pending) {
+          clearTimeout(safetyTimer);
+          finish();
         }
+      };
 
-    except:
-        return None
+      // Safety: if settle animation itself doesn't fire onfinish
+      settleAnim.oncancel = () => {
+        settled++;
+        if (settled >= pending) {
+          clearTimeout(safetyTimer);
+          finish();
+        }
+      };
+    };
 
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
+    // Safety: if shake animation is cancelled before finishing
+    shakeAnim.oncancel = () => {
+      die.className = `die face-${newVals[i]}${locked ? ' locked' : ''}`;
+      die.innerHTML = '<div class="pip"></div>'.repeat(newVals[i]);
+      settled++;
+      if (settled >= pending) {
+        clearTimeout(safetyTimer);
+        finish();
+      }
+    };
+  }
+}
 
-def main():
-    try:
-        open_data = get_open_fingerprint()
-    except Exception as e:
-        print(f"Failed to fingerprint OPEN: {e}")
-        return
+// ===== SCORE CLICK =====
+function setupScoreCellListeners() {
+  document.querySelectorAll('.score-cell').forEach(cell => {
+    cell.onclick = () => {
+      const p = cell.dataset.p;
+      const cat = parseInt(cell.dataset.cat);
+      if (G.gameOver || G.turn !== p || G.rolling) return;
+      if (G.scores[p][cat] !== null) return;
+      if (G.rollsLeft === 3) return;
+      if (mode === 'vscomp' && p === 'p2') return;
 
-    tickers = get_russell_2000_tickers()
-    if not tickers:
-        print("No tickers available — exiting.")
-        return
+      const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
+      if (isBonusTurn) {
+        const allowed = jokerAllowedCats(p, G.dice);
+        if (!allowed.has(cat)) {
+          document.getElementById('message').textContent = 'Must score in a valid joker category first';
+          return;
+        }
+      }
 
-    filtered_tickers = pre_filter_tickers(tickers)
+      let sc;
+      if (isBonusTurn) {
+        sc = jokerScore(cat, G.dice);
+      } else {
+        sc = calcScore(cat, G.dice);
+      }
 
-    print(f"\nScanning up to {len(filtered_tickers)} dynamic small-cap tickers...\n")
-    results = []
+      if (pendingCat !== cat) {
+        clearPreview();
+        pendingCat = cat;
+        cell.textContent = sc;
+        cell.classList.add('preview');
+        document.getElementById('message').textContent = 'Tap again to confirm';
+        return;
+      }
 
-    for i, ticker in enumerate(sorted(set(filtered_tickers)), 1):
-        if ticker == 'OPEN':
-            continue
-        row = scan_ticker(ticker, open_data)
-        if row:
-            results.append(row)
-            print(f"  ✓ {ticker:6s} ({i}/{len(filtered_tickers)})  Match: {row['Match_Score']:5.1f}  RSI: {row['RSI']}  VolSurge: {row['Vol_Surge']}x  Compression: {row['Compression']:.2f}")
-        if i % 20 == 0:
-            print(f"Progress: {i}/{len(filtered_tickers)} processed...")
+      clearPreview();
+      G.scores[p][cat] = sc;
+      if (p === 'p1') recordMove(G.dice, G.held, G.rollsLeft, cat, sc);
+      updateScorecard();
 
-    if not results:
-        print("\nNo qualifying matches found.")
-        return
+      if (checkGameOver()) return;
 
-    df = pd.DataFrame(results).sort_values('Match_Score', ascending=False)
+      const next = p === 'p1' ? 'p2' : 'p1';
+      G.turn = next;
 
-    print("\n" + "=" * 80)
-    print("TOP MATCHES — Ranked by OPEN Pattern Similarity")
-    print("=" * 80)
-    print(df.head(20).to_string(index=False))
+      if (mode === 'passplay') {
+        showHandoff(next);
+      } else {
+        enterGame();
+      }
+    };
+  });
+}
 
-    print("\n" + "=" * 80)
-    print("🔥 HIGH CONVICTION (Match >50, Vol Surge >1.2, RSI 45-72)")
-    print("=" * 80)
-    high_conv = df[
-        (df['Match_Score'] > 50) &
-        (df['Vol_Surge'] > 1.2) &
-        (pd.to_numeric(df['RSI'], errors='coerce').between(45, 72))
-    ]
-    if high_conv.empty:
-        print("None right now — showing top 10 anyway:")
-        print(df.head(10).to_string(index=False))
-    else:
-        print(high_conv.to_string(index=False))
+function jokerScore(cat, vals) {
+  const faceVal = vals[0];
+  const sum = faceVal * 5;
+  if (cat <= 5)  return calcScore(cat, vals);
+  if (cat === 6) return sum;
+  if (cat === 7) return sum;
+  if (cat === 8) return 25;
+  if (cat === 9) return 30;
+  if (cat === 10) return 40;
+  if (cat === 11) return 50;
+  if (cat === 12) return sum;
+  return 0;
+}
 
-    output_file = f"open_pattern_scan_dynamic_{TODAY}.csv"
-    df.to_csv(output_file, index=False)
-    print(f"\nSaved: {output_file}")
+function clearPreview() {
+  document.querySelectorAll('.score-cell.preview').forEach(c => {
+    c.classList.remove('preview');
+    const cat = parseInt(c.dataset.cat);
+    const p = c.dataset.p;
+    if (G.scores[p][cat] === null) c.textContent = '';
+  });
+  pendingCat = null;
+}
 
-if __name__ == "__main__":
-    main()
+function showHints() {
+  const p = G.turn;
+  const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
+  const allowed = isBonusTurn ? jokerAllowedCats(p, G.dice) : null;
+
+  const other = p === 'p1' ? 'p2' : 'p1';
+  document.querySelectorAll(`.score-cell[data-p="${other}"]`).forEach(cell => {
+    const cat = parseInt(cell.dataset.cat);
+    if (G.scores[other][cat] === null && !cell.classList.contains('preview')) {
+      cell.textContent = '';
+      cell.style.background = '';
+    }
+  });
+
+  document.querySelectorAll(`.score-cell[data-p="${p}"]`).forEach(cell => {
+    const cat = parseInt(cell.dataset.cat);
+    if (G.scores[p][cat] !== null) return;
+    if (cell.classList.contains('preview')) return;
+
+    if (isBonusTurn) {
+      if (allowed.has(cat)) {
+        const sc = jokerScore(cat, G.dice);
+        cell.textContent = sc > 0 ? sc : '—';
+        cell.style.background = 'rgba(232,255,71,0.08)';
+      } else {
+        cell.textContent = '✗';
+        cell.style.background = '';
+      }
+    } else {
+      cell.style.background = '';
+      const sc = calcScore(cat, G.dice);
+      cell.textContent = sc > 0 ? sc : '—';
+    }
+  });
+}
+
+// ===== DICE RENDER =====
+function initDiceListeners() {
+  const dc = document.getElementById('diceContainer');
+  let lastTouch = 0;
+
+  dc.addEventListener('click', (e) => {
+    if (Date.now() - lastTouch < 400) return;
+    const die = e.target.closest('.die');
+    if (!die || !G) return;
+    const i = parseInt(die.dataset.idx);
+    if (isNaN(i) || G.rollsLeft >= 3 || G.rolling || G.gameOver) return;
+    if (G.turn === 'p2' && mode === 'vscomp') return;
+    G.held[i] = !G.held[i];
+    renderDice();
+  });
+  dc.addEventListener('touchend', (e) => {
+    const die = e.target.closest('.die');
+    if (!die || !G) return;
+    e.preventDefault();
+    lastTouch = Date.now();
+    const i = parseInt(die.dataset.idx);
+    if (isNaN(i) || G.rollsLeft >= 3 || G.rolling || G.gameOver) return;
+    if (G.turn === 'p2' && mode === 'vscomp') return;
+    G.held[i] = !G.held[i];
+    renderDice();
+  }, { passive: false });
+}
+
+function renderDice() {
+  const dc = document.getElementById('diceContainer');
+  if (!G) return;
+  const t = G.turn;
+  const locked = G.gameOver || (t === 'p2' && mode === 'vscomp');
+
+  while (dc.children.length < 5) {
+    dc.appendChild(document.createElement('div'));
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const v = G.dice[i];
+    const isHeld = G.held[i];
+    const die = dc.children[i];
+    die.dataset.idx = i;
+    die.className = `die face-${v}${isHeld ? ' held' : ''}${locked ? ' locked' : ''}`;
+    die.innerHTML = '<div class="pip"></div>'.repeat(v);
+  }
+}
+
+// ===== SCORECARD =====
+function updateScorecard() {
+  ['p1','p2'].forEach(p => {
+    const suf = p === 'p1' ? 'P1' : 'P2';
+    const t = G.turn;
+
+    for (let c=0; c<13; c++) {
+      const cell = document.querySelector(`.score-cell[data-p="${p}"][data-cat="${c}"]`);
+      if (G.scores[p][c] !== null) {
+        cell.textContent = G.scores[p][c];
+        cell.className = `score-cell col-${p} filled filled-${p}`;
+      } else if (!cell.classList.contains('preview')) {
+        const isActive = t === p && !G.gameOver && !(mode==='vscomp'&&p==='p2');
+        if (!isActive || G.rollsLeft === 3) cell.textContent = '';
+        cell.style.background = '';
+        cell.className = `score-cell col-${p}${isActive?'':' locked-cell'}`;
+      }
+    }
+
+    const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+    const bonus  = upper >= 63 ? 35 : 0;
+    const lower  = G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+    const grand  = upper + bonus + lower;
+    document.getElementById(`upper${suf}`).textContent = upper;
+    document.getElementById(`bonus${suf}`).textContent = bonus > 0 ? '+35' : `${upper}/63`;
+    document.getElementById(`lower${suf}`).textContent = lower;
+    document.getElementById(`grand${suf}`).textContent = grand;
+    document.getElementById(`fsBonus${suf}`).textContent = G.fsBonus[p] > 0 ? '+'+G.fsBonus[p] : '—';
+  });
+}
+
+// ===== GAME OVER =====
+function checkGameOver() {
+  if (!G.scores.p1.every(v=>v!==null) || !G.scores.p2.every(v=>v!==null)) return false;
+  G.gameOver = true;
+  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
+  const n1 = G.names.p1, n2 = G.names.p2;
+
+  const banner = document.getElementById('turnBanner');
+  banner.className = 'turn-banner game-over';
+  const msgEl = document.getElementById('message');
+
+  if (s1 > s2) {
+    banner.textContent = `🏆 ${n1} Wins!`;
+    msgEl.textContent = `${n1} wins! ${s1} vs ${s2}`;
+    msgEl.style.color = 'var(--p1)';
+  } else if (s2 > s1) {
+    banner.textContent = `🏆 ${n2} Wins!`;
+    msgEl.textContent = `${n2} wins! ${s2} vs ${s1}`;
+    msgEl.style.color = 'var(--p2)';
+  } else {
+    banner.textContent = "It's a Tie!";
+    msgEl.textContent = `Tie game! Both scored ${s1}`;
+    msgEl.style.color = 'var(--p1)';
+  }
+
+  document.getElementById('rollBtn').disabled = true;
+  renderDice();
+  setTimeout(() => saveGameRecord(G, mode), 300);
+  return true;
+}
+
+function grandTotal(p) {
+  const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+  const bonus = upper >= 63 ? 35 : 0;
+  return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+}
+
+// ===== COMPUTER AI =====
+function mcExpected(cat, heldVals, rollsLeft, sims = 200) {
+  if (rollsLeft === 0) return calcScore(cat, heldVals.concat ? heldVals : [...heldVals]);
+  let total = 0;
+  const heldCount = heldVals.length;
+  const freeCount = 5 - heldCount;
+  for (let s = 0; s < sims; s++) {
+    let trial = [...heldVals];
+    for (let d = 0; d < freeCount; d++) trial.push(rollDie());
+    if (rollsLeft > 1) {
+      const bestHeld = greedyHold(cat, trial);
+      const heldNext = trial.filter((_, i) => bestHeld[i]);
+      total += mcExpected(cat, heldNext, rollsLeft - 1, Math.max(20, Math.floor(sims / 5)));
+    } else {
+      total += calcScore(cat, trial);
+    }
+  }
+  return total / sims;
+}
+
+function greedyHold(cat, vals) {
+  const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
+  if (cat <= 5) {
+    const t = cat + 1;
+    return vals.map(v => v === t);
+  }
+  if (cat === 11 || cat === 6 || cat === 7) {
+    const mx = Math.max(...c.slice(1));
+    const t = c.lastIndexOf(mx);
+    return vals.map(v => v === t);
+  }
+  if (cat === 8) {
+    const h3 = c.findIndex((x, i) => i > 0 && x >= 3);
+    if (h3 > 0) return vals.map(v => c[v] >= 2);
+    return vals.map(v => c[v] === 2);
+  }
+  if (cat === 9 || cat === 10) {
+    const u = [...new Set(vals)].sort((a, b) => a - b);
+    let bestRun = [], curRun = [u[0]];
+    for (let i = 1; i < u.length; i++) {
+      if (u[i] === u[i-1] + 1) curRun.push(u[i]);
+      else { if (curRun.length > bestRun.length) bestRun = [...curRun]; curRun = [u[i]]; }
+    }
+    if (curRun.length > bestRun.length) bestRun = [...curRun];
+    const rs = new Set(bestRun);
+    const used = new Set();
+    return vals.map(v => { if (rs.has(v) && !used.has(v)) { used.add(v); return true; } return false; });
+  }
+  if (cat === 12) return vals.map(v => v >= 4);
+  return [false,false,false,false,false];
+}
+
+function holdForCat(cat, vals) { return greedyHold(cat, vals); }
+
+function catValue(cat, vals, p2scores, rollsLeft) {
+  const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
+  const sc = isBonusTurn ? jokerScore(cat, vals) : calcScore(cat, vals);
+  const upperFilled = p2scores.slice(0, 6).filter(v => v !== null).length;
+  const upperSoFar  = p2scores.slice(0, 6).reduce((a, b) => a + (b || 0), 0);
+  const upperLeft   = 6 - upperFilled;
+  let bonus = 0;
+  if (cat <= 5 && upperLeft > 0) {
+    const projected = upperSoFar + sc;
+    const remaining = upperLeft - 1;
+    const avgNeeded = (63 - projected) / Math.max(remaining, 1);
+    if (projected >= 63) bonus = 35;
+    else if (sc >= avgNeeded) bonus = 5;
+    else if (sc >= avgNeeded * 0.7) bonus = 2;
+  }
+  return sc + bonus;
+}
+
+function evalCategoryWithLookahead(cat, vals, rollsLeft, p2scores) {
+  if (G.scores.p2[cat] !== null) return -Infinity;
+  if (rollsLeft === 0) return catValue(cat, vals, p2scores, 0);
+  const heldNow = greedyHold(cat, vals);
+  const heldVals = vals.filter((_, i) => heldNow[i]);
+  const expected = mcExpected(cat, heldVals, rollsLeft, 150);
+  const upperFilled = p2scores.slice(0, 6).filter(v => v !== null).length;
+  const upperSoFar  = p2scores.slice(0, 6).reduce((a, b) => a + (b || 0), 0);
+  let bonusBoost = 0;
+  if (cat <= 5) {
+    const upperLeft = 6 - upperFilled;
+    const projectedUpper = upperSoFar + expected;
+    if (projectedUpper >= 63) bonusBoost = 35;
+    else if (expected >= (63 - upperSoFar) / Math.max(upperLeft, 1)) bonusBoost = 6;
+  }
+  return expected + bonusBoost;
+}
+
+function chooseBestCategory(vals, p2scores) {
+  const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
+  const allowedCats = isBonusTurn ? jokerAllowedCats('p2', vals) : null;
+  let bestCat = -1, bestVal = -Infinity;
+  for (let c = 0; c < 13; c++) {
+    if (p2scores[c] !== null) continue;
+    if (allowedCats && !allowedCats.has(c)) continue;
+    const sc = isBonusTurn ? jokerScore(c, vals) : calcScore(c, vals);
+    let w = sc;
+    if (sc === 0) {
+      if (c === 11) w = -5;
+      else if (c === 10) w = -3;
+      else if (c === 9) w = -1;
+      else if (c <= 1) w = 0.8;
+      else if (c <= 3) w = 0.3;
+      else w = 0.1;
+    }
+    if (w > bestVal) { bestVal = w; bestCat = c; }
+  }
+  return bestCat;
+}
+
+function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
+  let bestCat = -1, bestPotential = -Infinity;
+  for (let c = 0; c < 13; c++) {
+    if (p2scores[c] !== null) continue;
+    let pot = evalCategoryWithLookahead(c, vals, rollsLeft, p2scores);
+    if (weightFn) pot *= (weightFn(c) || 1.0);
+    if (pot > bestPotential) { bestPotential = pot; bestCat = c; }
+  }
+  return bestCat >= 0 ? greedyHold(bestCat, vals) : [false,false,false,false,false];
+}
+
+function runComputerTurn() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, null);
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  ch = [false,false,false,false,false];
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  applyComputerResult(cd, ch, steps);
+}
+
+function computeEasyMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie);
+  steps.push({ dice: [...cd], held: [false,false,false,false,false] });
+  for (let r = 0; r < 2; r++) {
+    const held = cd.map(() => Math.random() < 0.25);
+    cd = cd.map((v,i) => held[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...held] });
+  }
+  let open = [];
+  for (let c=0; c<13; c++) { if (G.scores.p2[c] === null) open.push(c); }
+  const scorable = open.filter(c => calcScore(c,cd) > 0);
+  const bc = scorable.length > 0 && Math.random() > 0.3
+    ? scorable[Math.floor(Math.random() * scorable.length)]
+    : open[Math.floor(Math.random() * open.length)];
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  G.scores.p2[bc] = isBonusTurn ? jokerScore(bc,cd) : calcScore(bc,cd);
+  return { steps, finalDice: cd };
+}
+
+function computeMediumMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    let bc2 = -1, bp = -1;
+    for (let c = 0; c < 13; c++) {
+      if (G.scores.p2[c] !== null) continue;
+      const sc = calcScore(c, cd);
+      if (sc > bp) { bp = sc; bc2 = c; }
+    }
+    ch = bc2 >= 0 ? holdForCat(bc2, cd) : ch;
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+function computeHardMoves() {
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, null);
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+function computeAdaptiveMoves() {
+  const weights = adaptiveWeights();
+  const weightFn = weights ? (c => weights[c] || 1.0) : null;
+  const steps = [];
+  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
+  steps.push({ dice: [...cd], held: [...ch] });
+  for (let roll = 0; roll < 2; roll++) {
+    ch = chooseBestHold(cd, 1 - roll, G.scores.p2, weightFn);
+    cd = cd.map((v, i) => ch[i] ? v : rollDie());
+    steps.push({ dice: [...cd], held: [...ch] });
+  }
+  const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
+  if (isBonusTurn) G.fsBonus.p2 += 100;
+  const bc = chooseBestCategory(cd, G.scores.p2);
+  if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
+  return { steps, finalDice: cd };
+}
+
+// ===== ANIMATED COMPUTER PLAYBACK =====
+function playComputerStepsAnimated(steps, finalDice, onDone) {
+  const HOLD_DISPLAY_MS = 700;
+  let stepIdx = 0;
+
+  function playStep() {
+    if (stepIdx >= steps.length) { onDone(); return; }
+    const step = steps[stepIdx];
+    const prevDice = stepIdx === 0 ? [1,1,1,1,1] : steps[stepIdx - 1].dice;
+    const prevHeld = [false,false,false,false,false];
+
+    const rollNum = stepIdx + 1;
+    const msgEl = document.getElementById('message');
+    msgEl.style.color = 'var(--p2)';
+    msgEl.textContent = `Roll ${rollNum} of 3…`;
+
+    renderDiceShake(prevDice, step.dice, prevHeld, () => {
+      G.dice = step.dice;
+      const nextStep = steps[stepIdx + 1];
+      if (nextStep) {
+        G.held = [...step.held];
+        renderDice();
+        const heldCount = step.held.filter(Boolean).length;
+        msgEl.textContent = heldCount > 0
+          ? `Roll ${rollNum} done — holding ${heldCount} dice`
+          : `Roll ${rollNum} done — rolling all again`;
+      } else {
+        G.held = [false,false,false,false,false];
+        renderDice();
+        msgEl.textContent = `Scoring!`;
+      }
+      stepIdx++;
+      setTimeout(playStep, stepIdx < steps.length ? HOLD_DISPLAY_MS : 0);
+    });
+  }
+
+  playStep();
+}
+
+function applyComputerResult(finalDice, finalHeld, steps) {
+  if (watchComp) {
+    playComputerStepsAnimated(steps, finalDice, () => {
+      G.dice = finalDice;
+      G.held = [false,false,false,false,false];
+      G.rollsLeft = 3;
+      updateScorecard();
+      renderDice();
+      setTimeout(() => {
+        if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+      }, 600);
+    });
+  } else {
+    G.dice = finalDice;
+    G.held = [false,false,false,false,false];
+    G.rollsLeft = 3;
+    updateScorecard();
+    renderDice();
+    if (!checkGameOver()) { G.turn='p1'; enterGame(); }
+  }
+}
+
+initDiceListeners();
+</script>
+
+<!-- ===== SCORE TRACKER ===== -->
+<button id="tracker-toggle" onclick="toggleTracker()" title="Score Tracker">
+  📊
+  <span class="badge" id="tracker-badge" style="display:none">0</span>
+</button>
+
+<div id="tracker-panel">
+  <div class="tp-header">
+    <h3>Score Tracker</h3>
+    <button onclick="toggleTracker()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0;width:auto;margin:0;">✕</button>
+  </div>
+  <div class="tp-tabs">
+    <button class="tp-tab active" onclick="showTab('history')">History</button>
+    <button class="tp-tab" onclick="showTab('stats')">Stats</button>
+    <button class="tp-tab" onclick="showTab('analysis')">AI Analysis</button>
+    <button class="tp-tab" onclick="showTab('insights')">Insights</button>
+  </div>
+  <div class="tp-body" id="tp-body-history">
+    <div class="empty-state" id="history-empty">
+      No games recorded yet.<br>Finish a game to start tracking!
+    </div>
+    <div id="history-list"></div>
+  </div>
+  <div class="tp-body" id="tp-body-stats" style="display:none">
+    <div class="empty-state" id="stats-empty">Play at least one game to see stats.</div>
+    <div id="stats-content" style="display:none"></div>
+  </div>
+  <div class="tp-body" id="tp-body-analysis" style="display:none">
+    <p class="analysis-hint" id="analysis-hint">Need at least 3 games to run analysis.</p>
+    <button class="analysis-btn" id="analysis-btn" onclick="runAnalysis()" disabled>
+      🤖 Analyze My High Scores
+    </button>
+    <div class="analysis-output" id="analysis-output" style="display:none"></div>
+  </div>
+  <div class="tp-body" id="tp-body-insights" style="display:none">
+    <div id="insights-content"></div>
+  </div>
+</div>
+
+<script>
+// ===== TRACKER STATE =====
+let gameHistory = [];
+try { gameHistory = JSON.parse(localStorage.getItem('fs_history') || '[]'); } catch(e) {}
+
+const CAT_NAMES = ['Aces','Twos','Threes','Fours','Fives','Sixes',
+  '3 of a Kind','4 of a Kind','Full House','Sm. Straight','Lg. Straight','FullStack!','Chance'];
+
+let currentTab = 'history';
+let trackerOpen = false;
+
+function toggleTracker() {
+  trackerOpen = !trackerOpen;
+  document.getElementById('tracker-panel').classList.toggle('open', trackerOpen);
+  if (trackerOpen) renderCurrentTab();
+}
+
+function showTab(tab) {
+  currentTab = tab;
+  ['history','stats','analysis','insights'].forEach(t => {
+    document.getElementById(`tp-body-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.querySelectorAll('.tp-tab').forEach((el,i) => {
+      el.classList.toggle('active', ['history','stats','analysis','insights'][i] === tab);
+    });
+  });
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
+  if (currentTab === 'history') renderHistory();
+  else if (currentTab === 'stats') renderStats();
+  else if (currentTab === 'analysis') renderAnalysisTab();
+  else if (currentTab === 'insights') renderInsights();
+}
+
+function saveGameRecord(gameState, mode) {
+  const p1 = gameState.names.p1, p2 = gameState.names.p2;
+  const s1 = grandTotal('p1'), s2 = grandTotal('p2');
+
+  const record = {
+    id: Date.now(),
+    date: new Date().toLocaleString(),
+    mode,
+    names: { p1, p2 },
+    scores: {
+      p1: [...gameState.scores.p1],
+      p2: [...gameState.scores.p2]
+    },
+    fsBonus: { ...gameState.fsBonus },
+    totals: { p1: s1, p2: s2 },
+    winner: s1 > s2 ? 'p1' : s2 > s1 ? 'p2' : 'tie',
+    upper: {
+      p1: gameState.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0),
+      p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0)
+    },
+    gotBonus: {
+      p1: gameState.scores.p1.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
+      p2: gameState.scores.p2.slice(0,6).reduce((a,b)=>a+(b||0),0) >= 63,
+    }
+  };
+
+  gameHistory.unshift(record);
+  if (gameHistory.length > 50) gameHistory = gameHistory.slice(0, 50);
+  try { localStorage.setItem('fs_history', JSON.stringify(gameHistory)); } catch(e) {}
+
+  const badge = document.getElementById('tracker-badge');
+  badge.textContent = gameHistory.length;
+  badge.style.display = 'block';
+
+  if (trackerOpen) renderCurrentTab();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  list.innerHTML = '';
+
+  if (!gameHistory.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const allScores = gameHistory.flatMap(g => [g.totals.p1, g.totals.p2]);
+  const highScore = Math.max(...allScores);
+
+  gameHistory.forEach(g => {
+    const isHigh = g.totals.p1 === highScore || g.totals.p2 === highScore;
+    const div = document.createElement('div');
+    div.className = `game-record${isHigh ? ' is-high' : ''}`;
+
+    const w = g.winner;
+    const p1class = w === 'p1' ? 'gr-player winner' : 'gr-player';
+    const p2class = w === 'p2' ? 'gr-player p2winner' : 'gr-player';
+    const hsBadge = isHigh ? '<span class="gr-hs-badge">🏆 HIGH SCORE</span>' : '';
+
+    div.innerHTML = `
+      <div class="gr-top">
+        <span class="gr-date">${g.date}</span>
+        <span class="gr-mode">${g.mode === 'vscomp' ? 'vs CPU' : '2P'} ${hsBadge}</span>
+      </div>
+      <div class="gr-scores">
+        <div class="${p1class}">${g.names.p1}: <span>${g.totals.p1}</span>${g.gotBonus.p1 ? ' ✓' : ''}</div>
+        <div class="${p2class}">${g.names.p2}: <span>${g.totals.p2}</span>${g.gotBonus.p2 ? ' ✓' : ''}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function renderStats() {
+  const empty = document.getElementById('stats-empty');
+  const content = document.getElementById('stats-content');
+  if (!gameHistory.length) { empty.style.display = 'block'; content.style.display = 'none'; return; }
+  empty.style.display = 'none'; content.style.display = 'block';
+
+  const humanGames = gameHistory.map(g => ({
+    score: g.totals.p1,
+    scores: g.scores.p1,
+    fsBonus: g.fsBonus.p1,
+    gotBonus: g.gotBonus.p1,
+    mode: g.mode
+  }));
+
+  const allScores = humanGames.map(g => g.score);
+  const highScore = Math.max(...allScores);
+  const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0) / allScores.length);
+  const wins = gameHistory.filter(g => g.winner === 'p1').length;
+  const bonusGames = humanGames.filter(g => g.gotBonus).length;
+
+  const CAT_MAX = [5, 10, 15, 20, 25, 30, 30, 30, 25, 30, 40, 50, 30];
+  const FIXED_CATS = new Set([8, 9, 10, 11]);
+  const n = humanGames.length;
+
+  const catAvgs = CAT_NAMES.map((_, ci) => {
+    const vals = humanGames.map(g => g.scores[ci] || 0);
+    return Math.round(vals.reduce((a,b)=>a+b,0) / vals.length * 10) / 10;
+  });
+  const catHits = CAT_NAMES.map((_, ci) =>
+    humanGames.filter(g => (g.scores[ci] || 0) > 0).length
+  );
+
+  content.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-box"><div class="label">High Score</div><div class="value">${highScore}</div><div class="sub">all time</div></div>
+      <div class="stat-box"><div class="label">Avg Score</div><div class="value">${avgScore}</div><div class="sub">per game</div></div>
+      <div class="stat-box"><div class="label">Games</div><div class="value">${gameHistory.length}</div><div class="sub">${wins} wins</div></div>
+      <div class="stat-box"><div class="label">Bonus Rate</div><div class="value">${Math.round(bonusGames/humanGames.length*100)}%</div><div class="sub">upper ≥63</div></div>
+    </div>
+    <div class="cat-breakdown">
+      <h4>Avg Score by Category</h4>
+      ${CAT_NAMES.map((name, i) => {
+        const isFixed = FIXED_CATS.has(i);
+        let pct, label;
+        if (isFixed) {
+          pct = Math.round(catHits[i] / n * 100);
+          label = `<span style="color:var(--muted);font-weight:400;">${catHits[i]}</span>/<span style="color:var(--muted);font-weight:400;">${n}</span>`;
+        } else {
+          pct = CAT_MAX[i] > 0 ? Math.round(catAvgs[i] / CAT_MAX[i] * 100) : 0;
+          label = `${catAvgs[i]}<span style="color:var(--muted);font-weight:400;">/${CAT_MAX[i]}</span>`;
+        }
+        const barColor = pct >= 75 ? 'var(--p1)' : pct >= 40 ? '#f0a500' : 'var(--danger)';
+        return `
+        <div class="cat-row">
+          <span class="cat-name">${name}</span>
+          <div class="cat-bar-wrap">
+            <div class="cat-bar" style="width:${pct}%;background:${barColor};"></div>
+          </div>
+          <span class="cat-avg" style="width:52px;font-size:0.85em;">${label}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderAnalysisTab() {
+  const btn = document.getElementById('analysis-btn');
+  const hint = document.getElementById('analysis-hint');
+  if (gameHistory.length >= 3) {
+    btn.disabled = false;
+    hint.textContent = `${gameHistory.length} games recorded — ready to analyze.`;
+  } else {
+    btn.disabled = true;
+    hint.textContent = `Need at least 3 games to run analysis. (${gameHistory.length}/3)`;
+  }
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('analysis-btn');
+  const output = document.getElementById('analysis-output');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyzing...';
+  output.style.display = 'block';
+  output.className = 'analysis-output loading';
+  output.textContent = 'Sending your game data to AI for analysis…';
+
+  const humanGames = gameHistory.map(g => ({
+    score: g.totals.p1,
+    cats: g.scores.p1,
+    fsBonus: g.fsBonus.p1,
+    gotUpperBonus: g.gotBonus.p1,
+    upperTotal: g.upper.p1,
+    won: g.winner === 'p1',
+    mode: g.mode
+  }));
+
+  const allScores = humanGames.map(g => g.score).sort((a,b) => b-a);
+  const highScore = allScores[0];
+  const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
+  const topThird = humanGames.filter(g => g.score >= allScores[Math.floor(allScores.length/3)]);
+  const bottomThird = humanGames.filter(g => g.score <= allScores[Math.floor(allScores.length*2/3)]);
+
+  function catAvg(games, ci) {
+    return Math.round(games.map(g => g.cats[ci] || 0).reduce((a,b)=>a+b,0) / games.length * 10) / 10;
+  }
+
+  const catDiffs = CAT_NAMES.map((name, i) => ({
+    name,
+    topAvg: catAvg(topThird, i),
+    botAvg: catAvg(bottomThird, i),
+    diff: catAvg(topThird, i) - catAvg(bottomThird, i)
+  })).sort((a,b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  const prompt = `You are analyzing scores for a dice game called FullStacks (a Yahtzee variant with a "FullStack" = five of a kind worth 50pts + 100pt bonus per extra).
+
+GAME DATA (${humanGames.length} games, player perspective):
+- High score: ${highScore}, Average: ${avgScore}
+- Upper bonus rate (need ≥63 upper): ${Math.round(humanGames.filter(g=>g.gotUpperBonus).length/humanGames.length*100)}%
+- All scores: ${allScores.join(', ')}
+
+CATEGORY PERFORMANCE (avg score in top 1/3 games vs bottom 1/3):
+${catDiffs.slice(0,8).map(c => `  ${c.name}: top=${c.topAvg} vs bot=${c.botAvg} (diff: ${c.diff > 0 ? '+' : ''}${c.diff})`).join('\n')}
+
+HIGH SCORE GAMES details:
+${topThird.slice(0,3).map((g,i) => `  Game ${i+1} (${g.score}pts): upper=${g.upperTotal}${g.gotUpperBonus?' [BONUS]':''}, fsBonus=${g.fsBonus}, won=${g.won}`).join('\n')}
+
+Write a SHORT, punchy analysis (3-4 paragraphs max) covering:
+1. What separates high-scoring games from low ones (based on the category data)
+2. One or two specific strategic patterns you notice
+3. One concrete tip to improve their average score
+
+Use plain text only. Be direct and specific, not generic. Reference actual numbers from the data.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No response received.';
+    output.className = 'analysis-output';
+    output.textContent = text;
+  } catch(e) {
+    output.className = 'analysis-output';
+    output.textContent = 'Error connecting to AI. Please try again.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🤖 Analyze My High Scores';
+}
+
+// ===== DIFFICULTY & LEARNING ENGINE =====
+let learnedStrategies = {};
+try { learnedStrategies = JSON.parse(localStorage.getItem('fs_strategies') || '{}'); } catch(e) {}
+
+const DIFF_DESCS = {
+  easy: 'Rookie: rolls randomly, easy to beat',
+  medium: 'Club: basic strategy, casual play',
+  hard: 'Pro: strong play, targets 240–280',
+  adaptive: 'Shark: learns your patterns, hunts your weaknesses'
+};
+
+function selectDiff(btn, diff) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  aiDifficulty = diff;
+  document.getElementById('diff-desc').textContent = DIFF_DESCS[diff];
+}
+
+function recordMove(dice, held, rollsLeft, scoredCat, score) {
+  if (mode !== 'vscomp') return;
+  const diceKey = [...dice].sort().join('');
+  currentGameMoves.push({
+    dice: [...dice], held: [...held], rollsLeft, scoredCat, score,
+    diceKey,
+    upperProgress: G ? G.scores.p1.slice(0,6).filter(v=>v!==null).length : 0,
+  });
+}
+
+function buildInsights() {
+  const insights = [];
+  const catData = {};
+  CAT_NAMES.forEach((n,i) => { catData[i] = { zeroes: 0, total: 0, count: 0, name: n }; });
+
+  gameHistory.forEach(g => {
+    g.scores.p1.forEach((sc, ci) => {
+      if (sc !== null) {
+        catData[ci].count++;
+        catData[ci].total += sc;
+        if (sc === 0) catData[ci].zeroes++;
+      }
+    });
+  });
+
+  const zeroWasters = Object.values(catData)
+    .filter(c => c.count > 2 && c.zeroes / c.count > 0.3)
+    .sort((a,b) => b.zeroes/b.count - a.zeroes/a.count);
+
+  if (zeroWasters.length > 0) {
+    insights.push({
+      type: 'warning',
+      title: `Scoring 0 too often in: ${zeroWasters[0].name}`,
+      detail: `You zero out ${Math.round(zeroWasters[0].zeroes/zeroWasters[0].count*100)}% of the time. Consider using it as a sacrifice slot earlier.`,
+      rule: 'sacrifice_timing'
+    });
+  }
+
+  const bonusGames = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length;
+  const bonusRate = gameHistory.length > 0 ? bonusGames / gameHistory.length : 0;
+  if (gameHistory.length >= 3) {
+    if (bonusRate < 0.4) {
+      insights.push({
+        type: 'tip',
+        title: 'Upper bonus slipping away',
+        detail: `You only get the +35 bonus ${Math.round(bonusRate*100)}% of games. Prioritize 4s, 5s, 6s early — they carry the most weight.`,
+        rule: 'upper_priority'
+      });
+    } else if (bonusRate >= 0.7) {
+      insights.push({
+        type: 'strength',
+        title: 'Upper section mastery',
+        detail: `You're getting the +35 bonus ${Math.round(bonusRate*100)}% of games. That's excellent — keep protecting those upper slots.`,
+        rule: 'upper_strong'
+      });
+    }
+  }
+
+  const fsScores = gameHistory.map(g => g.scores.p1[11]).filter(v => v !== null);
+  const fsHits = fsScores.filter(v => v > 0).length;
+  if (fsScores.length >= 3) {
+    const hitRate = fsHits / fsScores.length;
+    if (hitRate < 0.3) {
+      insights.push({
+        type: 'tip',
+        title: 'FullStack! rarely hitting',
+        detail: `Only ${Math.round(hitRate*100)}% FullStack hit rate. If you have 3+ of a kind after roll 1, hold all of them and go for it — the 50pts + bonus potential is worth the risk.`,
+        rule: 'fs_aggression'
+      });
+    }
+  }
+
+  if (gameHistory.length >= 5) {
+    const recent = gameHistory.slice(0,3).map(g=>g.totals.p1);
+    const older = gameHistory.slice(-3).map(g=>g.totals.p1);
+    const recentAvg = recent.reduce((a,b)=>a+b,0)/recent.length;
+    const olderAvg = older.reduce((a,b)=>a+b,0)/older.length;
+    if (recentAvg > olderAvg + 15) {
+      insights.push({ type: 'strength', title: 'You\'re improving!', detail: `Recent average: ${Math.round(recentAvg)} vs earlier: ${Math.round(olderAvg)}. +${Math.round(recentAvg-olderAvg)} pts improvement.`, rule: 'trending_up' });
+    } else if (recentAvg < olderAvg - 15) {
+      insights.push({ type: 'warning', title: 'Recent scores dipping', detail: `Recent avg: ${Math.round(recentAvg)} vs earlier: ${Math.round(olderAvg)}. You may be rushing category decisions — slow down and preview scores before committing.`, rule: 'trending_down' });
+    }
+  }
+
+  const smSt = gameHistory.map(g=>g.scores.p1[9]).filter(v=>v!==null);
+  const lgSt = gameHistory.map(g=>g.scores.p1[10]).filter(v=>v!==null);
+  if (smSt.length >= 3 && lgSt.length >= 3) {
+    const smHit = smSt.filter(v=>v>0).length/smSt.length;
+    const lgHit = lgSt.filter(v=>v>0).length/lgSt.length;
+    if (lgHit > 0.5) {
+      insights.push({ type: 'strength', title: 'Strong straight game', detail: `You hit large straights ${Math.round(lgHit*100)}% of the time. Keep building sequences from your first roll.`, rule: 'straight_strength' });
+    } else if (smHit < 0.5) {
+      insights.push({ type: 'tip', title: 'Missing easy straights', detail: `Small straights only hit ${Math.round(smHit*100)}% of the time. Any 4 sequential values qualifies — look for 1-2-3-4 or 3-4-5-6 after your first roll.`, rule: 'straight_tip' });
+    }
+  }
+
+  return insights;
+}
+
+function adaptiveWeights() {
+  if (!gameHistory.length) return null;
+  const insights = buildInsights();
+  const weights = {};
+  CAT_NAMES.forEach((_,i) => { weights[i] = 1.0; });
+  insights.forEach(ins => {
+    if (ins.rule === 'upper_priority') {
+      [3,4,5].forEach(c => { weights[c] = 1.4; });
+    }
+    if (ins.rule === 'fs_aggression') {
+      weights[11] = 1.5;
+    }
+  });
+  return weights;
+}
+
+function runComputerTurnByDifficulty() {
+  const diff = aiDifficulty;
+  if (diff === 'easy') return runComputerTurnEasy();
+  if (diff === 'medium') return runComputerTurnMedium();
+  if (diff === 'hard') return runComputerTurn();
+  if (diff === 'adaptive') return runComputerTurnAdaptive();
+}
+
+function runComputerTurnEasy() {
+  const { steps, finalDice } = computeEasyMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
+}
+
+function runComputerTurnMedium() {
+  const { steps, finalDice } = computeMediumMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
+}
+
+function runComputerTurnAdaptive() {
+  const { steps, finalDice } = computeAdaptiveMoves();
+  applyComputerResult(finalDice, [false,false,false,false,false], steps);
+}
+
+function renderInsights() {
+  const el = document.getElementById('insights-content');
+  const insights = buildInsights();
+
+  const typeIcon = { warning: '⚠️', tip: '💡', strength: '✅' };
+  const typeColor = { warning: 'rgba(255,71,87,0.15)', tip: 'rgba(232,255,71,0.08)', strength: 'rgba(100,220,100,0.1)' };
+  const typeBorder = { warning: 'rgba(255,71,87,0.3)', tip: 'rgba(232,255,71,0.25)', strength: 'rgba(100,220,100,0.25)' };
+
+  let html = '';
+
+  if (gameHistory.length < 2) {
+    html = `<div class="empty-state">Play at least 2 games to unlock strategy insights.<br><br>The AI watches your patterns and tells you exactly what to fix.</div>`;
+  } else {
+    html += `<div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">${insights.length} insight${insights.length!==1?'s':''} from ${gameHistory.length} games</div>`;
+    insights.forEach(ins => {
+      html += `<div style="background:${typeColor[ins.type]};border:1px solid ${typeBorder[ins.type]};border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:0.8em;font-weight:700;margin-bottom:4px;">${typeIcon[ins.type]} ${ins.title}</div>
+        <div style="font-size:0.73em;color:#bbb;line-height:1.55;">${ins.detail}</div>
+      </div>`;
+    });
+    if (insights.length === 0) {
+      html += `<div class="empty-state">Looking good — no major issues found yet. Play more games for deeper patterns.</div>`;
+    }
+    html += `<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Export Strategy Log</div>
+      <button onclick="exportInsightsFile()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin:0;">📥 Download Insights as .txt</button>
+      <button onclick="copyInsightsText()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin-top:6px;">📋 Copy to Clipboard</button>
+    </div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-size:0.68em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Share with AI for analysis</div>
+      <div style="font-size:0.65em;color:var(--muted);margin-bottom:8px;line-height:1.5;">Exports your full raw game history — all 13 category scores per game. Paste this into Claude to get deeper AI improvements.</div>
+      <button onclick="exportFullData()" style="background:rgba(232,255,71,0.12);border:1px solid rgba(232,255,71,0.35);color:var(--p1);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;margin:0;">📤 Export Full Game Data</button>
+      <button onclick="copyFullData()" id="copy-full-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;margin-top:6px;">📋 Copy Full Data to Clipboard</button>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function buildInsightText() {
+  const insights = buildInsights();
+  const lines = [];
+  lines.push('=== FULLSTACKS STRATEGY INSIGHTS ===');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`Games analyzed: ${gameHistory.length}`);
+  lines.push('');
+
+  if (gameHistory.length > 0) {
+    const scores = gameHistory.map(g => g.totals.p1);
+    lines.push('--- SCORE SUMMARY ---');
+    lines.push(`High Score: ${Math.max(...scores)}`);
+    lines.push(`Average: ${Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)}`);
+    lines.push(`Low Score: ${Math.min(...scores)}`);
+    const bonusRate = gameHistory.filter(g => g.gotBonus && g.gotBonus.p1).length / gameHistory.length;
+    lines.push(`Upper Bonus Rate: ${Math.round(bonusRate*100)}%`);
+    lines.push('');
+
+    lines.push('--- CATEGORY AVERAGES ---');
+    CAT_NAMES.forEach((name, ci) => {
+      const vals = gameHistory.map(g => g.scores.p1[ci]).filter(v => v !== null);
+      if (vals.length > 0) {
+        const avg = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+        const zeroPct = Math.round(vals.filter(v=>v===0).length/vals.length*100);
+        lines.push(`  ${name.padEnd(14)} avg=${avg}  zeroes=${zeroPct}%  (${vals.length} games)`);
+      }
+    });
+    lines.push('');
+  }
+
+  lines.push('--- STRATEGY INSIGHTS ---');
+  if (insights.length === 0) {
+    lines.push('No major issues detected yet. Keep playing!');
+  } else {
+    insights.forEach((ins, i) => {
+      const typeLabel = { warning: '[ISSUE]', tip: '[TIP]', strength: '[STRENGTH]' }[ins.type];
+      lines.push(`${i+1}. ${typeLabel} ${ins.title}`);
+      lines.push(`   ${ins.detail}`);
+      lines.push('');
+    });
+  }
+
+  lines.push('--- RECENT GAMES ---');
+  gameHistory.slice(0,10).forEach((g,i) => {
+    lines.push(`  ${g.date} | Score: ${g.totals.p1} | Mode: ${g.mode} | Bonus: ${g.gotBonus && g.gotBonus.p1 ? 'YES' : 'no'} | ${g.winner === 'p1' ? 'WIN' : g.winner === 'tie' ? 'TIE' : 'LOSS'}`);
+  });
+
+  return lines.join('\n');
+}
+
+function exportInsightsFile() {
+  const text = buildInsightText();
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fullstacks-insights-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyInsightsText() {
+  const text = buildInsightText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('#insights-content button:last-child');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(()=>btn.textContent=orig, 2000); }
+  }).catch(() => {
+    alert('Copy failed — use Download instead.');
+  });
+}
+
+function buildFullDataText() {
+  const lines = [];
+  lines.push('=== FULLSTACKS FULL GAME DATA EXPORT ===');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`Total games: ${gameHistory.length}`);
+  lines.push('');
+  lines.push('CATEGORIES: Aces,Twos,Threes,Fours,Fives,Sixes,3oak,4oak,FullHouse,SmStr,LgStr,FullStack,Chance');
+  lines.push('');
+  gameHistory.forEach((g, idx) => {
+    lines.push(`--- GAME ${idx + 1} ---`);
+    lines.push(`Date: ${g.date} | Mode: ${g.mode} | Winner: ${g.winner}`);
+    lines.push(`${g.names.p1} (P1): total=${g.totals.p1} upper=${g.upper.p1} bonus=${g.gotBonus.p1?'YES':'no'} fsBonus=${g.fsBonus.p1}`);
+    lines.push(`  scores: [${g.scores.p1.map(v => v === null ? 'null' : v).join(', ')}]`);
+    lines.push(`${g.names.p2} (P2): total=${g.totals.p2} upper=${g.upper.p2} bonus=${g.gotBonus.p2?'YES':'no'} fsBonus=${g.fsBonus.p2}`);
+    lines.push(`  scores: [${g.scores.p2.map(v => v === null ? 'null' : v).join(', ')}]`);
+    lines.push('');
+  });
+  lines.push('=== RAW JSON ===');
+  lines.push(JSON.stringify(gameHistory, null, 2));
+  return lines.join('\n');
+}
+
+function exportFullData() {
+  const text = buildFullDataText();
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fullstacks-data-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyFullData() {
+  const text = buildFullDataText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-full-btn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(()=>btn.textContent=orig, 2500); }
+  }).catch(() => {
+    alert('Copy failed — use the Download button instead.');
+  });
+}
+
+if (gameHistory.length > 0) {
+  const badge = document.getElementById('tracker-badge');
+  badge.textContent = gameHistory.length;
+  badge.style.display = 'block';
+}
+</script>
+</body></html>
