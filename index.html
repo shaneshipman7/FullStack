@@ -921,8 +921,15 @@ function greedyHold(cat, vals) {
     // Upper: hold matching face
     return vals.map(v => v === cat + 1);
   }
-  if (cat === 6 || cat === 7 || cat === 11) {
-    // 3oak / 4oak / FullStack: hold the most-common face (prefer highest on tie)
+  if (cat === 6 || cat === 7) {
+    // 3oak / 4oak: hold the most-common face (prefer highest on tie)
+    const mx = Math.max(...c.slice(1));
+    let best = 1;
+    for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
+    return vals.map(v => v === best);
+  }
+  if (cat === 11) {
+    // FullStack: aggressively hold the most-common face (commit hard)
     const mx = Math.max(...c.slice(1));
     let best = 1;
     for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
@@ -959,7 +966,7 @@ function quickExpected(cat, vals, holdPat, rollsLeft) {
   const free = 5 - held.length;
   if (rollsLeft === 0 || free === 0) return calcScore(cat, vals);
 
-  const SIMS = 60; // fast — 60 sims per eval
+  const SIMS = 200; // 200 sims per eval — more accurate, still fast
   let total = 0;
   for (let s = 0; s < SIMS; s++) {
     const trial = [...held];
@@ -1000,12 +1007,19 @@ function bonusCredit(cat, catScore, p2scores) {
 }
 
 // Slot opportunity cost — penalty for burning this cat with a 0
-const SLOT_VALUE = [2,3,5,8,12,18, 18,22,20,24,35,45,15];
+// FullStack boosted to 55 to push AI to pursue it more aggressively
+const SLOT_VALUE = [2,3,5,8,12,18, 18,22,20,24,35,55,15];
 
 function catUtility(cat, score, p2scores) {
   const credit = bonusCredit(cat, score, p2scores);
-  const burnPenalty = score < 0.5 ? SLOT_VALUE[cat] * 1.8 : 0;
-  return score + credit - burnPenalty;
+  // Game-stage awareness: how many slots are left?
+  const slotsLeft = p2scores.filter(v => v === null).length;
+  // Burn penalty is harsher early (more options available), softer late
+  const burnMult = slotsLeft >= 9 ? 2.2 : slotsLeft >= 5 ? 1.8 : 1.1;
+  const burnPenalty = score < 0.5 ? SLOT_VALUE[cat] * burnMult : 0;
+  // Extra nudge to chase FullStack when still available and we have rolls
+  const fsPursuit = (cat === 11 && p2scores[11] === null && slotsLeft >= 3) ? 8 : 0;
+  return score + credit + fsPursuit - burnPenalty;
 }
 
 // Choose the best hold pattern for the current dice given all open categories.
@@ -1249,6 +1263,7 @@ initDiceListeners();
       No games recorded yet.<br>Finish a game to start tracking!
     </div>
     <div id="history-list"></div>
+    <input type="file" id="import-file-input" accept=".txt" style="display:none" onchange="handleImportFile(event)">
   </div>
   <div class="tp-body" id="tp-body-stats" style="display:none">
     <div class="empty-state" id="stats-empty">Play at least one game to see stats.</div>
@@ -1264,7 +1279,11 @@ initDiceListeners();
   <div class="tp-body" id="tp-body-insights" style="display:none">
     <div id="insights-content"></div>
   </div>
-</div>
+  <!-- Always-visible footer pinned to bottom of panel -->
+  <div id="tp-footer" style="flex-shrink:0;border-top:1px solid var(--border);padding:10px 12px;background:var(--surface2);display:flex;gap:8px;">
+    <button onclick="importDataClick()" style="flex:1;background:rgba(71,195,255,0.1);border:1px solid rgba(71,195,255,0.35);color:var(--p2);border-radius:6px;padding:8px 6px;font-size:0.72em;font-weight:700;letter-spacing:0.05em;cursor:pointer;font-family:'IBM Plex Mono',monospace;">📂 Import</button>
+    <button onclick="resetHistoryConfirm()" style="flex:1;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.3);color:var(--danger);border-radius:6px;padding:8px 6px;font-size:0.72em;font-weight:700;letter-spacing:0.05em;cursor:pointer;font-family:'IBM Plex Mono',monospace;">🗑 Reset</button>
+  </div>
 
 <script>
 // ===== TRACKER STATE =====
@@ -1346,7 +1365,10 @@ function renderHistory() {
   const empty = document.getElementById('history-empty');
   list.innerHTML = '';
 
-  if (!gameHistory.length) { empty.style.display = 'block'; return; }
+  if (!gameHistory.length) {
+    empty.style.display = 'block';
+    return;
+  }
   empty.style.display = 'none';
 
   const allScores = gameHistory.flatMap(g => [g.totals.p1, g.totals.p2]);
@@ -1774,29 +1796,44 @@ function adaptiveWeights() {
   const weights = {};
   CAT_NAMES.forEach((_,i) => { weights[i] = 1.0; });
 
-  // Base Shark weights tuned from Shane's data:
-  // - Shane almost never scores FullStack (0/18 except lucky games) → computer hunts it harder
-  // - Shane's upper avg is 59, just missing bonus → computer prioritizes 4s/5s/6s
-  // - Shane's 4oak is weak (avg ~10) → computer prioritizes it
-  weights[11] = 1.6;  // FullStack: computer hunts aggressively
-  weights[10] = 1.2;  // Large straight: protect it
-  weights[7]  = 1.3;  // 4 of a kind: Shane's weakest lower cat
-  weights[4]  = 1.25; // Fives: high upper value
-  weights[5]  = 1.25; // Sixes: high upper value
+  // Base Shark weights: hunt FullStack, protect high-value lower cats
+  weights[11] = 1.7;  // FullStack: hunt it hard
+  weights[10] = 1.2;  // Large straight
+  weights[7]  = 1.3;  // 4 of a kind
+  weights[4]  = 1.25; // Fives
+  weights[5]  = 1.25; // Sixes
   weights[3]  = 1.1;  // Fours
 
-  // Also factor in live game insights
+  // Factor in player-specific weaknesses from history
   const insights = buildInsights();
   insights.forEach(ins => {
     if (ins.rule === 'upper_priority') {
       weights[3] *= 1.2; weights[4] *= 1.2; weights[5] *= 1.2;
     }
-    if (ins.rule === 'fs_aggression') weights[11] *= 1.3;
+    if (ins.rule === 'fs_aggression') weights[11] *= 1.35;
     if (ins.rule === 'upper_strong') {
-      // Player has upper under control — compete harder in lower section
       weights[6] *= 1.2; weights[7] *= 1.2; weights[8] *= 1.1;
     }
   });
+
+  // Opponent-awareness: if computer is currently BEHIND, get riskier — chase big cats
+  if (G) {
+    const compScore = G.scores.p2.reduce((a,b) => a + (b||0), 0) + G.fsBonus.p2;
+    const humanScore = G.scores.p1.reduce((a,b) => a + (b||0), 0) + G.fsBonus.p1;
+    const gap = humanScore - compScore;
+    const slotsLeft = G.scores.p2.filter(v => v === null).length;
+    if (gap > 40 && slotsLeft <= 6) {
+      // Behind and running out of turns — go big or go home
+      weights[11] *= 1.5; // FullStack is the Hail Mary
+      weights[10] *= 1.3; // Large straight is high value
+      weights[7]  *= 1.3; // 4oak
+    } else if (gap < -30 && slotsLeft <= 6) {
+      // Comfortably ahead — play it safe, lock in sure points
+      weights[8]  *= 1.2; // Full house: reliable 25
+      weights[9]  *= 1.2; // Sm straight: reliable 30
+      weights[12] *= 1.1; // Chance: safe dump
+    }
+  }
 
   return weights;
 }
@@ -1886,6 +1923,10 @@ function renderInsights() {
     <button onclick="exportInsightsFile()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;">📥 Download Coaching Report</button>
     <button onclick="copyInsightsText()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:600;letter-spacing:0.06em;width:100%;cursor:pointer;">📋 Copy to Clipboard</button>
     <button onclick="exportFullData()" style="background:rgba(232,255,71,0.1);border:1px solid rgba(232,255,71,0.3);color:var(--p1);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;">📤 Export Full Game Data for AI</button>
+    <div style="font-size:0.65em;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:6px;margin-bottom:2px;">Manage Data</div>
+    <button onclick="importDataClick()" style="background:rgba(71,195,255,0.08);border:1px solid rgba(71,195,255,0.3);color:var(--p2);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;">📂 Import Saved Game Data</button>
+    <button onclick="resetHistoryConfirm()" style="background:rgba(255,71,87,0.07);border:1px solid rgba(255,71,87,0.25);color:var(--danger);border-radius:6px;padding:9px 14px;font-size:0.78em;font-weight:700;letter-spacing:0.06em;width:100%;cursor:pointer;">🗑 Reset History (Fresh Start)</button>
+    <input type="file" id="import-file-input" accept=".txt" style="display:none" onchange="handleImportFile(event)">
   </div>`;
 
   el.innerHTML = html;
@@ -2009,6 +2050,77 @@ if (gameHistory.length > 0) {
   const badge = document.getElementById('tracker-badge');
   badge.textContent = gameHistory.length;
   badge.style.display = 'block';
+}
+
+// ===== IMPORT / RESET =====
+function importDataClick() {
+  const inp = document.getElementById('import-file-input');
+  if (inp) inp.click();
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    // Try to find the RAW JSON block in the exported file
+    const jsonStart = text.indexOf('=== RAW JSON ===');
+    let parsed = null;
+    if (jsonStart !== -1) {
+      try {
+        parsed = JSON.parse(text.slice(jsonStart + 16).trim());
+      } catch(err) {}
+    }
+    // Fallback: maybe the file is pure JSON
+    if (!parsed) {
+      try { parsed = JSON.parse(text.trim()); } catch(err) {}
+    }
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      alert('Could not read game data from this file.\n\nMake sure you\'re using a file exported with "Export Full Game Data for AI".');
+      event.target.value = '';
+      return;
+    }
+
+    const incoming = parsed.length;
+    const existing = gameHistory.length;
+    // Merge: add records whose IDs aren't already present
+    const existingIds = new Set(gameHistory.map(g => g.id));
+    const toAdd = parsed.filter(g => !existingIds.has(g.id));
+    gameHistory = [...toAdd, ...gameHistory]
+      .sort((a,b) => (b.id||0) - (a.id||0))
+      .slice(0, 50);
+
+    try { localStorage.setItem('fs_history', JSON.stringify(gameHistory)); } catch(err) {}
+
+    const badge = document.getElementById('tracker-badge');
+    badge.textContent = gameHistory.length;
+    badge.style.display = 'block';
+    const resetBtn = document.getElementById('reset-history-btn');
+    if (resetBtn) resetBtn.style.display = 'block';
+
+    if (trackerOpen) renderCurrentTab();
+    event.target.value = '';
+
+    const msg = toAdd.length > 0
+      ? `✅ Imported ${toAdd.length} new game${toAdd.length !== 1 ? 's' : ''}${existing > 0 ? ` (${existing - (gameHistory.length - toAdd.length)} duplicate${existing > 1 ? 's' : ''} skipped)` : ''}. Total: ${gameHistory.length} games.`
+      : `ℹ️ All ${incoming} game${incoming !== 1 ? 's' : ''} in this file are already in your history.`;
+    alert(msg);
+  };
+  reader.readAsText(file);
+}
+
+function resetHistoryConfirm() {
+  const n = gameHistory.length;
+  if (n === 0) { alert('No history to reset.'); return; }
+  const confirmed = confirm(`Reset all ${n} game${n !== 1 ? 's' : ''} from history?\n\nTip: export your data first so you can import it back later.\n\nThis cannot be undone.`);
+  if (!confirmed) return;
+  gameHistory = [];
+  try { localStorage.removeItem('fs_history'); } catch(err) {}
+  try { localStorage.removeItem('fs_strategies'); } catch(err) {}
+  const badge = document.getElementById('tracker-badge');
+  badge.style.display = 'none';
+  if (trackerOpen) renderCurrentTab();
 }
 </script>
 </body></html>
