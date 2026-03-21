@@ -23,19 +23,36 @@
 body {
   font-family: 'IBM Plex Mono', monospace;
   background: var(--bg); color: var(--text);
-  min-height: 100vh; padding: 20px 16px 40px;
+  height: 100vh; overflow: hidden; padding: 16px 16px 0;
   background-image: radial-gradient(ellipse at 20% 0%, #1a1a2e 0%, transparent 60%),
                     radial-gradient(ellipse at 80% 100%, #0f1a0f 0%, transparent 50%);
 }
+.app-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.header-title { text-align:center; flex:1; }
+.header-btn {
+  font-family:'IBM Plex Mono',monospace; font-size:0.62em; font-weight:600;
+  letter-spacing:0.06em; text-transform:uppercase;
+  background:var(--surface2); border:1px solid var(--border); color:var(--muted);
+  border-radius:6px; padding:6px 10px; cursor:pointer; white-space:nowrap;
+  width:auto; margin:0; flex-shrink:0;
+  transition:color 0.15s, border-color 0.15s;
+}
+.header-btn:hover { color:var(--p1); border-color:rgba(232,255,71,0.4); }
 h1 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.4rem, 7vw, 4rem);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
   letter-spacing: 0.06em; color: var(--p1);
-  text-align: center; margin-bottom: 4px;
+  text-align: center; margin-bottom: 0;
   text-shadow: 0 0 40px rgba(232,255,71,0.3);
 }
-.subtitle { text-align:center; font-size:0.7em; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:24px; }
+.subtitle { text-align:center; font-size:0.65em; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0; }
 
+/* Lobby and other screens need normal scroll */
+#lobby.screen.active, #handoff.screen.active, #result.screen.active {
+  overflow-y: auto;
+  height: calc(100vh - 80px);
+  padding-bottom: 40px;
+}
 /* ===== SCREENS ===== */
 .screen { display:none; }
 .screen.active { display:block; }
@@ -85,18 +102,18 @@ button.inline { width:auto; display:inline-block; }
 }
 
 /* ===== GAME ===== */
-#game { max-width:600px; margin:0 auto; }
+#game { max-width:600px; margin:0 auto; display:flex; flex-direction:column; height:calc(100vh - 90px); }
 .turn-banner {
-  text-align:center; font-size:0.85em; font-weight:600; letter-spacing:0.1em;
-  text-transform:uppercase; padding:8px 16px; border-radius:6px; margin-bottom:14px;
+  text-align:center; font-size:0.78em; font-weight:600; letter-spacing:0.1em;
+  text-transform:uppercase; padding:5px 12px; border-radius:6px; margin-bottom:8px;
 }
 .turn-banner.p1-turn { background:rgba(232,255,71,0.1); color:var(--p1); border:1px solid rgba(232,255,71,0.25); }
 .turn-banner.p2-turn { background:rgba(71,195,255,0.08); color:var(--p2); border:1px solid rgba(71,195,255,0.2); }
 .turn-banner.comp-turn { background:rgba(85,85,85,0.15); color:#aaa; border:1px solid #444; }
 .turn-banner.game-over { background:rgba(255,71,87,0.1); color:var(--danger); border:1px solid rgba(255,71,87,0.25); }
 
-.dice-area { text-align:center; margin-bottom:12px; padding:0 4px; }
-.dice-container { display:flex; justify-content:center; gap:clamp(5px,2vw,10px); padding:clamp(8px,2.5vw,14px) clamp(10px,3vw,18px); background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; box-sizing:border-box; }
+.dice-area { text-align:center; margin-bottom:8px; padding:0 4px; }
+.dice-container { display:flex; justify-content:center; gap:clamp(5px,2vw,8px); padding:clamp(6px,2vw,10px) clamp(8px,2.5vw,14px); background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; box-sizing:border-box; }
 .die { width:clamp(40px,13vw,56px); height:auto; aspect-ratio:1/1; background:#fff; border:3px solid var(--border); border-radius:9px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.6); cursor:pointer; user-select:none; transition:border-color 0.2s,box-shadow 0.2s; flex:0 0 clamp(40px,13vw,56px); min-width:0; max-width:56px; }
 .die.held   { border-color:var(--held); box-shadow:0 0 18px rgba(255,152,0,0.6); transform:translateY(-6px) scale(1.08); }
 .die.locked { opacity:0.45; cursor:default; }
@@ -111,21 +128,23 @@ button.inline { width:auto; display:inline-block; }
 @keyframes shakeA { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-11deg)} 40%{transform:rotate(11deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
 @keyframes shakeB { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-11deg)} 40%{transform:rotate(11deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
 
-.controls { text-align:center; margin-bottom:10px; }
-.controls button { width:auto; min-width:170px; display:inline-block; margin:4px; }
+.controls { text-align:center; margin-bottom:6px; }
+.controls button { width:auto; min-width:150px; display:inline-block; margin:3px; }
 button.roll { background:var(--p1); color:#000; }
 
-#message { text-align:center; font-size:0.82em; min-height:1.5em; color:var(--p1); letter-spacing:0.05em; margin-bottom:14px; transition:color 0.3s; }
+#message { text-align:center; font-size:0.78em; min-height:1.3em; color:var(--p1); letter-spacing:0.05em; margin-bottom:8px; transition:color 0.3s; }
 
 /* SCORECARD */
-.scorecard-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; font-size:0.82em; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-th,td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:center; }
-thead th { background:var(--surface2); font-size:0.72em; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+.scorecard-wrap { overflow-x:hidden; }
+table { width:100%; border-collapse:collapse; font-size:1em; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; table-layout:fixed; }
+table colgroup col.col-cat { width:auto; }
+table colgroup col.col-score { width:72px; }
+th,td { padding:4px 6px; border-bottom:1px solid var(--border); text-align:center; overflow:hidden; }
+thead th { background:var(--surface2); font-size:0.72em; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
 thead th:first-child { text-align:left; }
-tbody tr th { text-align:left; font-weight:400; color:#bbb; font-size:0.88em; }
+tbody tr th { text-align:left; font-weight:400; color:#bbb; font-size:1em; }
 tr.section-total th, tr.grand-total th { font-weight:600; color:var(--text); }
-tr.section-total td { color:var(--muted); font-size:0.85em; }
+tr.section-total td { color:var(--muted); font-size:0.9em; }
 tr.grand-total { background:var(--surface2); }
 tr.grand-total td { font-weight:700; font-size:1.05em; }
 tr.fs-bonus th { color:var(--p1); font-weight:600; }
@@ -137,15 +156,57 @@ tr.fs-bonus td { color:var(--p1); }
 .score-cell.filled-p1 { color:rgba(232,255,71,0.8); }
 .score-cell.filled-p2 { color:rgba(71,195,255,0.8); }
 .score-cell.preview  { background:rgba(232,255,71,0.15)!important; color:var(--p1); font-weight:700; }
-.col-p1 { border-left:2px solid rgba(232,255,71,0.2); }
-.col-p2 { border-left:2px solid rgba(71,195,255,0.2); }
-#grandP1 { color:var(--p1)!important; }
-#grandP2 { color:var(--p2)!important; }
-.bottom-row { text-align:center; margin-top:16px; }
+.col-active { border-left:2px solid rgba(232,255,71,0.2); }
+.col-active.p2-active { border-left-color:rgba(71,195,255,0.2); }
+#grandActive { color:var(--p1); }
+/* Score tab switcher */
+.sc-tabs { display:flex; gap:6px; margin-bottom:8px; }
+.sc-tab { flex:1; padding:7px 8px; font-family:'IBM Plex Mono',monospace; font-size:0.78em; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all 0.15s; margin:0; }
+.sc-tab.active.p1 { background:rgba(232,255,71,0.12); color:var(--p1); border-color:rgba(232,255,71,0.35); }
+.sc-tab.active.p2 { background:rgba(71,195,255,0.1); color:var(--p2); border-color:rgba(71,195,255,0.3); }
+.sc-tab:hover:not(.active) { border-color:var(--p1); color:var(--p1); }
+/* Sticky game top area */
+.game-sticky {
+  flex-shrink: 0;
+  background: var(--bg);
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 2;
+}
+.game-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.bottom-row { text-align:center; margin-top:12px; margin-bottom:4px; display:flex; justify-content:center; gap:8px; flex-wrap:nowrap; }
+.game-footer { flex-shrink:0; display:flex; justify-content:center; gap:8px; padding:8px 0 4px; border-top:1px solid var(--border); }
+/* Category label with icon + hint */
+.cat-label { display:flex; align-items:center; gap:6px; }
+.cat-text { display:flex; flex-direction:column; gap:0; }
+.cat-name { font-size:0.88em; color:#ddd; line-height:1.25; font-weight:500; }
+.cat-hint { font-size:0.66em; color:var(--muted); line-height:1.2; margin-top:1px; }
+/* SVG die icon */
+.die-svg { width:18px; height:18px; flex-shrink:0; border-radius:3px; }
+.die-group { display:flex; gap:2px; flex-shrink:0; }
+.die-back { opacity:0.55; }
+/* Die + count badge for 3oak / 4oak */
+.die-count { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+.die-count-num { font-size:0.75em; color:var(--muted); font-weight:700; line-height:1; }
+/* House icon */
+.cat-icon-house { display:flex; align-items:center; flex-shrink:0; }
+/* Sequence boxes for straights */
+.seq-icon { display:flex; gap:1px; align-items:center; flex-shrink:0; }
+.seq-box { width:10px; height:13px; background:#fff; border:1px solid #bbb; border-radius:2px; font-size:7px; color:#222; display:flex; align-items:center; justify-content:center; font-weight:700; line-height:1; }
+/* Emoji icons for non-die categories */
+.cat-icon-em { font-size:15px; flex-shrink:0; line-height:1; width:18px; text-align:center; }
 
 /* ===== TRACKER PANEL ===== */
 #tracker-toggle {
-  position: fixed; top: 16px; right: 16px; z-index: 100;
+  position: fixed; top: 58px; right: 16px; z-index: 100;
   width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(232,255,71,0.3);
   background: rgba(232,255,71,0.15); color: var(--p1); font-size: 1rem;
   cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
@@ -162,7 +223,7 @@ tr.fs-bonus td { color:var(--p1); }
 }
 
 #tracker-panel {
-  position: fixed; top: 58px; right: 16px; z-index: 99;
+  position: fixed; top: 100px; right: 16px; z-index: 99;
   width: min(420px, calc(100vw - 40px));
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
@@ -329,8 +390,14 @@ tr.fs-bonus td { color:var(--p1); }
 </head>
 <body>
 
-<h1>FullStacks</h1>
-<p class="subtitle" id="subtitle">Dice Game</p>
+<div class="app-header">
+  <button class="header-btn" id="newGameBtn" onclick="goLobby()" style="visibility:hidden">New Game</button>
+  <div class="header-title">
+    <h1>FullStacks</h1>
+    <p class="subtitle" id="subtitle">Dice Game</p>
+  </div>
+  <button class="header-btn" id="htpBtn" onclick="openHTP()" style="visibility:hidden">How to Play</button>
+</div>
 
 <!-- ===== LOBBY ===== -->
 <div id="lobby" class="screen active">
@@ -380,51 +447,58 @@ tr.fs-bonus td { color:var(--p1); }
 
 <!-- ===== GAME ===== -->
 <div id="game" class="screen">
-  <div class="turn-banner p1-turn" id="turnBanner">Player 1's Turn</div>
-
-  <div class="dice-area">
-    <div class="dice-container" id="diceContainer"></div>
+  <!-- STICKY: banner + dice + roll + message -->
+  <div class="game-sticky">
+    <div class="turn-banner p1-turn" id="turnBanner">Player 1's Turn</div>
+    <div class="dice-area">
+      <div class="dice-container" id="diceContainer"></div>
+    </div>
+    <div class="controls">
+      <button id="rollBtn" class="roll" onclick="doRoll()">Roll (3 left)</button>
+    </div>
+    <div id="message">Roll to start!</div>
   </div>
-  <div class="controls">
-    <button id="rollBtn" class="roll" onclick="doRoll()">Roll (3 left)</button>
-  </div>
-  <div id="message">Roll to start!</div>
 
+  <!-- SCROLLABLE: scorecard + bottom buttons -->
+  <div class="game-scroll">
+  <!-- Player tab switcher -->
+  <div class="sc-tabs" id="scTabs">
+    <button class="sc-tab active" id="scTabP1" onclick="switchScoreTab('p1')">—</button>
+    <button class="sc-tab" id="scTabP2" onclick="switchScoreTab('p2')">—</button>
+  </div>
   <div class="scorecard-wrap">
   <table>
+  <colgroup><col class="col-cat"><col class="col-score"></colgroup>
   <thead>
     <tr>
       <th>Category</th>
-      <th class="col-p1" id="headP1">P1</th>
-      <th class="col-p2" id="headP2">P2</th>
+      <th class="col-score-head" id="headActive">—</th>
     </tr>
   </thead>
   <tbody>
-  <tr><th>Aces</th>        <td class="score-cell col-p1" data-cat="0" data-p="p1"></td><td class="score-cell col-p2" data-cat="0" data-p="p2"></td></tr>
-  <tr><th>Twos</th>        <td class="score-cell col-p1" data-cat="1" data-p="p1"></td><td class="score-cell col-p2" data-cat="1" data-p="p2"></td></tr>
-  <tr><th>Threes</th>      <td class="score-cell col-p1" data-cat="2" data-p="p1"></td><td class="score-cell col-p2" data-cat="2" data-p="p2"></td></tr>
-  <tr><th>Fours</th>       <td class="score-cell col-p1" data-cat="3" data-p="p1"></td><td class="score-cell col-p2" data-cat="3" data-p="p2"></td></tr>
-  <tr><th>Fives</th>       <td class="score-cell col-p1" data-cat="4" data-p="p1"></td><td class="score-cell col-p2" data-cat="4" data-p="p2"></td></tr>
-  <tr><th>Sixes</th>       <td class="score-cell col-p1" data-cat="5" data-p="p1"></td><td class="score-cell col-p2" data-cat="5" data-p="p2"></td></tr>
-  <tr class="section-total"><th>Upper Total</th><td class="col-p1" id="upperP1">0</td><td class="col-p2" id="upperP2">0</td></tr>
-  <tr><th>Bonus (≥63)</th> <td class="col-p1" id="bonusP1">—</td><td class="col-p2" id="bonusP2">—</td></tr>
-  <tr><th>3 of a Kind</th> <td class="score-cell col-p1" data-cat="6"  data-p="p1"></td><td class="score-cell col-p2" data-cat="6"  data-p="p2"></td></tr>
-  <tr><th>4 of a Kind</th> <td class="score-cell col-p1" data-cat="7"  data-p="p1"></td><td class="score-cell col-p2" data-cat="7"  data-p="p2"></td></tr>
-  <tr><th>Full House</th>  <td class="score-cell col-p1" data-cat="8"  data-p="p1"></td><td class="score-cell col-p2" data-cat="8"  data-p="p2"></td></tr>
-  <tr><th>Sm. Straight</th><td class="score-cell col-p1" data-cat="9"  data-p="p1"></td><td class="score-cell col-p2" data-cat="9"  data-p="p2"></td></tr>
-  <tr><th>Lg. Straight</th><td class="score-cell col-p1" data-cat="10" data-p="p1"></td><td class="score-cell col-p2" data-cat="10" data-p="p2"></td></tr>
-  <tr><th>FullStack!</th>  <td class="score-cell col-p1" data-cat="11" data-p="p1"></td><td class="score-cell col-p2" data-cat="11" data-p="p2"></td></tr>
-  <tr><th>Chance</th>      <td class="score-cell col-p1" data-cat="12" data-p="p1"></td><td class="score-cell col-p2" data-cat="12" data-p="p2"></td></tr>
-  <tr class="fs-bonus"><th>FullStack Bonus</th><td class="col-p1" id="fsBonusP1">—</td><td class="col-p2" id="fsBonusP2">—</td></tr>
-  <tr class="section-total"><th>Lower Total</th><td class="col-p1" id="lowerP1">0</td><td class="col-p2" id="lowerP2">0</td></tr>
-  <tr class="grand-total"><th>Grand Total</th><td class="col-p1" id="grandP1">0</td><td class="col-p2" id="grandP2">0</td></tr>
+  <tr><th><div class="cat-label"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><circle cx="10" cy="10" r="2.2" fill="#222"/></svg><div class="cat-text"><span class="cat-name">Aces</span><span class="cat-hint">Sum of all 1s</span></div></div></th><td class="score-cell col-active" data-cat="0" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><circle cx="6" cy="6" r="2" fill="#222"/><circle cx="14" cy="14" r="2" fill="#222"/></svg><div class="cat-text"><span class="cat-name">Twos</span><span class="cat-hint">Sum of all 2s</span></div></div></th><td class="score-cell col-active" data-cat="1" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><circle cx="6" cy="6" r="2" fill="#222"/><circle cx="10" cy="10" r="2" fill="#222"/><circle cx="14" cy="14" r="2" fill="#222"/></svg><div class="cat-text"><span class="cat-name">Threes</span><span class="cat-hint">Sum of all 3s</span></div></div></th><td class="score-cell col-active" data-cat="2" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><circle cx="6" cy="6" r="2" fill="#222"/><circle cx="14" cy="6" r="2" fill="#222"/><circle cx="6" cy="14" r="2" fill="#222"/><circle cx="14" cy="14" r="2" fill="#222"/></svg><div class="cat-text"><span class="cat-name">Fours</span><span class="cat-hint">Sum of all 4s</span></div></div></th><td class="score-cell col-active" data-cat="3" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><circle cx="6" cy="6" r="2" fill="#222"/><circle cx="14" cy="6" r="2" fill="#222"/><circle cx="10" cy="10" r="2" fill="#222"/><circle cx="6" cy="14" r="2" fill="#222"/><circle cx="14" cy="14" r="2" fill="#222"/></svg><div class="cat-text"><span class="cat-name">Fives</span><span class="cat-hint">Sum of all 5s</span></div></div></th><td class="score-cell col-active" data-cat="4" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><circle cx="6" cy="5" r="2" fill="#222"/><circle cx="6" cy="10" r="2" fill="#222"/><circle cx="6" cy="15" r="2" fill="#222"/><circle cx="14" cy="5" r="2" fill="#222"/><circle cx="14" cy="10" r="2" fill="#222"/><circle cx="14" cy="15" r="2" fill="#222"/></svg><div class="cat-text"><span class="cat-name">Sixes</span><span class="cat-hint">Sum of all 6s</span></div></div></th><td class="score-cell col-active" data-cat="5" data-p="p1"></td></tr>
+  <tr class="section-total"><th>Upper Total</th><td id="upperActive">0</td></tr>
+  <tr><th><div class="cat-label"><span class="cat-icon-em">⭐</span><div class="cat-text"><span class="cat-name">Bonus (≥63)</span><span class="cat-hint">+35 if upper ≥ 63</span></div></div></th><td id="bonusActive">—</td></tr>
+  <tr><th><div class="cat-label"><div class="die-count"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><text x="10" y="14.5" text-anchor="middle" font-size="12" font-weight="900" font-family="Arial,sans-serif" fill="#222">?</text></svg><span class="die-count-num">×3</span></div><div class="cat-text"><span class="cat-name">3 of a Kind</span><span class="cat-hint">3 matching → sum all</span></div></div></th><td class="score-cell col-active" data-cat="6" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><div class="die-count"><svg class="die-svg" viewBox="0 0 20 20"><rect width="20" height="20" rx="3" fill="#fff" stroke="#bbb" stroke-width="1"/><text x="10" y="14.5" text-anchor="middle" font-size="12" font-weight="900" font-family="Arial,sans-serif" fill="#222">?</text></svg><span class="die-count-num">×4</span></div><div class="cat-text"><span class="cat-name">4 of a Kind</span><span class="cat-hint">4 matching → sum all</span></div></div></th><td class="score-cell col-active" data-cat="7" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><span class="cat-icon-house"><svg viewBox="0 0 24 22" width="22" height="20"><polygon points="12,2 22,10 20,10 20,20 4,20 4,10 2,10" fill="#fff" stroke="#bbb" stroke-width="1.5" stroke-linejoin="round"/><rect x="8" y="13" width="8" height="7" fill="#ddd" stroke="#bbb" stroke-width="1"/><rect x="10" y="14.5" width="4" height="5.5" fill="#bbb"/></svg></span><div class="cat-text"><span class="cat-name">Full House</span><span class="cat-hint">3+2 of a kind → 25</span></div></div></th><td class="score-cell col-active" data-cat="8" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><div class="seq-icon"><span class="seq-box">1</span><span class="seq-box">2</span><span class="seq-box">3</span><span class="seq-box">4</span></div><div class="cat-text"><span class="cat-name">Sm. Straight</span><span class="cat-hint">4 in sequence → 30</span></div></div></th><td class="score-cell col-active" data-cat="9" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><div class="seq-icon"><span class="seq-box">1</span><span class="seq-box">2</span><span class="seq-box">3</span><span class="seq-box">4</span><span class="seq-box">5</span></div><div class="cat-text"><span class="cat-name">Lg. Straight</span><span class="cat-hint">5 in sequence → 40</span></div></div></th><td class="score-cell col-active" data-cat="10" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><span class="cat-icon-em">💥</span><div class="cat-text"><span class="cat-name">FullStack!</span><span class="cat-hint">All 5 same → 50</span></div></div></th><td class="score-cell col-active" data-cat="11" data-p="p1"></td></tr>
+  <tr><th><div class="cat-label"><span class="cat-icon-em">❓</span><div class="cat-text"><span class="cat-name">Chance</span><span class="cat-hint">Any roll → sum all</span></div></div></th><td class="score-cell col-active" data-cat="12" data-p="p1"></td></tr>
+  <tr class="fs-bonus"><th><div class="cat-label"><span class="cat-icon-em">🔥</span><div class="cat-text"><span class="cat-name">FullStack Bonus</span><span class="cat-hint">Extra FS → +100 each</span></div></div></th><td id="fsBonusActive">—</td></tr>
+  <tr class="section-total"><th>Lower Total</th><td id="lowerActive">0</td></tr>
+  <tr class="grand-total"><th>Grand Total</th><td id="grandActive">0</td></tr>
   </tbody>
   </table>
   </div>
-  <div class="bottom-row">
-    <button class="btn-soft inline" style="font-size:0.8em;padding:8px 16px;" onclick="goLobby()">New Game</button>
-    <button class="btn-soft inline" style="font-size:0.8em;padding:8px 16px;" onclick="openHTP()">How to Play</button>
-  </div>
+  </div><!-- end game-scroll -->
+</div>
 </div>
 
 <!-- ===== HOW TO PLAY MODAL ===== -->
@@ -559,8 +633,7 @@ function startPassPlay() {
   mode = 'passplay';
   G = freshGame(p1, p2);
   document.getElementById('subtitle').textContent = 'Pass & Play';
-  document.getElementById('headP1').textContent = p1;
-  document.getElementById('headP2').textContent = p2;
+  activeScorePlayer = 'p1';
   setupScoreCellListeners();
   showHandoff('p1');
 }
@@ -572,22 +645,23 @@ function startVsComp() {
   G.difficulty = aiDifficulty;
   currentGameMoves = [];
   document.getElementById('subtitle').textContent = `vs Computer · ${aiDifficulty === 'easy' ? 'ROOKIE' : aiDifficulty === 'medium' ? 'CLUB' : aiDifficulty === 'hard' ? 'PRO' : 'SHARK'}`;
-  document.getElementById('headP1').textContent = p1;
-  document.getElementById('headP2').textContent = 'Computer';
+  activeScorePlayer = 'p1';
   setupScoreCellListeners();
   enterGame();
 }
 
 function goLobby() {
   G = null; mode = null; pendingCat = null;
+  activeScorePlayer = 'p1';
+  document.getElementById('newGameBtn').style.visibility = 'hidden';
+  document.getElementById('htpBtn').style.visibility = 'hidden';
   document.querySelectorAll('.score-cell').forEach(c => {
     c.textContent = '';
-    const colClass = c.classList.contains('col-p1') ? 'col-p1' : 'col-p2';
-    c.className = `score-cell ${colClass}`;
+    c.className = 'score-cell col-active';
     c.style.background = '';
   });
-  ['upperP1','upperP2','bonusP1','bonusP2','lowerP1','lowerP2','grandP1','grandP2','fsBonusP1','fsBonusP2']
-    .forEach(id => document.getElementById(id).textContent = id.startsWith('bonus')||id.startsWith('fs') ? '—' : '0');
+  ['upperActive','bonusActive','lowerActive','grandActive','fsBonusActive']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = id.startsWith('bonus')||id.startsWith('fs') ? '—' : '0'; });
   showScreen('lobby');
 }
 
@@ -634,9 +708,12 @@ function enterGame() {
   document.getElementById('rollBtn').textContent = 'Roll (3 left)';
   document.getElementById('message').textContent = 'Roll to start!';
   document.getElementById('message').style.color = t === 'p1' ? 'var(--p1)' : 'var(--p2)';
+  activeScorePlayer = t;
   renderDice();
   updateScorecard();
   showScreen('game');
+  document.getElementById('newGameBtn').style.visibility = 'visible';
+  document.getElementById('htpBtn').style.visibility = 'visible';
 
   if (t === 'p2' && mode === 'vscomp') {
     document.getElementById('rollBtn').disabled = true;
@@ -816,9 +893,9 @@ function renderDiceShake(oldVals, newVals, held, onComplete) {
 function setupScoreCellListeners() {
   document.querySelectorAll('.score-cell').forEach(cell => {
     cell.onclick = () => {
-      const p = cell.dataset.p;
+      const p = cell.dataset.p; // set dynamically by updateScorecard
       const cat = parseInt(cell.dataset.cat);
-      if (G.gameOver || G.turn !== p || G.rolling) return;
+      if (!G || G.gameOver || G.turn !== p || G.rolling) return;
       if (G.scores[p][cat] !== null) return;
       if (G.rollsLeft === 3) return;
       if (mode === 'vscomp' && p === 'p2') return;
@@ -832,12 +909,7 @@ function setupScoreCellListeners() {
         }
       }
 
-      let sc;
-      if (isBonusTurn) {
-        sc = jokerScore(cat, G.dice);
-      } else {
-        sc = calcScore(cat, G.dice);
-      }
+      let sc = isBonusTurn ? jokerScore(cat, G.dice) : calcScore(cat, G.dice);
 
       if (pendingCat !== cat) {
         clearPreview();
@@ -857,9 +929,17 @@ function setupScoreCellListeners() {
 
       const next = p === 'p1' ? 'p2' : 'p1';
       G.turn = next;
+      // Auto-switch tab to next player
+      activeScorePlayer = next;
 
       if (mode === 'passplay') {
         showHandoff(next);
+      } else if (next === 'p2' && mode === 'vscomp') {
+        // Brief pause so the player can see their score land before computer starts
+        document.getElementById('rollBtn').disabled = true;
+        document.getElementById('message').textContent = '…';
+        document.getElementById('message').style.color = 'var(--muted)';
+        setTimeout(enterGame, 900);
       } else {
         enterGame();
       }
@@ -886,26 +966,21 @@ function clearPreview() {
     c.classList.remove('preview');
     const cat = parseInt(c.dataset.cat);
     const p = c.dataset.p;
-    if (G.scores[p][cat] === null) c.textContent = '';
+    if (G && G.scores[p][cat] === null) c.textContent = '';
   });
   pendingCat = null;
 }
 
 function showHints() {
+  if (!G) return;
   const p = G.turn;
   const isBonusTurn = isFullStack(G.dice) && G.scores[p][11] !== null;
   const allowed = isBonusTurn ? jokerAllowedCats(p, G.dice) : null;
 
-  const other = p === 'p1' ? 'p2' : 'p1';
-  document.querySelectorAll(`.score-cell[data-p="${other}"]`).forEach(cell => {
-    const cat = parseInt(cell.dataset.cat);
-    if (G.scores[other][cat] === null && !cell.classList.contains('preview')) {
-      cell.textContent = '';
-      cell.style.background = '';
-    }
-  });
+  // Only show hints when viewing the active player's column
+  if (activeScorePlayer !== p) return;
 
-  document.querySelectorAll(`.score-cell[data-p="${p}"]`).forEach(cell => {
+  document.querySelectorAll('.score-cell').forEach(cell => {
     const cat = parseInt(cell.dataset.cat);
     if (G.scores[p][cat] !== null) return;
     if (cell.classList.contains('preview')) return;
@@ -975,35 +1050,80 @@ function renderDice() {
   }
 }
 
+// ===== SCORECARD TAB =====
+let activeScorePlayer = 'p1';
+
+function switchScoreTab(p) {
+  activeScorePlayer = p;
+  updateScorecard();
+  showHints();
+}
+
+function refreshTabUI() {
+  const p1 = G ? G.names.p1 : 'P1';
+  const p2 = G ? G.names.p2 : 'P2';
+  const t1 = document.getElementById('scTabP1');
+  const t2 = document.getElementById('scTabP2');
+  t1.textContent = p1;
+  t2.textContent = p2;
+  t1.className = 'sc-tab' + (activeScorePlayer === 'p1' ? ' active p1' : '');
+  t2.className = 'sc-tab' + (activeScorePlayer === 'p2' ? ' active p2' : '');
+  const head = document.getElementById('headActive');
+  if (head) head.textContent = activeScorePlayer === 'p1' ? p1 : p2;
+  // Update score column border colour
+  const scoreCol = document.querySelector('table colgroup col.col-score');
+  if (scoreCol) scoreCol.style.borderLeft = activeScorePlayer === 'p1'
+    ? '2px solid rgba(232,255,71,0.2)' : '2px solid rgba(71,195,255,0.2)';
+  // Grand total colour
+  const gEl = document.getElementById('grandActive');
+  if (gEl) gEl.style.color = activeScorePlayer === 'p1' ? 'var(--p1)' : 'var(--p2)';
+}
+
 // ===== SCORECARD =====
 function updateScorecard() {
-  ['p1','p2'].forEach(p => {
-    const suf = p === 'p1' ? 'P1' : 'P2';
-    const t = G.turn;
+  const p = activeScorePlayer;
+  const t = G ? G.turn : 'p1';
 
-    for (let c=0; c<13; c++) {
-      const cell = document.querySelector(`.score-cell[data-p="${p}"][data-cat="${c}"]`);
-      if (G.scores[p][c] !== null) {
-        cell.textContent = G.scores[p][c];
-        cell.className = `score-cell col-${p} filled filled-${p}`;
-      } else if (!cell.classList.contains('preview')) {
-        const isActive = t === p && !G.gameOver && !(mode==='vscomp'&&p==='p2');
-        if (!isActive || G.rollsLeft === 3) cell.textContent = '';
-        cell.style.background = '';
-        cell.className = `score-cell col-${p}${isActive?'':' locked-cell'}`;
-      }
+  refreshTabUI();
+
+  // Update all visible score cells for active player
+  for (let c = 0; c < 13; c++) {
+    const cell = document.querySelector(`.score-cell[data-cat="${c}"]`);
+    if (!cell) continue;
+    cell.dataset.p = p;
+    if (G && G.scores[p][c] !== null) {
+      cell.textContent = G.scores[p][c];
+      const colClass = p === 'p1' ? 'col-active filled filled-p1' : 'col-active p2-active filled filled-p2';
+      cell.className = `score-cell ${colClass}`;
+    } else if (!cell.classList.contains('preview')) {
+      const isActive = G && t === p && !G.gameOver && !(mode === 'vscomp' && p === 'p2');
+      if (!isActive || !G || G.rollsLeft === 3) cell.textContent = '';
+      cell.style.background = '';
+      const colClass = p === 'p1' ? 'col-active' : 'col-active p2-active';
+      cell.className = `score-cell ${colClass}${isActive ? '' : ' locked-cell'}`;
     }
+  }
 
-    const upper = G.scores[p].slice(0,6).reduce((a,b)=>a+(b||0),0);
+  // Totals for active player
+  if (G) {
+    const upper = G.scores[p].slice(0, 6).reduce((a, b) => a + (b || 0), 0);
     const bonus  = upper >= 63 ? 35 : 0;
-    const lower  = G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
+    const lower  = G.scores[p].slice(6).reduce((a, b) => a + (b || 0), 0) + G.fsBonus[p];
     const grand  = upper + bonus + lower;
-    document.getElementById(`upper${suf}`).textContent = upper;
-    document.getElementById(`bonus${suf}`).textContent = bonus > 0 ? '+35' : `${upper}/63`;
-    document.getElementById(`lower${suf}`).textContent = lower;
-    document.getElementById(`grand${suf}`).textContent = grand;
-    document.getElementById(`fsBonus${suf}`).textContent = G.fsBonus[p] > 0 ? '+'+G.fsBonus[p] : '—';
-  });
+    document.getElementById('upperActive').textContent = upper;
+    document.getElementById('bonusActive').textContent = bonus > 0 ? '+35' : `${upper}/63`;
+    document.getElementById('lowerActive').textContent = lower;
+    document.getElementById('grandActive').textContent = grand;
+    document.getElementById('fsBonusActive').textContent = G.fsBonus[p] > 0 ? '+' + G.fsBonus[p] : '—';
+  }
+
+  // Keep old p1/p2 IDs in sync so checkGameOver / AI still work
+  if (G) {
+    ['p1','p2'].forEach(pp => {
+      const suf = pp === 'p1' ? 'P1' : 'P2';
+      // These IDs no longer exist in DOM but grandTotal() reads G.scores directly — fine
+    });
+  }
 }
 
 // ===== GAME OVER =====
@@ -1043,40 +1163,39 @@ function grandTotal(p) {
   return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
 }
 
-// ===== COMPUTER AI — FAST SMART ENGINE =====
+// ===== COMPUTER AI — UPGRADED SMART ENGINE =====
 
 // For each category, what dice values should we hold? Returns boolean[5].
-// This is the category-specific hold heuristic — fast, no MC needed.
 function greedyHold(cat, vals) {
   const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
 
   if (cat <= 5) {
-    // Upper: hold matching face
     return vals.map(v => v === cat + 1);
   }
   if (cat === 6 || cat === 7) {
-    // 3oak / 4oak: hold the most-common face (prefer highest on tie)
     const mx = Math.max(...c.slice(1));
     let best = 1;
     for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
     return vals.map(v => v === best);
   }
   if (cat === 11) {
-    // FullStack: aggressively hold the most-common face (commit hard)
+    // FullStack: commit to the most-common HIGH face (prefer 6s)
     const mx = Math.max(...c.slice(1));
     let best = 1;
     for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
     return vals.map(v => v === best);
   }
   if (cat === 8) {
-    // Full house: hold 3oak + pair if we have it; else hold best pair
+    // Full house: prefer keeping complete 3+2; else hold the bigger group
     const h3 = c.findIndex((x, i) => i > 0 && x >= 3);
-    if (h3 > 0) return vals.map(v => c[v] >= 2);
+    const h2 = c.findIndex((x, i) => i > 0 && x >= 2 && i !== h3);
+    if (h3 > 0 && h2 > 0) return vals.map(v => c[v] >= 2);
+    if (h3 > 0) return vals.map(v => v === h3);
     for (let f = 6; f >= 1; f--) { if (c[f] >= 2) return vals.map(v => v === f); }
     return [false,false,false,false,false];
   }
   if (cat === 9 || cat === 10) {
-    // Straights: hold the longest consecutive run
+    // Straights: hold the longest consecutive run (one die per value)
     const u = [...new Set(vals)].sort((a,b) => a-b);
     let best = [u[0]], cur = [u[0]];
     for (let i = 1; i < u.length; i++) {
@@ -1084,29 +1203,35 @@ function greedyHold(cat, vals) {
       else { if (cur.length > best.length) best = [...cur]; cur = [u[i]]; }
     }
     if (cur.length > best.length) best = [...cur];
+    // For small straight (cat=9), also check for 4-long sub-sequences
+    if (cat === 9 && best.length < 4) {
+      for (let start = 0; start <= u.length - 4; start++) {
+        let seq = true;
+        for (let j = 1; j < 4; j++) if (u[start+j] !== u[start]+j) { seq=false; break; }
+        if (seq) { best = u.slice(start, start+4); break; }
+      }
+    }
     const rs = new Set(best); const used = new Set();
     return vals.map(v => { if (rs.has(v) && !used.has(v)) { used.add(v); return true; } return false; });
   }
-  if (cat === 12) return vals.map(v => v >= 4); // Chance: hold 4s and up
+  if (cat === 12) return vals.map(v => v >= 4); // Chance: hold high dice
   return [false,false,false,false,false];
 }
 function holdForCat(cat, vals) { return greedyHold(cat, vals); }
 
-// Quick expected-score estimate for a category given held dice and rolls left.
-// Uses a small flat Monte Carlo (no recursion) — fast and accurate enough.
+// Monte Carlo expected score — 2-level lookahead with optimal re-hold
 function quickExpected(cat, vals, holdPat, rollsLeft) {
   const held = vals.filter((_, i) => holdPat[i]);
   const free = 5 - held.length;
   if (rollsLeft === 0 || free === 0) return calcScore(cat, vals);
 
-  const SIMS = 200; // 200 sims per eval — more accurate, still fast
+  const SIMS = 300;
   let total = 0;
   for (let s = 0; s < SIMS; s++) {
     const trial = [...held];
     for (let d = 0; d < free; d++) trial.push(rollDie());
 
     if (rollsLeft > 1) {
-      // One more roll after this — apply greedy hold and score best outcome
       const h2 = greedyHold(cat, trial);
       const held2 = trial.filter((_, i) => h2[i]);
       const free2 = 5 - held2.length;
@@ -1120,64 +1245,113 @@ function quickExpected(cat, vals, holdPat, rollsLeft) {
   return total / SIMS;
 }
 
-// Upper bonus credit — how much is this upper score worth toward the +35?
+// Upper bonus credit — how much expected value does an upper cat score contribute
+// toward the +35 bonus, given remaining open upper slots?
 function bonusCredit(cat, catScore, p2scores) {
   if (cat > 5) return 0;
   const soFar = p2scores.slice(0,6).reduce((a,b) => a+(b||0), 0);
   const left  = p2scores.slice(0,6).filter(v => v === null).length;
   if (left === 0) return 0;
   const projected = soFar + catScore;
-  if (projected >= 63) return 35;
-  // Reachability check: remaining slots at ideal avg
+  if (projected >= 63) return 35; // bonus locked in — full credit
+  // Check if bonus is still reachable
   const idealAvg = [3.5, 7, 10.5, 14, 17.5, 21];
   const remainOpen = [0,1,2,3,4,5].filter(c => c !== cat && p2scores[c] === null)
     .sort((a,b) => idealAvg[b]-idealAvg[a]).slice(0, left-1);
   const maxReach = projected + remainOpen.reduce((s,c)=>s+idealAvg[c],0);
-  if (maxReach < 63) return 0;
-  const ideal = (cat+1)*3;
-  const onTrack = Math.min(1, projected/63);
-  return Math.round(onTrack * Math.min(1.2, catScore/Math.max(ideal,1)) * 26);
+  if (maxReach < 63) return 0; // unreachable — no credit
+  // Partial credit scaled by how on-track we are
+  const needed = 63 - soFar;
+  const paceRatio = needed > 0 ? Math.min(1.4, catScore / (needed / left)) : 1;
+  const reachRatio = Math.min(1, (maxReach - 63 + catScore) / Math.max(catScore, 1));
+  return Math.round(paceRatio * reachRatio * 22);
 }
 
-// Slot opportunity cost — penalty for burning this cat with a 0
-// FullStack boosted to 55 to push AI to pursue it more aggressively
-const SLOT_VALUE = [2,3,5,8,12,18, 18,22,20,24,35,55,15];
+// Slot opportunity cost: penalty for burning a slot with a zero score.
+// Values tuned: high-value fixed cats penalise zeros heavily.
+const SLOT_VALUE = [2,3,5,8,12,18, 18,24,20,26,38,60,14];
 
 function catUtility(cat, score, p2scores) {
   const credit = bonusCredit(cat, score, p2scores);
-  // Game-stage awareness: how many slots are left?
   const slotsLeft = p2scores.filter(v => v === null).length;
-  // Burn penalty is harsher early (more options available), softer late
-  const burnMult = slotsLeft >= 9 ? 2.2 : slotsLeft >= 5 ? 1.8 : 1.1;
+  // Burn penalty scales with game stage (harsher early when you have more options)
+  const burnMult = slotsLeft >= 10 ? 2.5 : slotsLeft >= 7 ? 2.0 : slotsLeft >= 4 ? 1.5 : 1.0;
   const burnPenalty = score < 0.5 ? SLOT_VALUE[cat] * burnMult : 0;
-  // Extra nudge to chase FullStack when still available and we have rolls
-  const fsPursuit = (cat === 11 && p2scores[11] === null && slotsLeft >= 3) ? 8 : 0;
+  // FullStack pursuit bonus — when open and we have time left, it's worth chasing
+  const fsPursuit = (cat === 11 && p2scores[11] === null && slotsLeft >= 3) ? 10 : 0;
   return score + credit + fsPursuit - burnPenalty;
 }
 
-// Choose the best hold pattern for the current dice given all open categories.
-// Evaluates each open category's best hold, picks highest expected utility.
+// --- SMARTER HOLD EVALUATION ---
+// Instead of only trying the greedy hold per category, also evaluate:
+//   - hybrid holds (e.g. keep a pair AND a straight component together)
+//   - "keep nothing" (reroll all 5 when every option is terrible)
+// Then pick the hold pattern whose best-case expected utility is highest.
+
+function allCandidateHolds(vals, p2scores) {
+  const holds = new Map(); // key = JSON string of hold mask → Set dedup
+
+  const openCats = [];
+  for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
+
+  // Standard greedy holds per open category
+  for (const cat of openCats) {
+    const pat = greedyHold(cat, vals);
+    holds.set(JSON.stringify(pat), pat);
+  }
+
+  // "Keep nothing" — sometimes optimal early when dice are all junk
+  holds.set('false5', [false,false,false,false,false]);
+
+  // "Keep only 6s" — always worth considering
+  const keep6 = vals.map(v => v === 6);
+  holds.set('keep6:' + JSON.stringify(keep6), keep6);
+
+  // Hybrid: keep top-2 most-common faces (e.g. two pairs → good for FH/3oak)
+  const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
+  const ranked = [1,2,3,4,5,6].filter(f => c[f] > 0).sort((a,b) => {
+    if (c[b] !== c[a]) return c[b]-c[a]; // bigger count first
+    return b-a; // higher face first on tie
+  });
+  if (ranked.length >= 2 && c[ranked[0]] >= 2 && c[ranked[1]] >= 2) {
+    const top2 = new Set([ranked[0], ranked[1]]);
+    const hybrid = vals.map(v => top2.has(v));
+    holds.set('hybrid2pair:' + JSON.stringify(hybrid), hybrid);
+  }
+
+  return [...holds.values()];
+}
+
+// Choose the best hold pattern considering all candidate holds
 function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
   if (rollsLeft === 0) return vals.map(() => false);
   const openCats = [];
   for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
   if (!openCats.length) return vals.map(() => false);
 
-  let bestPat = greedyHold(openCats[0], vals);
+  const candidates = allCandidateHolds(vals, p2scores);
+
+  let bestPat = candidates[0];
   let bestUtil = -Infinity;
 
-  for (const cat of openCats) {
-    const pat = greedyHold(cat, vals);
-    const exp = quickExpected(cat, vals, pat, rollsLeft);
-    let u = exp + bonusCredit(cat, exp, p2scores);
-    if (weightFn) u *= (weightFn(cat) || 1.0);
-    if (u > bestUtil) { bestUtil = u; bestPat = pat; }
+  for (const pat of candidates) {
+    // For each candidate hold pattern, compute the max utility achievable
+    // across all open categories (this selects the goal that benefits MOST
+    // from holding these specific dice)
+    let patBestUtil = -Infinity;
+    for (const cat of openCats) {
+      const exp = quickExpected(cat, vals, pat, rollsLeft);
+      let u = catUtility(cat, exp, p2scores);
+      if (weightFn) u *= (weightFn(cat) || 1.0);
+      if (u > patBestUtil) patBestUtil = u;
+    }
+    if (patBestUtil > bestUtil) { bestUtil = patBestUtil; bestPat = pat; }
   }
   return bestPat;
 }
 
 // Choose the best category to score in with the final dice
-function chooseBestCategory(vals, p2scores) {
+function chooseBestCategory(vals, p2scores, weightFn) {
   const isBonusTurn = isFullStack(vals) && G.scores.p2[11] !== null;
   const allowedCats = isBonusTurn ? jokerAllowedCats('p2', vals) : null;
   let bestCat = -1, bestUtil = -Infinity;
@@ -1185,7 +1359,8 @@ function chooseBestCategory(vals, p2scores) {
     if (p2scores[c] !== null) continue;
     if (allowedCats && !allowedCats.has(c)) continue;
     const sc = isBonusTurn ? jokerScore(c, vals) : calcScore(c, vals);
-    const u = catUtility(c, sc, p2scores);
+    let u = catUtility(c, sc, p2scores);
+    if (weightFn) u *= (weightFn(c) || 1.0);
     if (u > bestUtil) { bestUtil = u; bestCat = c; }
   }
   return bestCat;
@@ -1209,7 +1384,7 @@ function runComputerTurn() {
   ch = [false,false,false,false,false];
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
-  const bc = chooseBestCategory(cd, G.scores.p2);
+  const bc = chooseBestCategory(cd, G.scores.p2, null);
   if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
   applyComputerResult(cd, ch, steps);
 }
@@ -1252,7 +1427,7 @@ function computeMediumMoves() {
   }
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
-  const bc = chooseBestCategory(cd, G.scores.p2);
+  const bc = chooseBestCategory(cd, G.scores.p2, null);
   if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
   return { steps, finalDice: cd };
 }
@@ -1272,7 +1447,7 @@ function computeHardMoves() {
 
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
-  const bc = chooseBestCategory(cd, G.scores.p2);
+  const bc = chooseBestCategory(cd, G.scores.p2, null);
   if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
   return { steps, finalDice: cd };
 }
@@ -1294,7 +1469,7 @@ function computeAdaptiveMoves() {
 
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
-  const bc = chooseBestCategory(cd, G.scores.p2);
+  const bc = chooseBestCategory(cd, G.scores.p2, weightFn);
   if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
   return { steps, finalDice: cd };
 }
@@ -1926,46 +2101,86 @@ function estimateCeiling(catStats, bonusRate) {
 }
 
 function adaptiveWeights() {
-  if (!gameHistory.length) return null;
+  // Shark always has base weights even without history
   const weights = {};
   CAT_NAMES.forEach((_,i) => { weights[i] = 1.0; });
 
-  // Base Shark weights: hunt FullStack, protect high-value lower cats
-  weights[11] = 1.7;  // FullStack: hunt it hard
-  weights[10] = 1.2;  // Large straight
-  weights[7]  = 1.3;  // 4 of a kind
-  weights[4]  = 1.25; // Fives
-  weights[5]  = 1.25; // Sixes
+  // Base Shark weights: hunt FullStack and high-value lower cats aggressively
+  weights[11] = 1.8;  // FullStack: hunt hard — 50 pts + bonus potential
+  weights[10] = 1.25; // Large straight: reliable 40
+  weights[7]  = 1.35; // 4 of a kind: strong sum value
+  weights[5]  = 1.3;  // Sixes: highest upper contribution
+  weights[4]  = 1.2;  // Fives
   weights[3]  = 1.1;  // Fours
+  weights[8]  = 1.1;  // Full house: solid 25
+  weights[9]  = 1.05; // Sm straight: reliable 30
+  // Penalise waste categories slightly so AI avoids dumping into them early
+  weights[0]  = 0.85; // Aces: lowest upper value
+  weights[1]  = 0.9;  // Twos
 
-  // Factor in player-specific weaknesses from history
-  const insights = buildInsights();
-  insights.forEach(ins => {
-    if (ins.rule === 'upper_priority') {
-      weights[3] *= 1.2; weights[4] *= 1.2; weights[5] *= 1.2;
-    }
-    if (ins.rule === 'fs_aggression') weights[11] *= 1.35;
-    if (ins.rule === 'upper_strong') {
-      weights[6] *= 1.2; weights[7] *= 1.2; weights[8] *= 1.1;
-    }
-  });
+  // Factor in player strengths from history — compete against them, don't copy them
+  if (gameHistory.length) {
+    const insights = buildInsights();
+    insights.forEach(ins => {
+      if (ins.rule === 'upper_priority') {
+        // Player is strong in upper — computer counters by being even more aggressive
+        // in lower-section big scores to outscore them where it matters
+        weights[7]  *= 1.25; // 4oak: high sum beats upper bonus
+        weights[10] *= 1.2;  // Lg straight
+        weights[11] *= 1.2;  // FullStack
+      }
+      if (ins.rule === 'fs_aggression') {
+        // Player hunts FullStack — computer competes directly
+        weights[11] *= 1.4;
+        weights[7]  *= 1.2; // also chase 4oak as a fallback
+      }
+      if (ins.rule === 'upper_strong') {
+        // Player consistently gets upper bonus — computer needs lower section dominance
+        weights[6]  *= 1.2;  // 3oak: reliable points
+        weights[7]  *= 1.3;  // 4oak: big swing
+        weights[10] *= 1.15; // Lg straight
+      }
+    });
+  }
 
-  // Opponent-awareness: if computer is currently BEHIND, get riskier — chase big cats
+  // Opponent-awareness: dynamic adjustment based on current score gap
   if (G) {
-    const compScore = G.scores.p2.reduce((a,b) => a + (b||0), 0) + G.fsBonus.p2;
+    const compScore  = G.scores.p2.reduce((a,b) => a + (b||0), 0) + G.fsBonus.p2;
     const humanScore = G.scores.p1.reduce((a,b) => a + (b||0), 0) + G.fsBonus.p1;
-    const gap = humanScore - compScore;
+    const gap = humanScore - compScore; // positive = computer is behind
     const slotsLeft = G.scores.p2.filter(v => v === null).length;
-    if (gap > 40 && slotsLeft <= 6) {
-      // Behind and running out of turns — go big or go home
-      weights[11] *= 1.5; // FullStack is the Hail Mary
-      weights[10] *= 1.3; // Large straight is high value
-      weights[7]  *= 1.3; // 4oak
-    } else if (gap < -30 && slotsLeft <= 6) {
-      // Comfortably ahead — play it safe, lock in sure points
-      weights[8]  *= 1.2; // Full house: reliable 25
-      weights[9]  *= 1.2; // Sm straight: reliable 30
-      weights[12] *= 1.1; // Chance: safe dump
+
+    if (gap > 60 && slotsLeft <= 5) {
+      // Desperate — only big swings can win; go all-in on high-variance cats
+      weights[11] *= 1.8; // FullStack Hail Mary
+      weights[10] *= 1.5; // Lg Straight
+      weights[7]  *= 1.4; // 4oak
+      weights[8]  *= 0.8; // FH too safe, not enough upside
+      weights[12] *= 0.7; // Chance: avoid — too little ceiling
+    } else if (gap > 25 && slotsLeft <= 8) {
+      // Behind but recoverable — prioritise high-value cats
+      weights[11] *= 1.4;
+      weights[10] *= 1.2;
+      weights[7]  *= 1.2;
+    } else if (gap < -35 && slotsLeft <= 6) {
+      // Comfortably ahead — lock in reliable points, avoid blowups
+      weights[8]  *= 1.25; // Full house: safe 25
+      weights[9]  *= 1.2;  // Sm straight: safe 30
+      weights[6]  *= 1.15; // 3oak: safe sum
+      weights[12] *= 1.1;  // Chance: safe dump
+      weights[11] *= 0.85; // Don't waste turns chasing FS when ahead
+    }
+
+    // Upper bonus tracking: if the computer is on pace for +35, protect that
+    const upperScored = G.scores.p2.slice(0,6).reduce((a,b) => a+(b||0), 0);
+    const upperOpen   = G.scores.p2.slice(0,6).filter(v => v === null).length;
+    const paceNeeded  = 63 - upperScored;
+    const idealPerSlot = upperOpen > 0 ? paceNeeded / upperOpen : 0;
+    if (upperOpen > 0 && upperScored < 63 && idealPerSlot <= 14) {
+      // Still on bonus pace — reward upper cats that keep us there
+      for (let i = 0; i <= 5; i++) {
+        if (G.scores.p2[i] === null) weights[i] *= 1.15;
+      }
     }
   }
 
