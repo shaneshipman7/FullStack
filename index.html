@@ -769,7 +769,7 @@ function doRoll() {
 
     const p = G.turn;
     const isFS = isFullStack(G.dice);
-    const isBonusTurn = isFS && G.scores[p][11] !== null;
+    const isBonusTurn = isFS && G.scores[p][11] !== null && G.scores[p][11] > 0;
     if (isBonusTurn) {
       G.fsBonus[p] += 100;
       updateScorecard();
