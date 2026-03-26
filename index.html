@@ -404,7 +404,7 @@ tr.fs-bonus td { color:var(--p1); }
   <div style="max-width:380px;margin:0 auto;">
     <div class="card" style="border-color:rgba(232,255,71,0.3);">
       <h2 class="c1">vs Computer</h2>
-      <input type="text" id="nameComp" placeholder="Your name" maxlength="16" value="Player 1" onfocus="this.select()">
+      <input type="text" id="nameComp" placeholder="Your name" maxlength="16" value="" onfocus="this.select()">
       <div style="margin-bottom:10px;">
         <label style="font-size:0.72em;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">AI Difficulty</label>
         <div style="display:flex;gap:6px;">
@@ -588,7 +588,8 @@ let pendingCat = null;
 let currentGameMoves = [];
 let aiDifficulty = 'easy';
 try { const sd = localStorage.getItem('fs_difficulty'); if (sd) aiDifficulty = sd; } catch(e) {}
-let watchComp = false;
+let watchComp = true;
+try { const sw = localStorage.getItem('fs_watchcomp'); if (sw !== null) watchComp = sw === 'true'; } catch(e) {}
 
 function toggleWatchComp() {
   watchComp = !watchComp;
@@ -596,6 +597,7 @@ function toggleWatchComp() {
   const knob = document.getElementById('watchCompKnob');
   slider.style.background = watchComp ? 'var(--p1)' : '#333';
   knob.style.transform = watchComp ? 'translateX(18px)' : 'translateX(0)';
+  try { localStorage.setItem('fs_watchcomp', watchComp); } catch(e) {}
 }
 
 function freshGame(p1, p2) {
@@ -640,6 +642,7 @@ function startPassPlay() {
 
 function startVsComp() {
   const p1 = document.getElementById('nameComp').value.trim() || 'Player 1';
+  try { localStorage.setItem('fs_playername', p1); } catch(e) {}
   mode = 'vscomp';
   G = freshGame(p1, 'Computer');
   G.difficulty = aiDifficulty;
@@ -1545,6 +1548,22 @@ initDiceListeners();
     btn.classList.add('active');
     const descEl = document.getElementById('diff-desc');
     if (descEl && typeof DIFF_DESCS !== 'undefined') descEl.textContent = DIFF_DESCS[aiDifficulty];
+  }
+
+  // Restore saved player name
+  try {
+    const savedName = localStorage.getItem('fs_playername');
+    if (savedName) {
+      document.getElementById('nameComp').value = savedName;
+    }
+  } catch(e) {}
+
+  // Restore watchComp toggle visual state
+  const slider = document.getElementById('watchCompSlider');
+  const knob = document.getElementById('watchCompKnob');
+  if (slider && knob) {
+    slider.style.background = watchComp ? 'var(--p1)' : '#333';
+    knob.style.transform = watchComp ? 'translateX(18px)' : 'translateX(0)';
   }
 })();
 </script>
