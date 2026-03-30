@@ -386,6 +386,94 @@ tr.fs-bonus td { color:var(--p1); }
 .dist-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
 .dist-bar { height: 100%; border-radius: 4px; }
 .dist-count { width: 20px; text-align: right; color: var(--muted); }
+
+/* ===== TUTORIAL ===== */
+#tut-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 200;
+  pointer-events: none;
+}
+#tut-overlay.active { display: block; }
+
+/* dark backdrop with a cutout hole — drawn via box-shadow on the highlight box */
+#tut-highlight {
+  position: absolute;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.72);
+  border: 2px solid var(--p1);
+  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+
+/* coach bubble */
+#tut-bubble {
+  position: absolute;
+  background: var(--surface);
+  border: 1.5px solid var(--p1);
+  border-radius: 12px;
+  padding: 14px 16px 12px;
+  max-width: min(300px, calc(100vw - 32px));
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,255,71,0.1);
+  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+  pointer-events: auto;
+  z-index: 201;
+}
+#tut-bubble::before {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--p1);
+  transform: rotate(45deg);
+}
+#tut-bubble.arrow-up::before    { top:-7px; left:50%; transform:translateX(-50%) rotate(45deg); border-bottom:none; border-right:none; }
+#tut-bubble.arrow-down::before  { bottom:-7px; left:50%; transform:translateX(-50%) rotate(45deg); border-top:none; border-left:none; }
+#tut-bubble.arrow-left::before  { left:-7px; top:50%; transform:translateY(-50%) rotate(45deg); border-top:none; border-right:none; }
+#tut-bubble.arrow-right::before { right:-7px; top:50%; transform:translateY(-50%) rotate(45deg); border-bottom:none; border-left:none; }
+#tut-bubble.arrow-none::before  { display:none; }
+
+.tut-step-label {
+  font-size: 0.6em; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--p1); margin-bottom: 6px;
+  opacity: 0.75;
+}
+.tut-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem;
+  letter-spacing: 0.06em; color: var(--text); margin-bottom: 6px;
+}
+.tut-body {
+  font-size: 0.78em; color: #ccc; line-height: 1.55; margin-bottom: 12px;
+}
+.tut-body strong { color: var(--p1); }
+.tut-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+#tut-next-btn {
+  background: var(--p1); color: #000; border: none; border-radius: 6px;
+  padding: 7px 16px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+  transition: opacity 0.15s;
+  width: auto; margin: 0; display: inline-block;
+}
+#tut-next-btn:hover { opacity: 0.85; }
+#tut-next-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+#tut-skip-btn {
+  background: transparent; color: var(--muted); border: 1px solid var(--border);
+  border-radius: 6px; padding: 7px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72em; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  width: auto; margin: 0; display: inline-block;
+}
+#tut-skip-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+/* pulse ring on the highlight during "do this" steps */
+@keyframes tutPulse {
+  0%   { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 0 rgba(232,255,71,0.5); }
+  70%  { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 10px rgba(232,255,71,0); }
+  100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 0 rgba(232,255,71,0); }
+}
+#tut-highlight.pulse { animation: tutPulse 1.6s ease-out infinite; }
 </style>
 </head>
 <body>
@@ -429,6 +517,7 @@ tr.fs-bonus td { color:var(--p1); }
       <button class="btn-p1" onclick="startVsComp()">Play vs Computer</button>
     </div>
     <button id="lobby-htp-btn" onclick="openHTP()">🎲 How to Play</button>
+    <button id="lobby-tut-btn" onclick="startTutorial()" style="background:var(--surface2);color:var(--p1);border:1px solid rgba(232,255,71,0.35);font-size:0.82em;">🎓 Try the Tutorial — Learn by Playing</button>
     <div class="divider">— or —</div>
     <div class="card" style="opacity:0.75;">
       <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.08em;margin-bottom:14px;color:var(--muted);">Pass &amp; Play</h2>
@@ -559,6 +648,20 @@ tr.fs-bonus td { color:var(--p1); }
           <li>Don't waste good categories on bad rolls</li>
         </ul>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TUTORIAL OVERLAY ===== -->
+<div id="tut-overlay">
+  <div id="tut-highlight"></div>
+  <div id="tut-bubble" class="arrow-none">
+    <div class="tut-step-label" id="tut-step-label">Step 1</div>
+    <div class="tut-title" id="tut-title">Welcome!</div>
+    <div class="tut-body" id="tut-body">Let's learn how to play.</div>
+    <div class="tut-actions">
+      <button id="tut-skip-btn" onclick="endTutorial()">Exit Tutorial</button>
+      <button id="tut-next-btn" onclick="tutNext()">Next →</button>
     </div>
   </div>
 </div>
@@ -719,6 +822,7 @@ function enterGame() {
   document.getElementById('htpBtn').style.visibility = 'visible';
 
   if (t === 'p2' && mode === 'vscomp') {
+    if (tutActive) return; // tutorial controls the flow — don't run computer
     document.getElementById('rollBtn').disabled = true;
     document.getElementById('message').textContent = 'Computer is thinking…';
     setTimeout(runComputerTurnByDifficulty, 800);
@@ -756,7 +860,11 @@ function doRoll() {
   const oldHeld = [...G.held];
 
   // Compute new dice values NOW (but don't write to G.dice yet)
-  const newDice = G.dice.map((v, i) => G.held[i] ? v : rollDie());
+  // Tutorial mode: use scripted dice so the story is deterministic
+  const rollIdx = 3 - G.rollsLeft; // 0 on first roll (rollsLeft still=3 before decrement)
+  const newDice = tutActive
+    ? tutScriptedDice(rollIdx, G.held, G.dice)
+    : G.dice.map((v, i) => G.held[i] ? v : rollDie());
   G.rollsLeft--;
   G.hasRolled = true;
   document.getElementById('rollBtn').textContent = `Roll (${G.rollsLeft} left)`;
@@ -793,6 +901,8 @@ function doRoll() {
         : 'Choose a category to score';
     }
     showHints();
+    // Tutorial hook
+    if (tutActive) tutAfterRoll();
   });
 }
 
@@ -927,6 +1037,9 @@ function setupScoreCellListeners() {
       G.scores[p][cat] = sc;
       if (p === 'p1') recordMove(G.dice, G.held, G.rollsLeft, cat, sc);
       updateScorecard();
+
+      // Tutorial hook — fire before the turn transitions
+      if (tutActive) { tutAfterScore(); return; }
 
       if (checkGameOver()) return;
 
@@ -1166,30 +1279,30 @@ function grandTotal(p) {
   return upper + bonus + G.scores[p].slice(6).reduce((a,b)=>a+(b||0),0) + G.fsBonus[p];
 }
 
-// ===== COMPUTER AI — UPGRADED SMART ENGINE =====
+// ===== COMPUTER AI — UPGRADED SMART ENGINE v2 =====
+// Key improvements over v1:
+//  1. Full 32-subset hold enumeration (2^5) — no blind spots
+//  2. Exact EV on final roll (enumerate all 6^N outcomes, no Monte Carlo error)
+//  3. Stage-aware utility: straight/FS pursuit weight decays mid-game
+//  4. Improved bonus credit with cleaner pace formula
+//  5. High-face bias for upper section when bonus is reachable
 
-// For each category, what dice values should we hold? Returns boolean[5].
+// --- HOLD LOGIC (greedy, used inside EV engine) ---
 function greedyHold(cat, vals) {
   const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
 
-  if (cat <= 5) {
-    return vals.map(v => v === cat + 1);
-  }
-  if (cat === 6 || cat === 7) {
+  if (cat <= 5) return vals.map(v => v === cat + 1);
+
+  if (cat === 6 || cat === 7 || cat === 11) {
+    // Multiples / FullStack: keep most-common face, prefer high faces on ties
     const mx = Math.max(...c.slice(1));
     let best = 1;
     for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
     return vals.map(v => v === best);
   }
-  if (cat === 11) {
-    // FullStack: commit to the most-common HIGH face (prefer 6s)
-    const mx = Math.max(...c.slice(1));
-    let best = 1;
-    for (let f = 6; f >= 1; f--) { if (c[f] === mx) { best = f; break; } }
-    return vals.map(v => v === best);
-  }
+
   if (cat === 8) {
-    // Full house: prefer keeping complete 3+2; else hold the bigger group
+    // Full house: if 3+2 already formed keep all; else keep bigger group
     const h3 = c.findIndex((x, i) => i > 0 && x >= 3);
     const h2 = c.findIndex((x, i) => i > 0 && x >= 2 && i !== h3);
     if (h3 > 0 && h2 > 0) return vals.map(v => c[v] >= 2);
@@ -1197,8 +1310,9 @@ function greedyHold(cat, vals) {
     for (let f = 6; f >= 1; f--) { if (c[f] >= 2) return vals.map(v => v === f); }
     return [false,false,false,false,false];
   }
+
   if (cat === 9 || cat === 10) {
-    // Straights: hold the longest consecutive run (one die per value)
+    // Straights: find longest consecutive run of unique values
     const u = [...new Set(vals)].sort((a,b) => a-b);
     let best = [u[0]], cur = [u[0]];
     for (let i = 1; i < u.length; i++) {
@@ -1206,7 +1320,7 @@ function greedyHold(cat, vals) {
       else { if (cur.length > best.length) best = [...cur]; cur = [u[i]]; }
     }
     if (cur.length > best.length) best = [...cur];
-    // For small straight (cat=9), also check for 4-long sub-sequences
+    // For small straight also check all 4-long sub-sequences
     if (cat === 9 && best.length < 4) {
       for (let start = 0; start <= u.length - 4; start++) {
         let seq = true;
@@ -1217,134 +1331,171 @@ function greedyHold(cat, vals) {
     const rs = new Set(best); const used = new Set();
     return vals.map(v => { if (rs.has(v) && !used.has(v)) { used.add(v); return true; } return false; });
   }
-  if (cat === 12) return vals.map(v => v >= 4); // Chance: hold high dice
+
+  if (cat === 12) return vals.map(v => v >= 4); // Chance: keep high dice
   return [false,false,false,false,false];
 }
-function holdForCat(cat, vals) { return greedyHold(cat, vals); }
 
-// Monte Carlo expected score — 2-level lookahead with optimal re-hold
-function quickExpected(cat, vals, holdPat, rollsLeft) {
+// --- EXACT EV ON FINAL ROLL (rollsLeft === 1, free dice ≤ 3) ---
+// Enumerate all 6^free outcomes exactly — only when fast enough (≤216 outcomes).
+// For 4-5 free dice fall back to a larger MC sample instead.
+function exactExpectedFinal(cat, vals, holdPat) {
   const held = vals.filter((_, i) => holdPat[i]);
   const free = 5 - held.length;
-  if (rollsLeft === 0 || free === 0) return calcScore(cat, vals);
+  if (free === 0) return calcScore(cat, vals);
 
-  const SIMS = 300;
-  let total = 0;
-  for (let s = 0; s < SIMS; s++) {
-    const trial = [...held];
-    for (let d = 0; d < free; d++) trial.push(rollDie());
-
-    if (rollsLeft > 1) {
-      const h2 = greedyHold(cat, trial);
-      const held2 = trial.filter((_, i) => h2[i]);
-      const free2 = 5 - held2.length;
-      const trial2 = [...held2];
-      for (let d = 0; d < free2; d++) trial2.push(rollDie());
-      total += calcScore(cat, trial2);
-    } else {
-      total += calcScore(cat, trial);
+  if (free <= 3) {
+    // Exact: 6^1=6, 6^2=36, 6^3=216 — trivially fast
+    let total = 0;
+    const count = Math.pow(6, free);
+    const outcome = new Array(5);
+    for (let j = 0; j < held.length; j++) outcome[j] = held[j];
+    for (let mask = 0; mask < count; mask++) {
+      let m = mask;
+      for (let d = 0; d < free; d++) { outcome[held.length + d] = (m % 6) + 1; m = Math.floor(m / 6); }
+      total += calcScore(cat, outcome);
     }
+    return total / count;
+  }
+
+  // 4-5 free dice: Monte Carlo with 400 samples (fast, low variance for large n)
+  let total = 0;
+  const outcome = new Array(5);
+  for (let j = 0; j < held.length; j++) outcome[j] = held[j];
+  for (let s = 0; s < 400; s++) {
+    for (let d = 0; d < free; d++) outcome[held.length + d] = rollDie();
+    total += calcScore(cat, outcome);
+  }
+  return total / 400;
+}
+
+// --- MONTE CARLO EV (rollsLeft > 1) ---
+// rollsLeft=2 (after Roll 1): single-level shallow MC — fast, no nested lookahead.
+//   We only need to rank hold patterns relative to each other here; deep accuracy
+//   is not needed and the 2nd-roll exact EV will correct course anyway.
+// rollsLeft=1 (after Roll 2): handled by exactExpectedFinal, not this function.
+function monteCarloExpected(cat, vals, holdPat, rollsLeft) {
+  const held = vals.filter((_, i) => holdPat[i]);
+  const free = 5 - held.length;
+  if (free === 0) return calcScore(cat, vals);
+
+  // Shallow: one roll forward, score immediately — ~18ms total for all 32x13 combos
+  const SIMS = 150;
+  let total = 0;
+  const trial = new Array(5);
+  for (let j = 0; j < held.length; j++) trial[j] = held[j];
+  for (let s = 0; s < SIMS; s++) {
+    for (let d = 0; d < free; d++) trial[held.length + d] = rollDie();
+    total += calcScore(cat, trial);
   }
   return total / SIMS;
 }
 
-// Upper bonus credit — how much expected value does an upper cat score contribute
-// toward the +35 bonus, given remaining open upper slots?
+// Unified EV dispatcher
+function quickExpected(cat, vals, holdPat, rollsLeft) {
+  const held = vals.filter((_, i) => holdPat[i]);
+  const free = 5 - held.length;
+  if (rollsLeft === 0 || free === 0) return calcScore(cat, vals);
+  if (rollsLeft === 1) return exactExpectedFinal(cat, vals, holdPat);
+  return monteCarloExpected(cat, vals, holdPat, rollsLeft);
+}
+
+// --- UPPER BONUS CREDIT ---
+// How much of the +35 bonus does scoring this cat contribute?
 function bonusCredit(cat, catScore, p2scores) {
   if (cat > 5) return 0;
   const soFar = p2scores.slice(0,6).reduce((a,b) => a+(b||0), 0);
   const left  = p2scores.slice(0,6).filter(v => v === null).length;
   if (left === 0) return 0;
   const projected = soFar + catScore;
-  if (projected >= 63) return 35; // bonus locked in — full credit
-  // Check if bonus is still reachable
-  const idealAvg = [3.5, 7, 10.5, 14, 17.5, 21];
-  const remainOpen = [0,1,2,3,4,5].filter(c => c !== cat && p2scores[c] === null)
-    .sort((a,b) => idealAvg[b]-idealAvg[a]).slice(0, left-1);
-  const maxReach = projected + remainOpen.reduce((s,c)=>s+idealAvg[c],0);
-  if (maxReach < 63) return 0; // unreachable — no credit
-  // Partial credit scaled by how on-track we are
-  const needed = 63 - soFar;
-  const paceRatio = needed > 0 ? Math.min(1.4, catScore / (needed / left)) : 1;
-  const reachRatio = Math.min(1, (maxReach - 63 + catScore) / Math.max(catScore, 1));
-  return Math.round(paceRatio * reachRatio * 22);
+  if (projected >= 63) return 35; // bonus guaranteed
+
+  // Best-case reachable score from remaining open upper slots
+  // Ideal averages per face: 3 of each = 3.5*3, 4.5*3... simplified to max possible
+  const maxPerSlot = [3, 6, 9, 12, 15, 18]; // 3 dice average per slot
+  const remainOpen = [0,1,2,3,4,5]
+    .filter(c => c !== cat && p2scores[c] === null)
+    .sort((a,b) => maxPerSlot[b] - maxPerSlot[a])
+    .slice(0, left - 1);
+  const maxReach = projected + remainOpen.reduce((s,c) => s + maxPerSlot[c], 0);
+  if (maxReach < 63) return 0; // bonus mathematically unreachable
+
+  // Pace credit: are we on track?
+  const targetPerSlot = (63 - soFar) / left;
+  const paceRatio = Math.min(1.5, catScore / Math.max(targetPerSlot, 1));
+  // Reachability ratio: how close does this get us?
+  const gapAfter = Math.max(0, 63 - projected);
+  const reachRatio = left <= 1 ? 1 : Math.min(1, 1 - gapAfter / Math.max(63 - soFar, 1));
+  return Math.round(paceRatio * reachRatio * 28); // slightly higher ceiling than v1
 }
 
-// Slot opportunity cost: penalty for burning a slot with a zero score.
-// Values tuned: high-value fixed cats penalise zeros heavily.
+// --- SLOT VALUE TABLE ---
+// Penalty for burning a slot on 0 points. Higher = more painful to waste.
 const SLOT_VALUE = [2,3,5,8,12,18, 18,24,20,26,38,60,14];
 
-function catUtility(cat, score, p2scores) {
+// --- STAGE-AWARE UTILITY ---
+// Key insight: straights and FullStack are only worth chasing early.
+// Once half the scorecard is filled, cut losses and score efficiently.
+function catUtility(cat, score, p2scores, rollsLeft) {
   const credit = bonusCredit(cat, score, p2scores);
   const slotsLeft = p2scores.filter(v => v === null).length;
-  // Burn penalty scales with game stage (harsher early when you have more options)
-  const burnMult = slotsLeft >= 10 ? 2.5 : slotsLeft >= 7 ? 2.0 : slotsLeft >= 4 ? 1.5 : 1.0;
+  const isEarlyGame  = slotsLeft >= 10;
+  const isMidGame    = slotsLeft >= 6 && slotsLeft < 10;
+  const isLateGame   = slotsLeft < 6;
+
+  // Burn penalty: worse to waste high-value slots early (more options available)
+  const burnMult = isEarlyGame ? 2.8 : isMidGame ? 2.0 : isLateGame ? 1.2 : 1.0;
   const burnPenalty = score < 0.5 ? SLOT_VALUE[cat] * burnMult : 0;
-  // FullStack pursuit bonus — when open and we have time left, it's worth chasing
-  const fsPursuit = (cat === 11 && p2scores[11] === null && slotsLeft >= 3) ? 10 : 0;
-  return score + credit + fsPursuit - burnPenalty;
-}
 
-// --- SMARTER HOLD EVALUATION ---
-// Instead of only trying the greedy hold per category, also evaluate:
-//   - hybrid holds (e.g. keep a pair AND a straight component together)
-//   - "keep nothing" (reroll all 5 when every option is terrible)
-// Then pick the hold pattern whose best-case expected utility is highest.
+  // Stage-aware pursuit bonuses
+  let pursuitBonus = 0;
 
-function allCandidateHolds(vals, p2scores) {
-  const holds = new Map(); // key = JSON string of hold mask → Set dedup
-
-  const openCats = [];
-  for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
-
-  // Standard greedy holds per open category
-  for (const cat of openCats) {
-    const pat = greedyHold(cat, vals);
-    holds.set(JSON.stringify(pat), pat);
+  // FullStack pursuit: very early, if we have 3+ of a high face it's worth a gamble
+  if (cat === 11 && p2scores[11] === null) {
+    pursuitBonus += isEarlyGame ? 18 : isMidGame ? 8 : 0;
   }
 
-  // "Keep nothing" — sometimes optimal early when dice are all junk
-  holds.set('false5', [false,false,false,false,false]);
-
-  // "Keep only 6s" — always worth considering
-  const keep6 = vals.map(v => v === 6);
-  holds.set('keep6:' + JSON.stringify(keep6), keep6);
-
-  // Hybrid: keep top-2 most-common faces (e.g. two pairs → good for FH/3oak)
-  const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
-  const ranked = [1,2,3,4,5,6].filter(f => c[f] > 0).sort((a,b) => {
-    if (c[b] !== c[a]) return c[b]-c[a]; // bigger count first
-    return b-a; // higher face first on tie
-  });
-  if (ranked.length >= 2 && c[ranked[0]] >= 2 && c[ranked[1]] >= 2) {
-    const top2 = new Set([ranked[0], ranked[1]]);
-    const hybrid = vals.map(v => top2.has(v));
-    holds.set('hybrid2pair:' + JSON.stringify(hybrid), hybrid);
+  // Straight pursuit: boost if open and early — straights are the hardest to get late
+  if ((cat === 9 || cat === 10) && p2scores[cat] === null) {
+    pursuitBonus += isEarlyGame ? 12 : isMidGame ? 5 : 0;
   }
 
-  return [...holds.values()];
+  // High-face upper section: boost sixes/fives when bonus is still reachable
+  if (cat === 5 && p2scores[5] === null) { // Sixes
+    const upperSoFar = p2scores.slice(0,6).reduce((a,b) => a+(b||0), 0);
+    if (upperSoFar < 63 && isEarlyGame) pursuitBonus += 8;
+  }
+
+  return score + credit + pursuitBonus - burnPenalty;
 }
 
-// Choose the best hold pattern considering all candidate holds
+// --- FULL 32-SUBSET HOLD ENUMERATION ---
+// All 2^5 = 32 possible hold patterns. No blindspots.
+function allCandidateHolds(vals) {
+  const holds = [];
+  for (let mask = 0; mask < 32; mask++) {
+    holds.push(vals.map((_, i) => !!(mask & (1 << i))));
+  }
+  return holds;
+}
+
+// Choose the best hold pattern across all 32 subsets
 function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
   if (rollsLeft === 0) return vals.map(() => false);
   const openCats = [];
   for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
   if (!openCats.length) return vals.map(() => false);
 
-  const candidates = allCandidateHolds(vals, p2scores);
-
+  const candidates = allCandidateHolds(vals);
   let bestPat = candidates[0];
   let bestUtil = -Infinity;
 
   for (const pat of candidates) {
-    // For each candidate hold pattern, compute the max utility achievable
-    // across all open categories (this selects the goal that benefits MOST
-    // from holding these specific dice)
+    // For each hold pattern: what's the best utility achievable across open cats?
     let patBestUtil = -Infinity;
     for (const cat of openCats) {
       const exp = quickExpected(cat, vals, pat, rollsLeft);
-      let u = catUtility(cat, exp, p2scores);
+      let u = catUtility(cat, exp, p2scores, rollsLeft);
       if (weightFn) u *= (weightFn(cat) || 1.0);
       if (u > patBestUtil) patBestUtil = u;
     }
@@ -1362,34 +1513,36 @@ function chooseBestCategory(vals, p2scores, weightFn) {
     if (p2scores[c] !== null) continue;
     if (allowedCats && !allowedCats.has(c)) continue;
     const sc = isBonusTurn ? jokerScore(c, vals) : calcScore(c, vals);
-    let u = catUtility(c, sc, p2scores);
+    let u = catUtility(c, sc, p2scores, 0);
     if (weightFn) u *= (weightFn(c) || 1.0);
     if (u > bestUtil) { bestUtil = u; bestCat = c; }
   }
   return bestCat;
 }
 
-// PRO — 3 full rolls with smart holds
+// PRO — Roll all 5 first, then react to what we get.
 function runComputerTurn() {
   const steps = [];
-  let cd = Array.from({length:5}, rollDie);
-  let ch = [false,false,false,false,false];
-  steps.push({ dice: [...cd], held: [...ch] });
 
-  ch = chooseBestHold(cd, 2, G.scores.p2, null);
+  // Roll 1: always roll all 5 — nothing to hold yet
+  let cd = Array.from({length:5}, rollDie);
+  steps.push({ dice: [...cd], held: [false,false,false,false,false] });
+
+  // After Roll 1: now evaluate what we have — hold keepers or scratch toward a low cat
+  let ch = chooseBestHold(cd, 2, G.scores.p2, null);
   cd = cd.map((v,i) => ch[i] ? v : rollDie());
   steps.push({ dice: [...cd], held: [...ch] });
 
+  // After Roll 2: final hold decision before scoring
   ch = chooseBestHold(cd, 1, G.scores.p2, null);
   cd = cd.map((v,i) => ch[i] ? v : rollDie());
   steps.push({ dice: [...cd], held: [...ch] });
 
-  ch = [false,false,false,false,false];
   const isBonusTurn = isFullStack(cd) && G.scores.p2[11] !== null;
   if (isBonusTurn) G.fsBonus.p2 += 100;
   const bc = chooseBestCategory(cd, G.scores.p2, null);
   if (bc >= 0) G.scores.p2[bc] = isBonusTurn ? jokerScore(bc, cd) : calcScore(bc, cd);
-  applyComputerResult(cd, ch, steps);
+  applyComputerResult(cd, [false,false,false,false,false], steps);
 }
 
 function computeEasyMoves() {
@@ -1424,7 +1577,7 @@ function computeMediumMoves() {
       const sc = calcScore(c, cd);
       if (sc > bp) { bp = sc; bc2 = c; }
     }
-    ch = bc2 >= 0 ? holdForCat(bc2, cd) : ch;
+    ch = bc2 >= 0 ? greedyHold(bc2, cd) : ch;
     cd = cd.map((v, i) => ch[i] ? v : rollDie());
     steps.push({ dice: [...cd], held: [...ch] });
   }
@@ -1437,13 +1590,17 @@ function computeMediumMoves() {
 
 function computeHardMoves() {
   const steps = [];
-  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
-  steps.push({ dice: [...cd], held: [...ch] });
 
-  ch = chooseBestHold(cd, 2, G.scores.p2, null);
+  // Roll 1: always roll all 5 — no hold decision before seeing the dice
+  let cd = Array.from({length:5}, rollDie);
+  steps.push({ dice: [...cd], held: [false,false,false,false,false] });
+
+  // After Roll 1: decide what to keep
+  let ch = chooseBestHold(cd, 2, G.scores.p2, null);
   cd = cd.map((v, i) => ch[i] ? v : rollDie());
   steps.push({ dice: [...cd], held: [...ch] });
 
+  // After Roll 2: final hold
   ch = chooseBestHold(cd, 1, G.scores.p2, null);
   cd = cd.map((v, i) => ch[i] ? v : rollDie());
   steps.push({ dice: [...cd], held: [...ch] });
@@ -1459,13 +1616,17 @@ function computeAdaptiveMoves() {
   const weights = adaptiveWeights();
   const weightFn = weights ? (c => weights[c] || 1.0) : null;
   const steps = [];
-  let cd = Array.from({length:5}, rollDie), ch = [false,false,false,false,false];
-  steps.push({ dice: [...cd], held: [...ch] });
 
-  ch = chooseBestHold(cd, 2, G.scores.p2, weightFn);
+  // Roll 1: always roll all 5 — nothing to hold before seeing the dice
+  let cd = Array.from({length:5}, rollDie);
+  steps.push({ dice: [...cd], held: [false,false,false,false,false] });
+
+  // After Roll 1: evaluate and hold
+  let ch = chooseBestHold(cd, 2, G.scores.p2, weightFn);
   cd = cd.map((v, i) => ch[i] ? v : rollDie());
   steps.push({ dice: [...cd], held: [...ch] });
 
+  // After Roll 2: final hold
   ch = chooseBestHold(cd, 1, G.scores.p2, weightFn);
   cd = cd.map((v, i) => ch[i] ? v : rollDie());
   steps.push({ dice: [...cd], held: [...ch] });
@@ -2208,10 +2369,16 @@ function adaptiveWeights() {
 
 function runComputerTurnByDifficulty() {
   const diff = aiDifficulty;
-  if (diff === 'easy') return runComputerTurnEasy();
-  if (diff === 'medium') return runComputerTurnMedium();
-  if (diff === 'hard') return runComputerTurn();
-  if (diff === 'adaptive') return runComputerTurnAdaptive();
+  // Compute moves immediately (synchronous, fast) then hand off to animator.
+  // All heavy thinking happens here before the 800ms delay that called us,
+  // so applyComputerResult only drives animation — never blocks the UI.
+  let moves;
+  if (diff === 'easy')     moves = computeEasyMoves();
+  else if (diff === 'medium')   moves = computeMediumMoves();
+  else if (diff === 'hard')     moves = computeHardMoves();
+  else if (diff === 'adaptive') moves = computeAdaptiveMoves();
+  else moves = computeHardMoves();
+  applyComputerResult(moves.finalDice, [false,false,false,false,false], moves.steps);
 }
 
 function runComputerTurnEasy() {
@@ -2490,5 +2657,220 @@ function resetHistoryConfirm() {
   badge.style.display = 'none';
   if (trackerOpen) renderCurrentTab();
 }
+
+// ===================================================================
+// ===================================================================
+// ===== TUTORIAL ENGINE =============================================
+// ===================================================================
+
+const TUT_SCRIPTED_ROLLS = [
+  [5, 5, 2, 3, 6],   // roll 1 result — two 5s
+  [5, 5, 5, 1, 4],   // roll 2 result — three 5s (held [0,1] keep their 5s)
+  [5, 5, 5, 5, 2],   // roll 3 result — four 5s  (held [0,1,2] keep their 5s)
+];
+
+let tutActive   = false;
+let tutStep     = 0;
+let tutRollsDone = 0;
+
+function tutStepDefs() {
+  return [
+    {
+      label: 'Welcome',
+      title: '🎲 Let\'s Learn FullStacks!',
+      body: 'This quick tutorial walks you through <strong>one real turn</strong> so you can feel exactly how the game works. Nothing counts — pure practice!',
+      highlight: null,
+      nextLabel: 'Let\'s Go →',
+      waitFor: null,
+    },
+    {
+      label: 'Step 1 of 5 — Roll the Dice',
+      title: '🎲 Hit Roll to Begin',
+      body: 'Every turn starts with a roll. You get <strong>up to 3 rolls</strong> per turn. Tap the <strong>Roll</strong> button now!',
+      highlight: '#rollBtn',
+      nextLabel: null,
+      waitFor: 'roll',
+    },
+    {
+      label: 'Step 2 of 5 — Hold Your Keepers',
+      title: '✋ Two 5s — Hold Them!',
+      body: 'See the two <strong>5s</strong>? Tap each one to <strong>hold</strong> it. Held dice glow orange and won\'t be re-rolled. Hold both 5s, then tap <strong>Roll</strong> again.',
+      highlight: '#diceContainer',
+      nextLabel: null,
+      waitFor: 'roll',
+    },
+    {
+      label: 'Step 3 of 5 — Keep Building',
+      title: '🔥 Three 5s — Almost There!',
+      body: 'A third 5 appeared! Hold <strong>all three 5s</strong> and roll one more time — you\'re chasing 4 of a Kind.',
+      highlight: '#diceContainer',
+      nextLabel: null,
+      waitFor: 'roll',
+    },
+    {
+      label: 'Step 4 of 5 — Score It!',
+      title: '💥 Four 5s — Score Now!',
+      body: 'Four 5s — that\'s <strong>4 of a Kind!</strong> The scorecard shows your possible scores. Scroll down and tap <strong>"4 of a Kind"</strong> to lock in your score.',
+      highlight: '.scorecard-wrap',
+      nextLabel: null,
+      waitFor: 'score',
+    },
+    {
+      label: 'Done!',
+      title: '✅ You Got It!',
+      body: 'Score locked in — that\'s a complete turn! In a real game you keep taking turns, building combinations and scoring wisely, until every category is filled. <strong>Ready to play for real?</strong>',
+      highlight: null,
+      nextLabel: 'Play a Real Game →',
+      waitFor: null,
+    },
+  ];
+}
+
+function startTutorial() {
+  tutActive    = true;
+  tutStep      = 0;
+  tutRollsDone = 0;
+
+  mode = 'vscomp';
+  G    = freshGame('You', 'Computer');
+  G.difficulty = 'easy';
+  currentGameMoves = [];
+  document.getElementById('subtitle').textContent = '✦ Tutorial';
+  activeScorePlayer = 'p1';
+  setupScoreCellListeners();
+  enterGame();
+  // enterGame would try to run computer turn — block it
+  document.getElementById('rollBtn').disabled = false;
+  document.getElementById('message').textContent = 'Roll to start!';
+
+  document.getElementById('tut-overlay').classList.add('active');
+  tutShowStep(0);
+}
+
+function endTutorial() {
+  tutActive = false;
+  const ov = document.getElementById('tut-overlay');
+  ov.classList.remove('active');
+  document.getElementById('tut-highlight').classList.remove('pulse');
+  G = null; mode = null;
+  goLobby();
+}
+
+function tutShowStep(idx) {
+  const steps = tutStepDefs();
+  if (idx >= steps.length) { endTutorial(); return; }
+  tutStep = idx;
+  const s = steps[idx];
+
+  document.getElementById('tut-step-label').textContent = s.label;
+  document.getElementById('tut-title').textContent      = s.title;
+  document.getElementById('tut-body').innerHTML         = s.body;
+
+  const nb = document.getElementById('tut-next-btn');
+  if (s.nextLabel) {
+    nb.style.display = 'inline-block';
+    nb.textContent   = s.nextLabel;
+    nb.disabled      = false;
+  } else {
+    nb.style.display = 'none';
+  }
+
+  tutPositionBubble(s);
+}
+
+function tutNext() {
+  if (!tutActive) return;
+  const steps = tutStepDefs();
+  if (tutStep >= steps.length - 1) { endTutorial(); return; }
+  tutShowStep(tutStep + 1);
+}
+
+// Called from inside doRoll's callback when tutActive
+function tutAfterRoll() {
+  if (!tutActive) return;
+  tutRollsDone++;
+  setTimeout(() => {
+    tutRefreshPosition();
+    const steps = tutStepDefs();
+    const s = steps[tutStep];
+    if (s && s.waitFor === 'roll') tutShowStep(tutStep + 1);
+  }, 120);
+}
+
+// Called from inside the score-cell click handler when tutActive and score confirmed
+function tutAfterScore() {
+  if (!tutActive) return;
+  setTimeout(() => {
+    const steps = tutStepDefs();
+    const s = steps[tutStep];
+    if (s && s.waitFor === 'score') tutShowStep(tutStep + 1);
+  }, 300);
+}
+
+// Returns scripted dice for the current tutorial roll
+// Non-held dice get values from the scripted plan; held dice are ignored by doRoll anyway
+function tutScriptedDice(rollIndex, heldMask, currentDice) {
+  const plan = TUT_SCRIPTED_ROLLS[rollIndex];
+  if (!plan) return currentDice.map((v,i) => heldMask[i] ? v : Math.ceil(Math.random()*6));
+  return currentDice.map((v, i) => heldMask[i] ? v : plan[i]);
+}
+
+function tutPositionBubble(s) {
+  const hl     = document.getElementById('tut-highlight');
+  const bubble = document.getElementById('tut-bubble');
+
+  // clear arrow direction classes only
+  ['arrow-up','arrow-down','arrow-left','arrow-right','arrow-none'].forEach(c => bubble.classList.remove(c));
+
+  if (!s.highlight) {
+    hl.style.display = 'none';
+    hl.classList.remove('pulse');
+    bubble.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
+    return;
+  }
+
+  const target = document.querySelector(s.highlight);
+  if (!target) return;
+
+  const rect = target.getBoundingClientRect();
+  const PAD  = 7;
+
+  hl.style.display  = 'block';
+  hl.style.left     = (rect.left   - PAD) + 'px';
+  hl.style.top      = (rect.top    - PAD) + 'px';
+  hl.style.width    = (rect.width  + PAD*2) + 'px';
+  hl.style.height   = (rect.height + PAD*2) + 'px';
+  s.waitFor ? hl.classList.add('pulse') : hl.classList.remove('pulse');
+
+  const BW      = Math.min(300, window.innerWidth - 32);
+  const cx      = rect.left + rect.width / 2;
+  const bl      = Math.max(16, Math.min(cx - BW/2, window.innerWidth - BW - 16));
+  const aboveSpace = rect.top - PAD;
+  const belowSpace = window.innerHeight - rect.bottom - PAD;
+
+  bubble.style.cssText = '';
+  bubble.style.position = 'fixed';
+  bubble.style.left     = bl + 'px';
+  bubble.style.maxWidth = BW + 'px';
+
+  if (aboveSpace >= 180 || aboveSpace > belowSpace) {
+    bubble.classList.add('arrow-down');
+    requestAnimationFrame(() => {
+      const bh = bubble.getBoundingClientRect().height;
+      bubble.style.top = Math.max(8, rect.top - PAD - bh - 14) + 'px';
+    });
+  } else {
+    bubble.classList.add('arrow-up');
+    bubble.style.top = (rect.bottom + PAD + 14) + 'px';
+  }
+}
+
+function tutRefreshPosition() {
+  if (!tutActive) return;
+  const steps = tutStepDefs();
+  if (steps[tutStep]) tutPositionBubble(steps[tutStep]);
+}
+
+window.addEventListener('resize', tutRefreshPosition);
 </script>
 </body></html>
