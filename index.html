@@ -1292,69 +1292,26 @@ function catUtility(cat, score, p2scores) {
 }
 
 // --- SMARTER HOLD EVALUATION ---
-// Instead of only trying the greedy hold per category, also evaluate:
-//   - hybrid holds (e.g. keep a pair AND a straight component together)
-//   - "keep nothing" (reroll all 5 when every option is terrible)
-// Then pick the hold pattern whose best-case expected utility is highest.
-
-function allCandidateHolds(vals, p2scores) {
-  const holds = new Map(); // key = JSON string of hold mask → Set dedup
-
-  const openCats = [];
-  for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
-
-  // Standard greedy holds per open category
-  for (const cat of openCats) {
-    const pat = greedyHold(cat, vals);
-    holds.set(JSON.stringify(pat), pat);
-  }
-
-  // "Keep nothing" — sometimes optimal early when dice are all junk
-  holds.set('false5', [false,false,false,false,false]);
-
-  // "Keep only 6s" — always worth considering
-  const keep6 = vals.map(v => v === 6);
-  holds.set('keep6:' + JSON.stringify(keep6), keep6);
-
-  // Hybrid: keep top-2 most-common faces (e.g. two pairs → good for FH/3oak)
-  const c = [0,0,0,0,0,0,0]; vals.forEach(v => c[v]++);
-  const ranked = [1,2,3,4,5,6].filter(f => c[f] > 0).sort((a,b) => {
-    if (c[b] !== c[a]) return c[b]-c[a]; // bigger count first
-    return b-a; // higher face first on tie
-  });
-  if (ranked.length >= 2 && c[ranked[0]] >= 2 && c[ranked[1]] >= 2) {
-    const top2 = new Set([ranked[0], ranked[1]]);
-    const hybrid = vals.map(v => top2.has(v));
-    holds.set('hybrid2pair:' + JSON.stringify(hybrid), hybrid);
-  }
-
-  return [...holds.values()];
-}
-
-// Choose the best hold pattern considering all candidate holds
+// Choose the best hold pattern by evaluating each open category with its own
+// intended hold pattern. This ensures the AI thinks about what's achievable
+// given the actual dice in hand — not just which category sounds most valuable
+// in the abstract. A LgStraight with [1,2,3,4] already held is nearly free;
+// a FullStack with zero matching dice is nearly impossible — this reflects that.
 function chooseBestHold(vals, rollsLeft, p2scores, weightFn) {
   if (rollsLeft === 0) return vals.map(() => false);
   const openCats = [];
   for (let c = 0; c < 13; c++) if (p2scores[c] === null) openCats.push(c);
   if (!openCats.length) return vals.map(() => false);
 
-  const candidates = allCandidateHolds(vals, p2scores);
-
-  let bestPat = candidates[0];
+  let bestPat = [false,false,false,false,false];
   let bestUtil = -Infinity;
 
-  for (const pat of candidates) {
-    // For each candidate hold pattern, compute the max utility achievable
-    // across all open categories (this selects the goal that benefits MOST
-    // from holding these specific dice)
-    let patBestUtil = -Infinity;
-    for (const cat of openCats) {
-      const exp = quickExpected(cat, vals, pat, rollsLeft);
-      let u = catUtility(cat, exp, p2scores);
-      if (weightFn) u *= (weightFn(cat) || 1.0);
-      if (u > patBestUtil) patBestUtil = u;
-    }
-    if (patBestUtil > bestUtil) { bestUtil = patBestUtil; bestPat = pat; }
+  for (const cat of openCats) {
+    const pat = greedyHold(cat, vals);
+    const exp = quickExpected(cat, vals, pat, rollsLeft);
+    let u = catUtility(cat, exp, p2scores);
+    if (weightFn) u *= (weightFn(cat) || 1.0);
+    if (u > bestUtil) { bestUtil = u; bestPat = pat; }
   }
   return bestPat;
 }
